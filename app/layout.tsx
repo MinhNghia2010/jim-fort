@@ -1,15 +1,24 @@
-import { Geist, Geist_Mono, Source_Sans_3 } from "next/font/google"
+import type { Metadata } from "next"
+import { Geist_Mono, Source_Sans_3 } from "next/font/google"
+
+import { cn } from "@/lib/utils"
 
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@/lib/utils";
 
-const sourceSans3 = Source_Sans_3({subsets:['latin'],variable:'--font-sans'})
+const sourceSans3 = Source_Sans_3({
+  subsets: ["latin"],
+  variable: "--font-sans",
+})
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
+
+export const metadata: Metadata = {
+  title: "Jim Fort",
+  description: "Gym management workspace",
+}
 
 export default function RootLayout({
   children,
@@ -20,11 +29,13 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", sourceSans3.variable)}
+      className={cn(
+        "font-sans antialiased",
+        sourceSans3.variable,
+        fontMono.variable
+      )}
     >
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
-      </body>
+      <body>{children}</body>
     </html>
   )
 }
