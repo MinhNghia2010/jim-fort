@@ -1,0 +1,69 @@
+Owner:
+- /overview
+- /revenue
+- /members
+- /members/[memberId]
+- /staffs
+- /staffs/add
+- /staffs/[staffId]
+- /memberships
+- /vouchers
+- /facility
+- /facility/[facilityName]
+- /facility/[facilityName]/rooms/[roomId]
+- /facility/[facilityName]/rooms/[roomId]/equipments
+- /facility/[facilityName]/rooms/[roomId]/equipments/[equipmentId]
+- /feedback
+- /profile/[username]
+- /profile/[username]/edit
+
+Manager:
+- /overview
+- /members
+- /members/create
+- /members/[memberId]
+- /staffs
+- /staffs/add
+- /staffs/[staffId]
+- /memberships
+- /vouchers
+- /subscriptions
+- /request
+- /request/[requestId]
+- /facility
+- /facility/[facilityName]
+- /facility/[facilityName]/rooms/[roomId]
+- /facility/[facilityName]/rooms/[roomId]/equipments
+- /facility/[facilityName]/rooms/[roomId]/equipments/[equipmentId]
+- /feedback
+- /feedback/[feedbackId]
+- /profile/[username]
+- /profile/[username]/edit
+
+PT:
+- /overview
+- /members
+- /members/[memberId]
+- /members/[memberId]/sessions
+- /request
+- /request/[requestId]
+- /schedule
+- /schedule/sessions/[sessionsId]
+- /profile/[username]
+- /profile/[username]/edit
+
+Member:
+- /overview
+- /memberships
+- /subscriptions
+- /subscriptions/[subscriptionId]
+- /schedule
+- /schedule/sessions/[sessionsId]
+- /schedule/sessions/[sessionsId]/feedback
+- /trainers
+- /trainers/[trainerId]
+- /payments
+- /payments/[paymentId]
+- /feedback
+- /profile/[username]
+- /profile/[username]/edit
