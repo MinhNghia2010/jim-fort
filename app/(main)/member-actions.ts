@@ -378,3 +378,36 @@ export async function createFacilityFeedback(
 
   return {}
 }
+
+export async function markSessionFeedbackRead(
+  _state: MemberActionState,
+  formData: FormData
+): Promise<MemberActionState> {
+  const sessionId = stringValue(formData, "sessionId")
+  const feedbackId = stringValue(formData, "feedbackId")
+
+  if (!sessionId || !feedbackId) {
+    return { error: "Select valid session feedback." }
+  }
+
+  const context = await getMemberContext()
+
+  if ("error" in context) {
+    return { error: context.error }
+  }
+
+  const { error } = await context.supabase
+    .from("pt_session_feedbacks")
+    .update({ status: "read" })
+    .eq("id", feedbackId)
+
+  if (error) {
+    return { error: `Unable to mark feedback read: ${error.message}` }
+  }
+
+  revalidatePath(`/schedule/sessions/${sessionId}`)
+  revalidatePath(`/schedule/sessions/${sessionId}/feedback`)
+  revalidatePath("/schedule")
+
+  return {}
+}
