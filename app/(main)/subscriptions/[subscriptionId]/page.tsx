@@ -2,6 +2,7 @@ import { MemberSubscriptionDetailPage } from "@/components/screens/member/subscr
 import { getAuthenticatedRole } from "@/lib/auth/current-role"
 import { renderRolePage } from "@/lib/role-page"
 
+<<<<<<< HEAD
 export default async function SubscriptionDetailPage({
   params,
 }: {
@@ -12,5 +13,12 @@ export default async function SubscriptionDetailPage({
 
   return renderRolePage(role, {
     member: <MemberSubscriptionDetailPage subscriptionId={subscriptionId} />,
+=======
+export default async function SubscriptionDetailPage() {
+  const role = await getAuthenticatedRole()
+
+  return renderRolePage(role, {
+    member: <MemberSubscriptionDetailPage />,
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
   })
 }

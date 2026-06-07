@@ -4,6 +4,10 @@ import { useActionState, useMemo, useState } from "react"
 import Link from "next/link"
 import { Archive, CircleAlert, CirclePlus, Loader2, Save } from "lucide-react"
 
+<<<<<<< HEAD
+=======
+import { DatePickerField } from "@/components/DatePickerField"
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 import { PageShell } from "@/components/PageShell"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -434,6 +438,7 @@ export function MembershipPackageForm({
                 </Field>
 
                 <div className="grid gap-4 sm:grid-cols-2">
+<<<<<<< HEAD
                   <Field>
                     <FieldLabel htmlFor="membership-release-date">
                       Release date
@@ -466,6 +471,28 @@ export function MembershipPackageForm({
                       Optional. Leave empty if the plan has no end date.
                     </FieldDescription>
                   </Field>
+=======
+                  <DatePickerField
+                    id="membership-release-date"
+                    name="releaseDate"
+                    label="Release date"
+                    value={releaseDate}
+                    onChange={setReleaseDate}
+                    description="Leave empty to release this plan immediately."
+                    placeholder="Release immediately"
+                  />
+
+                  <DatePickerField
+                    id="membership-end-date"
+                    name="endDate"
+                    label="End date"
+                    value={endDate}
+                    onChange={setEndDate}
+                    description="Optional. Leave empty if the plan has no end date."
+                    placeholder="No end date"
+                    minDate={releaseDate}
+                  />
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
                 </div>
 
                 <Field>

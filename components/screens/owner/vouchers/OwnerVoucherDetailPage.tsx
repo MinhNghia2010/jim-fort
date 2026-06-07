@@ -11,6 +11,10 @@ import Link from "next/link"
 import { getVoucherDetailData } from "@/app/(main)/vouchers/data"
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+<<<<<<< HEAD
+=======
+import { OwnerVoucherRedemptionsTable } from "@/components/screens/owner/vouchers/OwnerVoucherRedemptionsTable"
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -22,6 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+<<<<<<< HEAD
 import {
   Empty,
   EmptyDescription,
@@ -38,6 +43,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+=======
+import { Progress } from "@/components/ui/progress"
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 import type {
   VoucherView,
   VoucherViewStatus,
@@ -53,7 +61,13 @@ export interface VoucherRedemptionView {
   id: string
   memberName: string
   membershipPlanName: string
+<<<<<<< HEAD
   discountAmountLabel: string
+=======
+  discountAmount: number
+  discountAmountLabel: string
+  redeemedAt: string | null
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
   redeemedAtLabel: string
 }
 
@@ -244,6 +258,7 @@ function VoucherDetailContent({
           </CardDescription>
         </CardHeader>
         <CardContent className="px-0">
+<<<<<<< HEAD
           <Table>
             <TableHeader>
               <TableRow>
@@ -290,6 +305,9 @@ function VoucherDetailContent({
               )}
             </TableBody>
           </Table>
+=======
+          <OwnerVoucherRedemptionsTable redemptions={redemptions} />
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
         </CardContent>
       </Card>
     </PageShell>

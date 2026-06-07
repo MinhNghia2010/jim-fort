@@ -3,6 +3,10 @@ import {
   BadgePercent,
   Building2,
   CalendarDays,
+<<<<<<< HEAD
+=======
+  CircleDollarSign,
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
   ClipboardList,
   CreditCard,
   Dumbbell,
@@ -69,6 +73,16 @@ export const navItemConfigs: NavItemConfig[] = [
     exact: true,
   },
   {
+<<<<<<< HEAD
+=======
+    title: "Revenue",
+    href: "/revenue",
+    icon: CircleDollarSign,
+    roles: ["owner"],
+    exact: true,
+  },
+  {
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
     title: "Members",
     href: "/members",
     icon: Users,

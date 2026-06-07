@@ -271,7 +271,13 @@ export async function getVouchersPageData(): Promise<OwnerVouchersPageProps> {
       discountLabel: formatDiscount(voucher),
       usage,
       quantity,
+<<<<<<< HEAD
       startsAtLabel: formatDate(voucher.starts_at, "Immediately"),
+=======
+      startsAt: voucher.starts_at,
+      startsAtLabel: formatDate(voucher.starts_at, "Immediately"),
+      expiresAt: voucher.expires_at,
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
       expiresAtLabel: formatDate(voucher.expires_at, "No expiry"),
       status: getVoucherStatus(voucher, usage, quantity, now),
     }
@@ -440,9 +446,17 @@ export async function getVoucherDetailData(
         memberName: member?.full_name?.trim() || "Unknown member",
         membershipPlanName:
           membershipPackage?.name?.trim() || "Unknown membership plan",
+<<<<<<< HEAD
         discountAmountLabel: currencyFormatter.format(
           toNumber(redemption.discount_amount)
         ),
+=======
+        discountAmount: toNumber(redemption.discount_amount),
+        discountAmountLabel: currencyFormatter.format(
+          toNumber(redemption.discount_amount)
+        ),
+        redeemedAt: redemption.redeemed_at,
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
         redeemedAtLabel: formatDateTime(redemption.redeemed_at, "Not recorded"),
       }
     }
@@ -463,7 +477,13 @@ export async function getVoucherDetailData(
       discountLabel: formatDiscount(voucher),
       usage,
       quantity,
+<<<<<<< HEAD
       startsAtLabel: formatDate(voucher.starts_at, "Immediately"),
+=======
+      startsAt: voucher.starts_at,
+      startsAtLabel: formatDate(voucher.starts_at, "Immediately"),
+      expiresAt: voucher.expires_at,
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
       expiresAtLabel: formatDate(voucher.expires_at, "No expiry"),
       status: getVoucherStatus(voucher, usage, quantity, new Date()),
       createdAtLabel: formatDateTime(voucher.created_at, "Not recorded"),

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { MessageCircle } from "lucide-react"
 
 import { createFacilityFeedback } from "@/app/(main)/member-actions"
@@ -213,4 +214,10 @@ export async function MemberFeedbackPage() {
       )}
     </PageShell>
   )
+=======
+import { RoutePlaceholder } from "@/components/RoutePlaceholder"
+
+export function MemberFeedbackPage() {
+  return <RoutePlaceholder title="Member Feedback" />
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 }

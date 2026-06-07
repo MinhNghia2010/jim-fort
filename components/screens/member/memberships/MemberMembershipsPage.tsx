@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { BadgePercent, Check, Clock, Dumbbell, MapPin } from "lucide-react"
 
 import { createMemberSubscription } from "@/app/(main)/member-actions"
@@ -181,4 +182,10 @@ export async function MemberMembershipsPage() {
       )}
     </PageShell>
   )
+=======
+import { RoutePlaceholder } from "@/components/RoutePlaceholder"
+
+export function MemberMembershipsPage() {
+  return <RoutePlaceholder title="Member Membership Plans" />
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 }

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import Link from "next/link"
 import { ClipboardList, CreditCard, Dumbbell } from "lucide-react"
 
@@ -170,4 +171,10 @@ export async function MemberSubscriptionsPage() {
       )}
     </PageShell>
   )
+=======
+import { RoutePlaceholder } from "@/components/RoutePlaceholder"
+
+export function MemberSubscriptionsPage() {
+  return <RoutePlaceholder title="Member Subscriptions" />
+>>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 }
