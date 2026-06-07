@@ -1,10 +1,9 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { CirclePlus, MoreHorizontal, Search, UserCog } from "lucide-react"
 
-import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -73,67 +72,12 @@ const statusFilters = [
 
 type StaffStatusFilter = (typeof statusFilters)[number]["value"]
 
-type StaffSortOption =
-  | "staff_az"
-  | "staff_za"
-  | "role_az"
-  | "role_za"
-  | "phone_az"
-  | "phone_za"
-  | "hired_latest"
-  | "hired_oldest"
-  | "notes_az"
-  | "notes_za"
-
 const statusLabels: Record<StaffStatus, string> = {
   active: "Active",
   inactive: "Inactive",
   on_leave: "On leave",
   terminated: "Terminated",
 }
-
-const staffSortOptions = [
-  { value: "staff_az", label: "Staff: A-Z" },
-  { value: "staff_za", label: "Staff: Z-A" },
-] as const
-
-const roleSortOptions = [
-  { value: "role_az", label: "Role: A-Z" },
-  { value: "role_za", label: "Role: Z-A" },
-] as const
-
-const phoneSortOptions = [
-  { value: "phone_az", label: "Phone: A-Z" },
-  { value: "phone_za", label: "Phone: Z-A" },
-] as const
-
-const hiredSortOptions = [
-  { value: "hired_latest", label: "Hired: Latest" },
-  { value: "hired_oldest", label: "Hired: Oldest" },
-] as const
-
-const notesSortOptions = [
-  { value: "notes_az", label: "Notes: A-Z" },
-  { value: "notes_za", label: "Notes: Z-A" },
-] as const
-
-const statusHeaderOptions = statusFilters.map((filter) => ({
-  value: filter.value,
-  label: filter.value === "all" ? "Status: All" : `Status: ${filter.label}`,
-}))
-
-const staffSortValues: readonly StaffSortOption[] = [
-  "staff_az",
-  "staff_za",
-  "role_az",
-  "role_za",
-  "phone_az",
-  "phone_za",
-  "hired_latest",
-  "hired_oldest",
-  "notes_az",
-  "notes_za",
-]
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
@@ -167,126 +111,22 @@ function getStatusClassName(status: StaffStatus) {
   )
 }
 
-function isStaffSortOption(value: string): value is StaffSortOption {
-  return staffSortValues.includes(value as StaffSortOption)
-}
-
-function getHeaderSortValue(
-  sortOption: StaffSortOption,
-  values: readonly StaffSortOption[],
-  fallback: string
-) {
-  return values.includes(sortOption) ? sortOption : fallback
-}
-
-function getSortLabel(
-  sortOption: StaffSortOption,
-  options: readonly { value: StaffSortOption; label: string }[],
-  fallback: string
-) {
-  return (
-    options.find((option) => option.value === sortOption)?.label ?? fallback
-  )
-}
-
-function getStatusFilterLabel(statusFilter: StaffStatusFilter) {
-  return (
-    statusHeaderOptions.find((option) => option.value === statusFilter)
-      ?.label ?? "Status"
-  )
-}
-
-function compareNullableText(first: string | null, second: string | null) {
-  return (first ?? "").localeCompare(second ?? "")
-}
-
-function compareNullableDate(first: string | null, second: string | null) {
-  if (!first && !second) {
-    return 0
-  }
-
-  if (!first) {
-    return 1
-  }
-
-  if (!second) {
-    return -1
-  }
-
-  return first.localeCompare(second)
-}
-
-function sortStaffs(
-  staffs: readonly StaffTableRow[],
-  sortOption: StaffSortOption
-) {
-  return [...staffs].sort((first, second) => {
-    if (sortOption === "staff_az") {
-      return first.name.localeCompare(second.name)
-    }
-
-    if (sortOption === "staff_za") {
-      return second.name.localeCompare(first.name)
-    }
-
-    if (sortOption === "role_az") {
-      return compareNullableText(first.role, second.role)
-    }
-
-    if (sortOption === "role_za") {
-      return compareNullableText(second.role, first.role)
-    }
-
-    if (sortOption === "phone_az") {
-      return compareNullableText(first.phone, second.phone)
-    }
-
-    if (sortOption === "phone_za") {
-      return compareNullableText(second.phone, first.phone)
-    }
-
-    if (sortOption === "hired_latest") {
-      return compareNullableDate(second.hiredAt, first.hiredAt)
-    }
-
-    if (sortOption === "hired_oldest") {
-      return compareNullableDate(first.hiredAt, second.hiredAt)
-    }
-
-    if (sortOption === "notes_az") {
-      return compareNullableText(first.note, second.note)
-    }
-
-    return compareNullableText(second.note, first.note)
-  })
-}
-
 export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StaffStatusFilter>("all")
-  const [sortOption, setSortOption] = useState<StaffSortOption>("staff_az")
-  const updateSortOption = (value: string) => {
-    if (isStaffSortOption(value)) {
-      setSortOption(value)
-    }
-  }
 
-  const filteredStaffs = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase()
-    const matchingStaffs = staffs.filter((staff) => {
-      const searchableText = [staff.name, staff.phone, staff.role, staff.note]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
+  const normalizedSearch = search.trim().toLowerCase()
+  const filteredStaffs = staffs.filter((staff) => {
+    const searchableText = [staff.name, staff.phone, staff.role, staff.note]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
 
-      return (
-        (!normalizedSearch || searchableText.includes(normalizedSearch)) &&
-        (statusFilter === "all" || staff.status === statusFilter)
-      )
-    })
-
-    return sortStaffs(matchingStaffs, sortOption)
-  }, [staffs, search, statusFilter, sortOption])
+    return (
+      (!normalizedSearch || searchableText.includes(normalizedSearch)) &&
+      (statusFilter === "all" || staff.status === statusFilter)
+    )
+  })
 
   return (
     <div className="flex flex-col gap-4">
@@ -346,103 +186,12 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-4">
-                  <OwnerTableHeaderSelect
-                    value={getHeaderSortValue(
-                      sortOption,
-                      ["staff_az", "staff_za"],
-                      "staff"
-                    )}
-                    label={getSortLabel(sortOption, staffSortOptions, "Staff")}
-                    options={[
-                      { value: "staff", label: "Staff", disabled: true },
-                      ...staffSortOptions,
-                    ]}
-                    onValueChange={updateSortOption}
-                    ariaLabel="Sort staffs"
-                    className="w-40"
-                  />
-                </TableHead>
-                <TableHead>
-                  <OwnerTableHeaderSelect
-                    value={getHeaderSortValue(
-                      sortOption,
-                      ["role_az", "role_za"],
-                      "role"
-                    )}
-                    label={getSortLabel(sortOption, roleSortOptions, "Role")}
-                    options={[
-                      { value: "role", label: "Role", disabled: true },
-                      ...roleSortOptions,
-                    ]}
-                    onValueChange={updateSortOption}
-                    ariaLabel="Sort roles"
-                    className="w-32"
-                  />
-                </TableHead>
-                <TableHead>
-                  <OwnerTableHeaderSelect
-                    value={getHeaderSortValue(
-                      sortOption,
-                      ["phone_az", "phone_za"],
-                      "phone"
-                    )}
-                    label={getSortLabel(sortOption, phoneSortOptions, "Phone")}
-                    options={[
-                      { value: "phone", label: "Phone", disabled: true },
-                      ...phoneSortOptions,
-                    ]}
-                    onValueChange={updateSortOption}
-                    ariaLabel="Sort phone numbers"
-                    className="w-36"
-                  />
-                </TableHead>
-                <TableHead>
-                  <OwnerTableHeaderSelect
-                    value={getHeaderSortValue(
-                      sortOption,
-                      ["hired_latest", "hired_oldest"],
-                      "hired"
-                    )}
-                    label={getSortLabel(sortOption, hiredSortOptions, "Hired")}
-                    options={[
-                      { value: "hired", label: "Hired", disabled: true },
-                      ...hiredSortOptions,
-                    ]}
-                    onValueChange={updateSortOption}
-                    ariaLabel="Sort hired dates"
-                    className="w-40"
-                  />
-                </TableHead>
-                <TableHead>
-                  <OwnerTableHeaderSelect
-                    value={statusFilter}
-                    label={getStatusFilterLabel(statusFilter)}
-                    options={statusHeaderOptions}
-                    onValueChange={(value) =>
-                      setStatusFilter(value as StaffStatusFilter)
-                    }
-                    ariaLabel="Filter staffs by status"
-                    className="w-40"
-                  />
-                </TableHead>
-                <TableHead>
-                  <OwnerTableHeaderSelect
-                    value={getHeaderSortValue(
-                      sortOption,
-                      ["notes_az", "notes_za"],
-                      "notes"
-                    )}
-                    label={getSortLabel(sortOption, notesSortOptions, "Notes")}
-                    options={[
-                      { value: "notes", label: "Notes", disabled: true },
-                      ...notesSortOptions,
-                    ]}
-                    onValueChange={updateSortOption}
-                    ariaLabel="Sort notes"
-                    className="w-36"
-                  />
-                </TableHead>
+                <TableHead className="pl-4">Staff</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Hired</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Notes</TableHead>
                 <TableHead className="pr-4 text-right">
                   <span className="sr-only">Actions</span>
                 </TableHead>

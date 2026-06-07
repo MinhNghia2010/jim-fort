@@ -4,7 +4,6 @@ import { useActionState, useMemo, useState } from "react"
 import Link from "next/link"
 import { Archive, CircleAlert, CirclePlus, Loader2, Save } from "lucide-react"
 
-import { DatePickerField } from "@/components/DatePickerField"
 import { PageShell } from "@/components/PageShell"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -435,26 +434,38 @@ export function MembershipPackageForm({
                 </Field>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <DatePickerField
-                    id="membership-release-date"
-                    name="releaseDate"
-                    label="Release date"
-                    value={releaseDate}
-                    onChange={setReleaseDate}
-                    description="Leave empty to release this plan immediately."
-                    placeholder="Release immediately"
-                  />
+                  <Field>
+                    <FieldLabel htmlFor="membership-release-date">
+                      Release date
+                    </FieldLabel>
+                    <Input
+                      id="membership-release-date"
+                      name="releaseDate"
+                      type="date"
+                      value={releaseDate}
+                      onChange={(event) => setReleaseDate(event.target.value)}
+                    />
+                    <FieldDescription>
+                      Leave empty to release this plan immediately.
+                    </FieldDescription>
+                  </Field>
 
-                  <DatePickerField
-                    id="membership-end-date"
-                    name="endDate"
-                    label="End date"
-                    value={endDate}
-                    onChange={setEndDate}
-                    description="Optional. Leave empty if the plan has no end date."
-                    placeholder="No end date"
-                    minDate={releaseDate}
-                  />
+                  <Field>
+                    <FieldLabel htmlFor="membership-end-date">
+                      End date
+                    </FieldLabel>
+                    <Input
+                      id="membership-end-date"
+                      name="endDate"
+                      type="date"
+                      min={releaseDate || undefined}
+                      value={endDate}
+                      onChange={(event) => setEndDate(event.target.value)}
+                    />
+                    <FieldDescription>
+                      Optional. Leave empty if the plan has no end date.
+                    </FieldDescription>
+                  </Field>
                 </div>
 
                 <Field>
