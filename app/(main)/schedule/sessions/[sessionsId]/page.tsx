@@ -3,11 +3,16 @@ import { PtScheduleSessionPage } from "@/components/screens/pt/schedule/PtSchedu
 import { getAuthenticatedRole } from "@/lib/auth/current-role"
 import { renderRolePage } from "@/lib/role-page"
 
-export default async function ScheduleSessionPage() {
+export default async function ScheduleSessionPage({
+  params,
+}: {
+  params: Promise<{ sessionsId: string }>
+}) {
   const role = await getAuthenticatedRole()
+  const { sessionsId } = await params
 
   return renderRolePage(role, {
-    member: <MemberScheduleSessionPage />,
+    member: <MemberScheduleSessionPage sessionId={sessionsId} />,
     pt: <PtScheduleSessionPage />,
   })
 }
