@@ -11,6 +11,7 @@ import Link from "next/link"
 import { getVoucherDetailData } from "@/app/(main)/vouchers/data"
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { OwnerVoucherRedemptionsTable } from "@/components/screens/owner/vouchers/OwnerVoucherRedemptionsTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -22,22 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty"
 import { Progress } from "@/components/ui/progress"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import type {
   VoucherView,
   VoucherViewStatus,
@@ -53,7 +39,9 @@ export interface VoucherRedemptionView {
   id: string
   memberName: string
   membershipPlanName: string
+  discountAmount: number
   discountAmountLabel: string
+  redeemedAt: string | null
   redeemedAtLabel: string
 }
 
@@ -244,52 +232,7 @@ function VoucherDetailContent({
           </CardDescription>
         </CardHeader>
         <CardContent className="px-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="px-4">Member</TableHead>
-                <TableHead>Membership plan</TableHead>
-                <TableHead>Discount</TableHead>
-                <TableHead className="pr-4">Redeemed</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {redemptions.length ? (
-                redemptions.map((redemption) => (
-                  <TableRow key={redemption.id}>
-                    <TableCell className="px-4 font-medium">
-                      {redemption.memberName}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {redemption.membershipPlanName}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {redemption.discountAmountLabel}
-                    </TableCell>
-                    <TableCell className="pr-4 font-mono text-xs text-muted-foreground">
-                      {redemption.redeemedAtLabel}
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="h-64">
-                    <Empty>
-                      <EmptyHeader>
-                        <EmptyMedia variant="icon">
-                          <TicketCheck />
-                        </EmptyMedia>
-                        <EmptyTitle>No redemptions yet</EmptyTitle>
-                        <EmptyDescription>
-                          This voucher has not been redeemed by a subscription.
-                        </EmptyDescription>
-                      </EmptyHeader>
-                    </Empty>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          <OwnerVoucherRedemptionsTable redemptions={redemptions} />
         </CardContent>
       </Card>
     </PageShell>

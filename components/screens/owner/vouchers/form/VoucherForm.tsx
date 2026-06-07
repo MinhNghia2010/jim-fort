@@ -12,6 +12,7 @@ import {
   TicketCheck,
 } from "lucide-react"
 
+import { DatePickerField } from "@/components/DatePickerField"
 import { PageShell } from "@/components/PageShell"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -295,33 +296,24 @@ export function VoucherForm({
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3">
-                  <Field>
-                    <FieldLabel htmlFor="voucher-starts-at">
-                      Launch date
-                    </FieldLabel>
-                    <Input
-                      id="voucher-starts-at"
-                      name="startsAt"
-                      type="date"
-                      value={startsAt}
-                      onChange={(event) => setStartsAt(event.target.value)}
-                      required
-                    />
-                  </Field>
+                  <DatePickerField
+                    id="voucher-starts-at"
+                    name="startsAt"
+                    label="Launch date"
+                    value={startsAt}
+                    onChange={setStartsAt}
+                    required
+                  />
 
-                  <Field>
-                    <FieldLabel htmlFor="voucher-expires-at">
-                      End date
-                    </FieldLabel>
-                    <Input
-                      id="voucher-expires-at"
-                      name="expiresAt"
-                      type="date"
-                      value={expiresAt}
-                      onChange={(event) => setExpiresAt(event.target.value)}
-                      required
-                    />
-                  </Field>
+                  <DatePickerField
+                    id="voucher-expires-at"
+                    name="expiresAt"
+                    label="End date"
+                    value={expiresAt}
+                    onChange={setExpiresAt}
+                    required
+                    minDate={startsAt}
+                  />
 
                   <Field>
                     <FieldLabel htmlFor="voucher-quantity">Quantity</FieldLabel>

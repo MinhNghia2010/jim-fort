@@ -3,6 +3,7 @@ import {
   BadgePercent,
   Building2,
   CalendarDays,
+  CircleDollarSign,
   ClipboardList,
   CreditCard,
   Dumbbell,
@@ -66,6 +67,13 @@ export const navItemConfigs: NavItemConfig[] = [
     href: "/overview",
     icon: LayoutDashboard,
     roles: allRoles,
+    exact: true,
+  },
+  {
+    title: "Revenue",
+    href: "/revenue",
+    icon: CircleDollarSign,
+    roles: ["owner"],
     exact: true,
   },
   {

@@ -1,5 +1,5 @@
-import { RoutePlaceholder } from "@/components/RoutePlaceholder"
+import { OwnerFacilityDetailPage } from "@/components/screens/owner/facility/OwnerFacilityDetailPage"
 
 export function OwnerFacilityPage() {
-  return <RoutePlaceholder title="Owner Facility" />
+  return <OwnerFacilityDetailPage />
 }
