@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import Link from "next/link"
 import { CalendarDays } from "lucide-react"
 
@@ -147,10 +146,4 @@ export async function MemberSchedulePage() {
       )}
     </PageShell>
   )
-=======
-import { RoutePlaceholder } from "@/components/RoutePlaceholder"
-
-export function MemberSchedulePage() {
-  return <RoutePlaceholder title="Member Schedule" />
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 }

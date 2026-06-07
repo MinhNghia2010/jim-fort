@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import Link from "next/link"
 import { ReceiptText } from "lucide-react"
 
@@ -142,10 +141,4 @@ export async function MemberPaymentsPage() {
       )}
     </PageShell>
   )
-=======
-import { RoutePlaceholder } from "@/components/RoutePlaceholder"
-
-export function MemberPaymentsPage() {
-  return <RoutePlaceholder title="Member Payments" />
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 }

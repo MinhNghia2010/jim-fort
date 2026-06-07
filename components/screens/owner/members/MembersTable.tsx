@@ -1,17 +1,9 @@
 "use client"
 
-<<<<<<< HEAD
 import { useState } from "react"
 import Link from "next/link"
 import { CirclePlus, MoreHorizontal, Search, Users } from "lucide-react"
 
-=======
-import { useMemo, useState } from "react"
-import Link from "next/link"
-import { CirclePlus, MoreHorizontal, Search, Users } from "lucide-react"
-
-import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -86,21 +78,6 @@ const statusFilters = [
 
 type MemberStatusFilter = (typeof statusFilters)[number]["value"]
 
-<<<<<<< HEAD
-=======
-type MemberSortOption =
-  | "member_az"
-  | "member_za"
-  | "plan_az"
-  | "plan_za"
-  | "joined_latest"
-  | "joined_oldest"
-  | "sessions_high"
-  | "sessions_low"
-  | "revenue_high"
-  | "revenue_low"
-
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 const statusLabels: Record<MemberStatus, string> = {
   pending_pt_setup: "Pending PT setup",
   pending_payment: "Pending payment",
@@ -109,52 +86,6 @@ const statusLabels: Record<MemberStatus, string> = {
   cancelled: "Cancelled",
 }
 
-<<<<<<< HEAD
-=======
-const memberSortOptions = [
-  { value: "member_az", label: "Member: A-Z" },
-  { value: "member_za", label: "Member: Z-A" },
-] as const
-
-const planSortOptions = [
-  { value: "plan_az", label: "Plan: A-Z" },
-  { value: "plan_za", label: "Plan: Z-A" },
-] as const
-
-const joinedSortOptions = [
-  { value: "joined_latest", label: "Joined: Latest" },
-  { value: "joined_oldest", label: "Joined: Oldest" },
-] as const
-
-const sessionsSortOptions = [
-  { value: "sessions_high", label: "Sessions: High-Low" },
-  { value: "sessions_low", label: "Sessions: Low-High" },
-] as const
-
-const revenueSortOptions = [
-  { value: "revenue_high", label: "Revenue: High-Low" },
-  { value: "revenue_low", label: "Revenue: Low-High" },
-] as const
-
-const statusHeaderOptions = statusFilters.map((filter) => ({
-  value: filter.value,
-  label: filter.value === "all" ? "Status: All" : `Status: ${filter.label}`,
-}))
-
-const memberSortValues: readonly MemberSortOption[] = [
-  "member_az",
-  "member_za",
-  "plan_az",
-  "plan_za",
-  "joined_latest",
-  "joined_oldest",
-  "sessions_high",
-  "sessions_low",
-  "revenue_high",
-  "revenue_low",
-]
-
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
   timeZone: "UTC",
@@ -191,83 +122,6 @@ function matchesStatus(status: MemberStatus, filter: MemberStatusFilter) {
   return status === filter
 }
 
-<<<<<<< HEAD
-=======
-function isMemberSortOption(value: string): value is MemberSortOption {
-  return memberSortValues.includes(value as MemberSortOption)
-}
-
-function getHeaderSortValue(
-  sortOption: MemberSortOption,
-  values: readonly MemberSortOption[],
-  fallback: string
-) {
-  return values.includes(sortOption) ? sortOption : fallback
-}
-
-function getSortLabel(
-  sortOption: MemberSortOption,
-  options: readonly { value: MemberSortOption; label: string }[],
-  fallback: string
-) {
-  return (
-    options.find((option) => option.value === sortOption)?.label ?? fallback
-  )
-}
-
-function getStatusFilterLabel(statusFilter: MemberStatusFilter) {
-  return (
-    statusHeaderOptions.find((option) => option.value === statusFilter)
-      ?.label ?? "Status"
-  )
-}
-
-function sortMembers(
-  members: readonly MemberTableRow[],
-  sortOption: MemberSortOption
-) {
-  return [...members].sort((first, second) => {
-    if (sortOption === "member_az") {
-      return first.name.localeCompare(second.name)
-    }
-
-    if (sortOption === "member_za") {
-      return second.name.localeCompare(first.name)
-    }
-
-    if (sortOption === "plan_az") {
-      return first.plan.localeCompare(second.plan)
-    }
-
-    if (sortOption === "plan_za") {
-      return second.plan.localeCompare(first.plan)
-    }
-
-    if (sortOption === "joined_latest") {
-      return second.joinedAt.localeCompare(first.joinedAt)
-    }
-
-    if (sortOption === "joined_oldest") {
-      return first.joinedAt.localeCompare(second.joinedAt)
-    }
-
-    if (sortOption === "sessions_high") {
-      return second.sessions - first.sessions
-    }
-
-    if (sortOption === "sessions_low") {
-      return first.sessions - second.sessions
-    }
-
-    if (sortOption === "revenue_high") {
-      return second.revenue - first.revenue
-    }
-
-    return first.revenue - second.revenue
-  })
-}
-
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 function getStatusClassName(status: MemberStatus) {
   return cn(
     "border font-medium",
@@ -286,7 +140,6 @@ export function MembersTable({
 }: MembersTableProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<MemberStatusFilter>("all")
-<<<<<<< HEAD
 
   const normalizedSearch = search.trim().toLowerCase()
   const filteredMembers = members.filter((member) => {
@@ -300,32 +153,6 @@ export function MembersTable({
       matchesStatus(member.status, statusFilter)
     )
   })
-=======
-  const [sortOption, setSortOption] =
-    useState<MemberSortOption>("joined_latest")
-  const updateSortOption = (value: string) => {
-    if (isMemberSortOption(value)) {
-      setSortOption(value)
-    }
-  }
-
-  const filteredMembers = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase()
-    const matchingMembers = members.filter((member) => {
-      const searchableText = [member.name, member.phone, member.plan]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-
-      return (
-        (!normalizedSearch || searchableText.includes(normalizedSearch)) &&
-        matchesStatus(member.status, statusFilter)
-      )
-    })
-
-    return sortMembers(matchingMembers, sortOption)
-  }, [members, search, statusFilter, sortOption])
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 
   return (
     <div className="flex flex-col gap-4">
@@ -385,128 +212,12 @@ export function MembersTable({
           <Table>
             <TableHeader>
               <TableRow>
-<<<<<<< HEAD
                 <TableHead className="pl-4">Member</TableHead>
                 <TableHead>Plan</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Sessions</TableHead>
                 <TableHead>Revenue</TableHead>
-=======
-                <TableHead className="pl-4">
-                  <OwnerTableHeaderSelect
-                    value={getHeaderSortValue(
-                      sortOption,
-                      ["member_az", "member_za"],
-                      "member"
-                    )}
-                    label={getSortLabel(
-                      sortOption,
-                      memberSortOptions,
-                      "Member"
-                    )}
-                    options={[
-                      { value: "member", label: "Member", disabled: true },
-                      ...memberSortOptions,
-                    ]}
-                    onValueChange={updateSortOption}
-                    ariaLabel="Sort members"
-                    className="w-40"
-                  />
-                </TableHead>
-                <TableHead>
-                  <OwnerTableHeaderSelect
-                    value={getHeaderSortValue(
-                      sortOption,
-                      ["plan_az", "plan_za"],
-                      "plan"
-                    )}
-                    label={getSortLabel(sortOption, planSortOptions, "Plan")}
-                    options={[
-                      { value: "plan", label: "Plan", disabled: true },
-                      ...planSortOptions,
-                    ]}
-                    onValueChange={updateSortOption}
-                    ariaLabel="Sort membership plans"
-                    className="w-36"
-                  />
-                </TableHead>
-                <TableHead>
-                  <OwnerTableHeaderSelect
-                    value={getHeaderSortValue(
-                      sortOption,
-                      ["joined_latest", "joined_oldest"],
-                      "joined"
-                    )}
-                    label={getSortLabel(
-                      sortOption,
-                      joinedSortOptions,
-                      "Joined"
-                    )}
-                    options={[
-                      { value: "joined", label: "Joined", disabled: true },
-                      ...joinedSortOptions,
-                    ]}
-                    onValueChange={updateSortOption}
-                    ariaLabel="Sort join dates"
-                    className="w-40"
-                  />
-                </TableHead>
-                <TableHead>
-                  <OwnerTableHeaderSelect
-                    value={statusFilter}
-                    label={getStatusFilterLabel(statusFilter)}
-                    options={statusHeaderOptions}
-                    onValueChange={(value) =>
-                      setStatusFilter(value as MemberStatusFilter)
-                    }
-                    ariaLabel="Filter members by status"
-                    className="w-40"
-                  />
-                </TableHead>
-                <TableHead>
-                  <OwnerTableHeaderSelect
-                    value={getHeaderSortValue(
-                      sortOption,
-                      ["sessions_high", "sessions_low"],
-                      "sessions"
-                    )}
-                    label={getSortLabel(
-                      sortOption,
-                      sessionsSortOptions,
-                      "Sessions"
-                    )}
-                    options={[
-                      { value: "sessions", label: "Sessions", disabled: true },
-                      ...sessionsSortOptions,
-                    ]}
-                    onValueChange={updateSortOption}
-                    ariaLabel="Sort sessions"
-                    className="w-40"
-                  />
-                </TableHead>
-                <TableHead>
-                  <OwnerTableHeaderSelect
-                    value={getHeaderSortValue(
-                      sortOption,
-                      ["revenue_high", "revenue_low"],
-                      "revenue"
-                    )}
-                    label={getSortLabel(
-                      sortOption,
-                      revenueSortOptions,
-                      "Revenue"
-                    )}
-                    options={[
-                      { value: "revenue", label: "Revenue", disabled: true },
-                      ...revenueSortOptions,
-                    ]}
-                    onValueChange={updateSortOption}
-                    ariaLabel="Sort revenue"
-                    className="w-40"
-                  />
-                </TableHead>
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
                 <TableHead className="pr-4 text-right">
                   <span className="sr-only">Actions</span>
                 </TableHead>

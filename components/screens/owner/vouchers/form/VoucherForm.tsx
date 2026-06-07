@@ -12,10 +12,6 @@ import {
   TicketCheck,
 } from "lucide-react"
 
-<<<<<<< HEAD
-=======
-import { DatePickerField } from "@/components/DatePickerField"
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 import { PageShell } from "@/components/PageShell"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -299,7 +295,6 @@ export function VoucherForm({
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-3">
-<<<<<<< HEAD
                   <Field>
                     <FieldLabel htmlFor="voucher-starts-at">
                       Launch date
@@ -327,26 +322,6 @@ export function VoucherForm({
                       required
                     />
                   </Field>
-=======
-                  <DatePickerField
-                    id="voucher-starts-at"
-                    name="startsAt"
-                    label="Launch date"
-                    value={startsAt}
-                    onChange={setStartsAt}
-                    required
-                  />
-
-                  <DatePickerField
-                    id="voucher-expires-at"
-                    name="expiresAt"
-                    label="End date"
-                    value={expiresAt}
-                    onChange={setExpiresAt}
-                    required
-                    minDate={startsAt}
-                  />
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 
                   <Field>
                     <FieldLabel htmlFor="voucher-quantity">Quantity</FieldLabel>

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { notFound } from "next/navigation"
 import {
   CalendarDays,
@@ -570,10 +569,4 @@ export async function MemberSubscriptionDetailPage({
       ) : null}
     </PageShell>
   )
-=======
-import { RoutePlaceholder } from "@/components/RoutePlaceholder"
-
-export function MemberSubscriptionDetailPage() {
-  return <RoutePlaceholder title="Member Subscription Detail" />
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 }

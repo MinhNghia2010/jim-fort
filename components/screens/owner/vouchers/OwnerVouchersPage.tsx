@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import {
   BadgePercent,
   CircleDollarSign,
@@ -7,21 +6,13 @@ import {
   Tag,
   TicketCheck,
 } from "lucide-react"
-=======
-import { CircleDollarSign, CirclePlus, Tag, TicketCheck } from "lucide-react"
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 import Link from "next/link"
 
 import { getVouchersPageData } from "@/app/(main)/vouchers/data"
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
-<<<<<<< HEAD
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-=======
-import { OwnerVouchersTable } from "@/components/screens/owner/vouchers/OwnerVouchersTable"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -31,7 +22,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-<<<<<<< HEAD
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,8 +45,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-=======
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 
 export type VoucherViewStatus =
   | "active"
@@ -70,13 +58,7 @@ export interface VoucherView {
   discountLabel: string
   usage: number
   quantity: number
-<<<<<<< HEAD
   startsAtLabel: string
-=======
-  startsAt: string | null
-  startsAtLabel: string
-  expiresAt: string | null
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
   expiresAtLabel: string
   status: VoucherViewStatus
 }
@@ -91,7 +73,6 @@ export interface OwnerVouchersPageProps {
   canManage?: boolean
 }
 
-<<<<<<< HEAD
 function voucherStatusVariant(status: VoucherViewStatus) {
   if (status === "active") {
     return "default" as const
@@ -108,8 +89,6 @@ function voucherStatusVariant(status: VoucherViewStatus) {
   return "secondary" as const
 }
 
-=======
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 export function OwnerVouchersContent({
   facilityLabel,
   vouchers,
@@ -171,7 +150,6 @@ export function OwnerVouchersContent({
           ) : null}
         </CardHeader>
         <CardContent className="px-0">
-<<<<<<< HEAD
           {vouchers.length ? (
             <Table>
               <TableHeader>
@@ -284,9 +262,6 @@ export function OwnerVouchersContent({
               </EmptyHeader>
             </Empty>
           )}
-=======
-          <OwnerVouchersTable vouchers={vouchers} canManage={canManage} />
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
         </CardContent>
       </Card>
     </PageShell>

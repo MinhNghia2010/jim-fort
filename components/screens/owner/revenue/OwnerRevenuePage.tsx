@@ -8,13 +8,8 @@ import {
 import { getOwnerRevenuePageData } from "@/app/(main)/revenue/data"
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
-<<<<<<< HEAD
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-=======
-import { OwnerRevenueTable } from "@/components/screens/owner/revenue/OwnerRevenueTable"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 import {
   Card,
   CardContent,
@@ -22,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-<<<<<<< HEAD
 import {
   Empty,
   EmptyDescription,
@@ -38,8 +32,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-=======
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
 
 export interface RevenueHistoryRow {
   id: string
@@ -120,7 +112,6 @@ export function OwnerRevenueContent({
           </CardDescription>
         </CardHeader>
         <CardContent className="px-0">
-<<<<<<< HEAD
           {rows.length ? (
             <Table>
               <TableHeader>
@@ -177,9 +168,6 @@ export function OwnerRevenueContent({
               </EmptyHeader>
             </Empty>
           )}
-=======
-          <OwnerRevenueTable rows={rows} />
->>>>>>> e3a4dbaba5182d183b9e8334e2e297b4e443febd
         </CardContent>
       </Card>
     </PageShell>
