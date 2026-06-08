@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
+import type { User } from "@supabase/supabase-js"
 
 import {
   canAccessRoute,
@@ -94,9 +95,28 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user: User | null = null
+
+  try {
+    const {
+      data: { user: authenticatedUser },
+    } = await supabase.auth.getUser()
+
+    user = authenticatedUser
+  } catch (error) {
+    console.error("Supabase Auth middleware session check failed", error)
+
+    if (
+      !request.nextUrl.pathname.startsWith("/login") &&
+      !request.nextUrl.pathname.startsWith("/auth")
+    ) {
+      const url = request.nextUrl.clone()
+      url.pathname = "/login"
+      return redirectWithSessionCookies(url, supabaseResponse)
+    }
+
+    return supabaseResponse
+  }
 
   if (
     !user &&

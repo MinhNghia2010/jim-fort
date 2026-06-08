@@ -20,6 +20,7 @@ type FacilityRow = {
 type FeedbackRow = {
   id: string
   subject: string
+  message: string
   status: string
   rating: number | null
   created_at: string
@@ -39,7 +40,7 @@ export async function MemberFeedbackPage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("facility_feedbacks")
-      .select("id,subject,status,rating,created_at,manager_response")
+      .select("id,subject,message,status,rating,created_at,manager_response")
       .order("created_at", { ascending: false }),
   ])
 
@@ -116,16 +117,29 @@ export async function MemberFeedbackPage() {
                     {date.format(new Date(feedback.created_at))}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-2">
+                <CardContent className="grid gap-4">
                   <div className="flex flex-wrap gap-2">
                     <Badge>{feedback.status}</Badge>
                     {feedback.rating ? (
                       <Badge variant="secondary">{feedback.rating}/5</Badge>
                     ) : null}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    {feedback.manager_response ?? "No manager response yet."}
-                  </p>
+                  <div className="grid gap-1">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Your message
+                    </p>
+                    <p className="whitespace-pre-wrap text-sm leading-6">
+                      {feedback.message}
+                    </p>
+                  </div>
+                  <div className="grid gap-1">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Manager response
+                    </p>
+                    <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+                      {feedback.manager_response ?? "No manager response yet."}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             ))

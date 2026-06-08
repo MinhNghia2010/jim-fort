@@ -222,7 +222,7 @@ export function OwnerVouchersTable({
                   onValueChange={setSort}
                 />
               </TableHead>
-              <TableHead>
+              <TableHead className="w-36">
                 <OwnerTableHeaderSelect
                   label="Usage"
                   value={usageSortValue}
@@ -277,8 +277,8 @@ export function OwnerVouchersTable({
                   <TableCell className="font-medium">
                     {voucher.discountLabel}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex min-w-28 items-center gap-2">
+                  <TableCell className="w-36">
+                    <div className="grid grid-cols-[3.75rem_4.5rem] items-center gap-2">
                       <span className="font-mono text-xs tabular-nums">
                         {voucher.usage} / {voucher.quantity}
                       </span>
@@ -288,7 +288,7 @@ export function OwnerVouchersTable({
                           100,
                           (voucher.usage / voucher.quantity) * 100
                         )}
-                        className="max-w-16"
+                        className="w-18"
                       />
                     </div>
                   </TableCell>

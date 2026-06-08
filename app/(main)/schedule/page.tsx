@@ -12,7 +12,7 @@ export default async function SchedulePage({
   const query = searchParams ? await searchParams : {}
 
   return renderRolePage(role, {
-    member: <MemberSchedulePage />,
+    member: <MemberSchedulePage month={query.month} />,
     pt: <PtSchedulePage month={query.month} />,
   })
 }

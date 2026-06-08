@@ -260,9 +260,10 @@ function buildMembershipTypes(
 
       return {
         label: membershipPackage.name,
+        count,
         percentage: roundToTenth((count / totalActive) * 100),
         dotColorClass: colors.dotColorClass,
-        progressColorClass: colors.progressColorClass,
+        color: colors.color,
       }
     })
     .filter((membership) => membership.percentage > 0)

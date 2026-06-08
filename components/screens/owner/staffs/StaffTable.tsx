@@ -2,7 +2,12 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { CirclePlus, MoreHorizontal, Search, UserCog } from "lucide-react"
+import {
+  CirclePlus,
+  MoreHorizontal,
+  Search,
+  UserCog,
+} from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -184,7 +189,7 @@ function sortStaffs(staffs: StaffTableRow[], sort: StaffSort) {
 
 function getStatusClassName(status: StaffStatus) {
   return cn(
-    "border font-medium",
+    "gap-1.5 rounded-md border px-2.5 py-1 font-medium",
     status === "active" &&
       "border-chart-2/30 bg-chart-2/10 text-chart-2 dark:border-chart-2/40 dark:bg-chart-2/20",
     status === "on_leave" &&
@@ -193,6 +198,16 @@ function getStatusClassName(status: StaffStatus) {
       "border-muted-foreground/30 bg-muted text-muted-foreground",
     status === "terminated" &&
       "border-destructive/30 bg-destructive/10 text-destructive dark:border-destructive/40 dark:bg-destructive/20"
+  )
+}
+
+function getStatusDotClassName(status: StaffStatus) {
+  return cn(
+    "size-1.5 rounded-full",
+    status === "active" && "bg-chart-2",
+    status === "on_leave" && "bg-chart-4",
+    status === "inactive" && "bg-muted-foreground",
+    status === "terminated" && "bg-destructive"
   )
 }
 
@@ -227,19 +242,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <InputGroup className="w-full lg:w-72">
-        <InputGroupAddon>
-          <Search aria-hidden="true" />
-        </InputGroupAddon>
-        <InputGroupInput
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search staffs..."
-          aria-label="Search staffs"
-        />
-      </InputGroup>
-
-      <Card className="gap-0 py-0">
+      <Card className="gap-0 overflow-hidden py-0">
         <CardHeader className="border-b py-4">
           <CardTitle>Staff directory</CardTitle>
           <CardDescription>
@@ -257,10 +260,29 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
           ) : null}
         </CardHeader>
         <CardContent className="px-0">
-          <Table>
-            <TableHeader>
+          <div className="flex flex-col gap-3 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+            <InputGroup className="w-full lg:w-96">
+              <InputGroupAddon>
+                <Search aria-hidden="true" />
+              </InputGroupAddon>
+              <InputGroupInput
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search by staff, role, phone, note..."
+                aria-label="Search staffs"
+              />
+            </InputGroup>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary" className="rounded-md px-3 py-1">
+                {sortedStaffs.length} shown
+              </Badge>
+            </div>
+          </div>
+
+          <Table className="text-[0.925rem]">
+            <TableHeader className="bg-muted/40">
               <TableRow>
-                <TableHead className="pl-4">
+                <TableHead className="h-12 pl-6">
                   <OwnerTableHeaderSelect
                     label="Staff"
                     value={staffSortValue}
@@ -268,7 +290,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                     onValueChange={setSort}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Role"
                     value={roleSortValue}
@@ -276,7 +298,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                     onValueChange={setSort}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Phone"
                     value={phoneSortValue}
@@ -284,7 +306,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                     onValueChange={setSort}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Hired"
                     value={hiredSortValue}
@@ -292,7 +314,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                     onValueChange={setSort}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Status"
                     value={statusFilter}
@@ -300,7 +322,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                     onValueChange={setStatusFilter}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Notes"
                     value={notesSortValue}
@@ -308,34 +330,41 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                     onValueChange={setSort}
                   />
                 </TableHead>
-                <TableHead className="pr-4 text-right">
-                  <span className="sr-only">Actions</span>
+                <TableHead className="h-12 pr-6 text-right">
+                  Action
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedStaffs.length ? (
                 sortedStaffs.map((staff) => (
-                  <TableRow key={staff.id}>
-                    <TableCell className="pl-4">
+                  <TableRow key={staff.id} className="h-[4.5rem]">
+                    <TableCell className="pl-6">
                       <div className="flex min-w-48 items-center gap-3">
-                        <Avatar>
+                        <Avatar className="size-10 rounded-md">
                           {staff.avatarUrl ? (
                             <AvatarImage
                               src={staff.avatarUrl}
                               alt={staff.name}
                             />
                           ) : null}
-                          <AvatarFallback>
+                          <AvatarFallback className="rounded-md">
                             {getInitials(staff.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <p className="truncate font-medium">{staff.name}</p>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold">
+                            {staff.name}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {staff.role ?? "Staff member"}
+                          </p>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       {staff.role ? (
-                        <Badge variant="secondary">{staff.role}</Badge>
+                        <span className="font-medium">{staff.role}</span>
                       ) : (
                         <span className="text-muted-foreground">No role</span>
                       )}
@@ -353,6 +382,10 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                         variant="outline"
                         className={getStatusClassName(staff.status)}
                       >
+                        <span
+                          className={getStatusDotClassName(staff.status)}
+                          aria-hidden="true"
+                        />
                         {statusLabels[staff.status]}
                       </Badge>
                     </TableCell>
@@ -361,27 +394,32 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                         {staff.note ?? "No notes"}
                       </p>
                     </TableCell>
-                    <TableCell className="pr-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label={`Open actions for ${staff.name}`}
-                          >
-                            <MoreHorizontal />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuGroup>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/staffs/${staff.id}`}>
-                                View staff
-                              </Link>
-                            </DropdownMenuItem>
-                          </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <TableCell className="pr-6 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/staffs/${staff.id}`}>Details</Link>
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label={`Open actions for ${staff.name}`}
+                            >
+                              <MoreHorizontal />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuGroup>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/staffs/${staff.id}`}>
+                                  View staff
+                                </Link>
+                              </DropdownMenuItem>
+                            </DropdownMenuGroup>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -404,6 +442,19 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
               )}
             </TableBody>
           </Table>
+          <div className="flex items-center justify-between border-t px-4 py-3 text-sm text-muted-foreground">
+            <span>
+              Showing {sortedStaffs.length} of {staffs.length} staffs
+            </span>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" type="button" disabled>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" type="button" disabled>
+                Next
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

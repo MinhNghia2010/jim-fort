@@ -1,11 +1,16 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
-import { CalendarClock, MessageSquareText, UserRound } from "lucide-react"
+import {
+  CalendarClock,
+  CheckCheck,
+  MessageSquareText,
+  UserRound,
+} from "lucide-react"
 
+import { markSessionFeedbackRead } from "@/app/(main)/member-actions"
 import { PageShell } from "@/components/PageShell"
+import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -31,9 +36,13 @@ type SessionRow = {
 
 type FeedbackRow = {
   id: string
+  feedback: string
   rating: number | null
+  next_steps: string | null
   status: string
   sent_at: string
+  member_read_at: string | null
+  users: { full_name: string | null } | null
 }
 
 interface MemberScheduleSessionPageProps {
@@ -49,6 +58,11 @@ const timeFormatter = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 })
 
+const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+})
+
 function statusVariant(status: string) {
   if (status === "scheduled" || status === "completed" || status === "read") {
     return "default" as const
@@ -59,6 +73,99 @@ function statusVariant(status: string) {
   }
 
   return "secondary" as const
+}
+
+function FeedbackCard({
+  feedback,
+  sessionId,
+}: {
+  feedback: FeedbackRow | null
+  sessionId: string
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <MessageSquareText className="size-5" />
+          PT feedback
+        </CardTitle>
+        <CardDescription>
+          Feedback appears after your trainer sends it.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-5">
+        {feedback ? (
+          <>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between lg:flex-col">
+              <div>
+                <p className="font-medium">
+                  {feedback.users?.full_name ?? "Trainer"} feedback
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Sent {dateTimeFormatter.format(new Date(feedback.sent_at))}
+                </p>
+              </div>
+              <Badge
+                variant={statusVariant(feedback.status)}
+                className="w-fit"
+              >
+                {feedback.status}
+              </Badge>
+            </div>
+
+            {feedback.rating ? (
+              <div className="rounded-lg border p-3">
+                <p className="text-sm text-muted-foreground">Rating</p>
+                <p className="font-mono text-2xl font-semibold">
+                  {feedback.rating}/5
+                </p>
+              </div>
+            ) : null}
+
+            <div className="grid gap-2">
+              <h2 className="font-heading text-lg font-semibold">Feedback</h2>
+              <p className="text-sm leading-6 text-muted-foreground">
+                {feedback.feedback}
+              </p>
+            </div>
+
+            {feedback.next_steps ? (
+              <div className="grid gap-2">
+                <h2 className="font-heading text-lg font-semibold">
+                  Next steps
+                </h2>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {feedback.next_steps}
+                </p>
+              </div>
+            ) : null}
+
+            {feedback.status !== "read" ? (
+              <MemberActionForm
+                action={markSessionFeedbackRead}
+                submitLabel="Mark as read"
+              >
+                <input type="hidden" name="sessionId" value={sessionId} />
+                <input type="hidden" name="feedbackId" value={feedback.id} />
+              </MemberActionForm>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CheckCheck className="size-4" />
+                Read{" "}
+                {feedback.member_read_at
+                  ? dateTimeFormatter.format(new Date(feedback.member_read_at))
+                  : ""}
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            No PT feedback has been sent for this session yet.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  )
 }
 
 export async function MemberScheduleSessionPage({
@@ -75,7 +182,9 @@ export async function MemberScheduleSessionPage({
       .maybeSingle(),
     supabase
       .from("pt_session_feedbacks")
-      .select("id,rating,status,sent_at")
+      .select(
+        "id,feedback,rating,next_steps,status,sent_at,member_read_at,users:pt_id(full_name)"
+      )
       .eq("session_id", sessionId)
       .maybeSingle(),
   ])
@@ -106,7 +215,7 @@ export async function MemberScheduleSessionPage({
       ) : null}
 
       {session && startsAt && endsAt ? (
-        <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
+        <div className="grid gap-4">
           <Card>
             <CardHeader>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -158,42 +267,7 @@ export async function MemberScheduleSessionPage({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquareText className="size-5" />
-                PT feedback
-              </CardTitle>
-              <CardDescription>
-                Feedback appears after your trainer sends it.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-3">
-              {feedback ? (
-                <>
-                  <div className="flex items-center justify-between gap-3">
-                    <Badge variant={statusVariant(feedback.status)}>
-                      {feedback.status}
-                    </Badge>
-                    {feedback.rating ? (
-                      <span className="text-sm text-muted-foreground">
-                        {feedback.rating}/5
-                      </span>
-                    ) : null}
-                  </div>
-                  <Button asChild>
-                    <Link href={`/schedule/sessions/${session.id}/feedback`}>
-                      Open feedback
-                    </Link>
-                  </Button>
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No PT feedback has been sent for this session yet.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          <FeedbackCard feedback={feedback} sessionId={session.id} />
         </div>
       ) : null}
     </PageShell>

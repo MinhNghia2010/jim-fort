@@ -25,9 +25,10 @@ export interface FacilityDistributionItem {
 
 export interface MembershipTypeMetric {
   label: string
+  count: number
   percentage: number
   dotColorClass: string
-  progressColorClass: string
+  color: string
 }
 
 export interface EquipmentRoomRecord {
@@ -112,23 +113,23 @@ export const roomColorClasses = [
 export const membershipColorClasses = [
   {
     dotColorClass: "bg-chart-1",
-    progressColorClass: "[&_[data-slot=progress-indicator]]:bg-chart-1",
+    color: "var(--chart-1)",
   },
   {
     dotColorClass: "bg-chart-5",
-    progressColorClass: "[&_[data-slot=progress-indicator]]:bg-chart-5",
+    color: "var(--chart-5)",
   },
   {
     dotColorClass: "bg-chart-3",
-    progressColorClass: "[&_[data-slot=progress-indicator]]:bg-chart-3",
+    color: "var(--chart-3)",
   },
   {
     dotColorClass: "bg-chart-4",
-    progressColorClass: "[&_[data-slot=progress-indicator]]:bg-chart-4",
+    color: "var(--chart-4)",
   },
   {
     dotColorClass: "bg-chart-2",
-    progressColorClass: "[&_[data-slot=progress-indicator]]:bg-chart-2",
+    color: "var(--chart-2)",
   },
 ] as const
 

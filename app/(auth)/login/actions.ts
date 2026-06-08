@@ -17,13 +17,26 @@ export async function login(
     return { error: "Enter your email and password." }
   }
 
-  const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+  let signInError: { message: string } | null = null
 
-  if (error) {
+  try {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    signInError = error
+  } catch (error) {
+    console.error("Supabase Auth login request failed", error)
+
+    return {
+      error:
+        "Login service is temporarily unavailable. Check your network connection and try again.",
+    }
+  }
+
+  if (signInError) {
     return { error: "Email or password is incorrect." }
   }
 

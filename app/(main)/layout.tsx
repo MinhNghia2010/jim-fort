@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 import { redirect } from "next/navigation"
+import type { User } from "@supabase/supabase-js"
 
 import { AppSidebar, type AppSidebarUser } from "@/components/AppSidebar"
 import { Separator } from "@/components/ui/separator"
@@ -72,9 +73,18 @@ export default async function MainLayout({
   children: ReactNode
 }) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user: User | null = null
+
+  try {
+    const {
+      data: { user: authenticatedUser },
+    } = await supabase.auth.getUser()
+
+    user = authenticatedUser
+  } catch (error) {
+    console.error("Supabase Auth layout session check failed", error)
+    redirect("/login")
+  }
 
   if (!user) {
     redirect("/login")

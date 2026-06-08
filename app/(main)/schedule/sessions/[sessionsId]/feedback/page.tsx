@@ -1,16 +1,11 @@
-import { MemberSessionFeedbackPage } from "@/components/screens/member/schedule/MemberSessionFeedbackPage"
-import { getAuthenticatedRole } from "@/lib/auth/current-role"
-import { renderRolePage } from "@/lib/role-page"
+import { redirect } from "next/navigation"
 
 export default async function SessionFeedbackPage({
   params,
 }: {
   params: Promise<{ sessionsId: string }>
 }) {
-  const role = await getAuthenticatedRole()
   const { sessionsId } = await params
 
-  return renderRolePage(role, {
-    member: <MemberSessionFeedbackPage sessionId={sessionsId} />,
-  })
+  redirect(`/schedule/sessions/${sessionsId}`)
 }

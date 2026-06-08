@@ -1,7 +1,8 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useActionState, useEffect, useRef, useState } from "react"
 import { CircleAlert, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react"
+import { toast } from "sonner"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -33,7 +34,25 @@ export function LoginForm({ action }: LoginFormProps) {
     action,
     initialLoginActionState
   )
+  const wasPending = useRef(false)
   const isInvalid = Boolean(state.error)
+
+  useEffect(() => {
+    if (pending) {
+      wasPending.current = true
+      return
+    }
+
+    if (!wasPending.current) {
+      return
+    }
+
+    wasPending.current = false
+
+    if (state.error) {
+      toast.error(state.error)
+    }
+  }, [pending, state.error])
 
   return (
     <form action={formAction} className="flex flex-col gap-5">

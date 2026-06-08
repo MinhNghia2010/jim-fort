@@ -351,7 +351,7 @@ export function OwnerMembershipsContent({
                   {group.plans.length === 1 ? "plan" : "plans"}
                 </Badge>
               </div>
-              <div className="grid auto-rows-fr gap-4 lg:grid-cols-2">
+              <div className="grid auto-rows-fr gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {group.plans.map((plan) => (
                   <PlanCard key={plan.id} plan={plan} canManage={canManage} />
                 ))}
