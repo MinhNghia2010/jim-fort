@@ -5,8 +5,28 @@ import { PageShell } from "@/components/PageShell"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { createClient } from "@/lib/supabase/server"
 
 type PaymentRow = {
@@ -52,42 +72,63 @@ export async function MemberPaymentsPage() {
       ) : null}
 
       {payments.length ? (
-        <div className="rounded-lg border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {payments.map((payment) => (
-                <TableRow key={payment.id}>
-                  <TableCell className="font-medium">
-                    {currency.format(Number(payment.amount) || 0)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge>{payment.status}</Badge>
-                  </TableCell>
-                  <TableCell>{payment.method ?? "Not set"}</TableCell>
-                  <TableCell>
-                    {date.format(new Date(payment.paid_at ?? payment.created_at))}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/subscriptions/${payment.subscription_id}`}>
-                        Subscription
-                      </Link>
-                    </Button>
-                  </TableCell>
+        <Card className="gap-0 overflow-hidden py-0">
+          <CardHeader className="border-b py-4">
+            <CardTitle>Payment history</CardTitle>
+            <CardDescription>
+              Showing {payments.length} membership payment records.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-0">
+            <Table className="min-w-[820px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+              <colgroup>
+                <col className="w-[11rem]" />
+                <col className="w-[12rem]" />
+                <col className="w-[14rem]" />
+                <col className="w-[17rem]" />
+                <col className="w-[10rem]" />
+              </colgroup>
+              <TableHeader className="bg-muted/40">
+                <TableRow>
+                  <TableHead className="h-12 pl-6">Amount</TableHead>
+                  <TableHead className="h-12">Status</TableHead>
+                  <TableHead className="h-12">Method</TableHead>
+                  <TableHead className="h-12">Date</TableHead>
+                  <TableHead className="h-12 pr-6 text-right">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {payments.map((payment) => (
+                  <TableRow key={payment.id} className="h-[4.5rem]">
+                    <TableCell className="pl-6 font-medium">
+                      {currency.format(Number(payment.amount) || 0)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge>{payment.status}</Badge>
+                    </TableCell>
+                    <TableCell>{payment.method ?? "Not set"}</TableCell>
+                    <TableCell>
+                      {date.format(
+                        new Date(payment.paid_at ?? payment.created_at)
+                      )}
+                    </TableCell>
+                    <TableCell className="pr-6 text-right">
+                      <Button asChild variant="outline" size="sm">
+                        <Link
+                          href={`/subscriptions/${payment.subscription_id}`}
+                        >
+                          Subscription
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       ) : (
         <Empty className="min-h-80 border">
           <EmptyHeader>
@@ -95,7 +136,9 @@ export async function MemberPaymentsPage() {
               <ReceiptText />
             </EmptyMedia>
             <EmptyTitle>No payments yet</EmptyTitle>
-            <EmptyDescription>Payments appear here after checkout.</EmptyDescription>
+            <EmptyDescription>
+              Payments appear here after checkout.
+            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       )}

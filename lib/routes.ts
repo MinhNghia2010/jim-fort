@@ -66,6 +66,11 @@ export const appRoutes = [
     roles: ["owner", "manager"],
   },
   {
+    label: "Edit Staff",
+    path: "/staffs/[staffId]/edit",
+    roles: ["owner", "manager"],
+  },
+  {
     label: "Memberships",
     path: "/memberships",
     roles: ["owner", "manager", "member"],
@@ -188,7 +193,7 @@ export const appRoutes = [
   {
     label: "Feedback Detail",
     path: "/feedback/[feedbackId]",
-    roles: ["manager"],
+    roles: ["owner", "manager"],
   },
   {
     label: "Profile",

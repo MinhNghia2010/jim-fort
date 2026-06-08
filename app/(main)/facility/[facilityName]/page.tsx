@@ -3,11 +3,18 @@ import { OwnerFacilityDetailPage } from "@/components/screens/owner/facility/Own
 import { getAuthenticatedRole } from "@/lib/auth/current-role"
 import { renderRolePage } from "@/lib/role-page"
 
-export default async function FacilityPage() {
+interface FacilityPageProps {
+  params: Promise<{
+    facilityName: string
+  }>
+}
+
+export default async function FacilityPage({ params }: FacilityPageProps) {
   const role = await getAuthenticatedRole()
+  const { facilityName } = await params
 
   return renderRolePage(role, {
-    owner: <OwnerFacilityDetailPage />,
-    manager: <ManagerFacilityDetailPage />,
+    owner: <OwnerFacilityDetailPage facilityName={facilityName} />,
+    manager: <ManagerFacilityDetailPage facilityName={facilityName} />,
   })
 }

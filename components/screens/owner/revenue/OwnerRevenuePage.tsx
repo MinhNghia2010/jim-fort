@@ -89,8 +89,8 @@ export function OwnerRevenueContent({
         />
       </div>
 
-      <Card>
-        <CardHeader className="border-b">
+      <Card className="gap-0 overflow-hidden py-0">
+        <CardHeader className="border-b py-4">
           <CardTitle>Membership subscription payments</CardTitle>
           <CardDescription>
             Paid membership payment records from the live subscription flow.

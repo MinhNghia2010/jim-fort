@@ -2,16 +2,15 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import {
-  CirclePlus,
-  MoreHorizontal,
-  Search,
-  UserCog,
-} from "lucide-react"
+import { CirclePlus, MoreHorizontal, Search, UserCog } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  TablePagination,
+  TABLE_ROWS_PER_PAGE,
+} from "@/components/TablePagination"
 import {
   Card,
   CardAction,
@@ -215,6 +214,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StaffStatusFilter>("all")
   const [sort, setSort] = useState<StaffSort>("staff_asc")
+  const [currentPage, setCurrentPage] = useState(1)
 
   const normalizedSearch = search.trim().toLowerCase()
   const filteredStaffs = staffs.filter((staff) => {
@@ -229,6 +229,21 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
     )
   })
   const sortedStaffs = sortStaffs(filteredStaffs, sort)
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedStaffs.length / TABLE_ROWS_PER_PAGE)
+  )
+  const activePage = Math.min(currentPage, totalPages)
+  const startIndex = (activePage - 1) * TABLE_ROWS_PER_PAGE
+  const paginatedStaffs = sortedStaffs.slice(
+    startIndex,
+    startIndex + TABLE_ROWS_PER_PAGE
+  )
+  const visibleStart = paginatedStaffs.length ? startIndex + 1 : 0
+  const visibleEnd = Math.min(
+    startIndex + TABLE_ROWS_PER_PAGE,
+    sortedStaffs.length
+  )
   const staffSortValue =
     sort === "staff_desc" || sort === "staff_asc" ? sort : "staff_asc"
   const roleSortValue =
@@ -240,13 +255,28 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
   const notesSortValue =
     sort === "notes_desc" || sort === "notes_asc" ? sort : "notes_asc"
 
+  function handleSearchChange(value: string) {
+    setSearch(value)
+    setCurrentPage(1)
+  }
+
+  function handleSortChange(value: StaffSort) {
+    setSort(value)
+    setCurrentPage(1)
+  }
+
+  function handleStatusFilterChange(value: StaffStatusFilter) {
+    setStatusFilter(value)
+    setCurrentPage(1)
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <Card className="gap-0 overflow-hidden py-0">
         <CardHeader className="border-b py-4">
           <CardTitle>Staff directory</CardTitle>
           <CardDescription>
-            Showing {sortedStaffs.length} of {staffs.length} staffs
+            Showing {paginatedStaffs.length} of {sortedStaffs.length} staffs
           </CardDescription>
           {canAddStaff ? (
             <CardAction>
@@ -267,19 +297,23 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
               </InputGroupAddon>
               <InputGroupInput
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => handleSearchChange(event.target.value)}
                 placeholder="Search by staff, role, phone, note..."
                 aria-label="Search staffs"
               />
             </InputGroup>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" className="rounded-md px-3 py-1">
-                {sortedStaffs.length} shown
-              </Badge>
-            </div>
           </div>
 
-          <Table className="text-[0.925rem]">
+          <Table className="min-w-[1180px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+            <colgroup>
+              <col className="w-[18rem]" />
+              <col className="w-[10rem]" />
+              <col className="w-[10rem]" />
+              <col className="w-[10rem]" />
+              <col className="w-[10rem]" />
+              <col className="w-[17rem]" />
+              <col className="w-[6rem]" />
+            </colgroup>
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">
@@ -287,7 +321,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                     label="Staff"
                     value={staffSortValue}
                     options={staffSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
                 <TableHead className="h-12">
@@ -295,7 +329,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                     label="Role"
                     value={roleSortValue}
                     options={roleSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
                 <TableHead className="h-12">
@@ -303,7 +337,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                     label="Phone"
                     value={phoneSortValue}
                     options={phoneSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
                 <TableHead className="h-12">
@@ -311,7 +345,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                     label="Hired"
                     value={hiredSortValue}
                     options={hiredSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
                 <TableHead className="h-12">
@@ -319,7 +353,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                     label="Status"
                     value={statusFilter}
                     options={statusFilters}
-                    onValueChange={setStatusFilter}
+                    onValueChange={handleStatusFilterChange}
                   />
                 </TableHead>
                 <TableHead className="h-12">
@@ -327,36 +361,34 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                     label="Notes"
                     value={notesSortValue}
                     options={notesSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead className="h-12 pr-6 text-right">
-                  Action
-                </TableHead>
+                <TableHead className="h-12 pr-6 text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedStaffs.length ? (
-                sortedStaffs.map((staff) => (
+                paginatedStaffs.map((staff) => (
                   <TableRow key={staff.id} className="h-[4.5rem]">
                     <TableCell className="pl-6">
-                      <div className="flex min-w-48 items-center gap-3">
-                        <Avatar className="size-10 rounded-md">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="size-10">
                           {staff.avatarUrl ? (
                             <AvatarImage
                               src={staff.avatarUrl}
                               alt={staff.name}
                             />
                           ) : null}
-                          <AvatarFallback className="rounded-md">
+                          <AvatarFallback>
                             {getInitials(staff.name)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="truncate font-semibold">
+                          <p className="leading-5 font-semibold break-words">
                             {staff.name}
                           </p>
-                          <p className="truncate text-xs text-muted-foreground">
+                          <p className="text-xs break-words text-muted-foreground">
                             {staff.role ?? "Staff member"}
                           </p>
                         </div>
@@ -389,16 +421,13 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                         {statusLabels[staff.status]}
                       </Badge>
                     </TableCell>
-                    <TableCell>
-                      <p className="max-w-72 truncate text-muted-foreground">
+                    <TableCell className="overflow-hidden">
+                      <p className="truncate text-muted-foreground">
                         {staff.note ?? "No notes"}
                       </p>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/staffs/${staff.id}`}>Details</Link>
-                        </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -414,6 +443,11 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                               <DropdownMenuItem asChild>
                                 <Link href={`/staffs/${staff.id}`}>
                                   View staff
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/staffs/${staff.id}/edit`}>
+                                  Edit staff
                                 </Link>
                               </DropdownMenuItem>
                             </DropdownMenuGroup>
@@ -442,18 +476,16 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
               )}
             </TableBody>
           </Table>
-          <div className="flex items-center justify-between border-t px-4 py-3 text-sm text-muted-foreground">
+          <div className="flex flex-col gap-3 border-t px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
             <span>
-              Showing {sortedStaffs.length} of {staffs.length} staffs
+              Showing {visibleStart}-{visibleEnd} of {sortedStaffs.length}{" "}
+              staffs
             </span>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" type="button" disabled>
-                Previous
-              </Button>
-              <Button variant="outline" size="sm" type="button" disabled>
-                Next
-              </Button>
-            </div>
+            <TablePagination
+              activePage={activePage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </CardContent>
       </Card>

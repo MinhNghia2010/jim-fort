@@ -2,8 +2,13 @@
 
 import { useState } from "react"
 import { MessageSquare, Search, Star } from "lucide-react"
+import Link from "next/link"
 
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
+import {
+  TablePagination,
+  TABLE_ROWS_PER_PAGE,
+} from "@/components/TablePagination"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -113,10 +118,8 @@ function statusClassName(status: FacilityFeedbackStatus) {
     "border font-medium",
     status === "open" &&
       "border-chart-4/40 bg-chart-4/20 text-chart-5 dark:text-chart-4",
-    status === "in_review" &&
-      "border-primary/30 bg-primary/10 text-primary",
-    status === "responded" &&
-      "border-chart-2/30 bg-chart-2/10 text-chart-2",
+    status === "in_review" && "border-primary/30 bg-primary/10 text-primary",
+    status === "responded" && "border-chart-2/30 bg-chart-2/10 text-chart-2",
     status === "closed" &&
       "border-muted-foreground/30 bg-muted text-muted-foreground"
   )
@@ -135,7 +138,9 @@ function getDateValue(value: string | null, nullValue: number) {
 function sortFeedbacks(feedbacks: OwnerFeedbackRow[], sort: FeedbackSort) {
   return [...feedbacks].sort((first, second) => {
     if (sort === "feedback_asc") {
-      return getDateValue(first.createdAt, 0) - getDateValue(second.createdAt, 0)
+      return (
+        getDateValue(first.createdAt, 0) - getDateValue(second.createdAt, 0)
+      )
     }
 
     if (sort === "member_asc") {
@@ -151,18 +156,23 @@ function sortFeedbacks(feedbacks: OwnerFeedbackRow[], sort: FeedbackSort) {
     }
 
     if (sort === "rating_asc") {
-      return (first.rating ?? Number.MAX_SAFE_INTEGER) -
+      return (
+        (first.rating ?? Number.MAX_SAFE_INTEGER) -
         (second.rating ?? Number.MAX_SAFE_INTEGER)
+      )
     }
 
     if (sort === "response_desc") {
-      return getDateValue(second.respondedAt, 0) -
-        getDateValue(first.respondedAt, 0)
+      return (
+        getDateValue(second.respondedAt, 0) - getDateValue(first.respondedAt, 0)
+      )
     }
 
     if (sort === "response_asc") {
-      return getDateValue(first.respondedAt, Number.MAX_SAFE_INTEGER) -
+      return (
+        getDateValue(first.respondedAt, Number.MAX_SAFE_INTEGER) -
         getDateValue(second.respondedAt, Number.MAX_SAFE_INTEGER)
+      )
     }
 
     return getDateValue(second.createdAt, 0) - getDateValue(first.createdAt, 0)
@@ -195,8 +205,8 @@ function feedbackSearchText(feedback: OwnerFeedbackRow) {
 export function OwnerFeedbackTable({ feedbacks }: OwnerFeedbackTableProps) {
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<FeedbackSort>("feedback_desc")
-  const [statusFilter, setStatusFilter] =
-    useState<FeedbackStatusFilter>("all")
+  const [statusFilter, setStatusFilter] = useState<FeedbackStatusFilter>("all")
+  const [currentPage, setCurrentPage] = useState(1)
   const normalizedSearch = search.trim().toLowerCase()
   const filteredFeedbacks = feedbacks.filter((feedback) => {
     return (
@@ -206,94 +216,135 @@ export function OwnerFeedbackTable({ feedbacks }: OwnerFeedbackTableProps) {
     )
   })
   const sortedFeedbacks = sortFeedbacks(filteredFeedbacks, sort)
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedFeedbacks.length / TABLE_ROWS_PER_PAGE)
+  )
+  const activePage = Math.min(currentPage, totalPages)
+  const startIndex = (activePage - 1) * TABLE_ROWS_PER_PAGE
+  const paginatedFeedbacks = sortedFeedbacks.slice(
+    startIndex,
+    startIndex + TABLE_ROWS_PER_PAGE
+  )
+  const visibleStart = paginatedFeedbacks.length ? startIndex + 1 : 0
+  const visibleEnd = Math.min(
+    startIndex + TABLE_ROWS_PER_PAGE,
+    sortedFeedbacks.length
+  )
   const feedbackSortValue =
-    sort === "feedback_asc" || sort === "feedback_desc"
-      ? sort
-      : "feedback_desc"
+    sort === "feedback_asc" || sort === "feedback_desc" ? sort : "feedback_desc"
   const memberSortValue =
     sort === "member_desc" || sort === "member_asc" ? sort : "member_asc"
   const ratingSortValue =
     sort === "rating_asc" || sort === "rating_desc" ? sort : "rating_desc"
   const responseSortValue =
-    sort === "response_asc" || sort === "response_desc"
-      ? sort
-      : "response_desc"
+    sort === "response_asc" || sort === "response_desc" ? sort : "response_desc"
+
+  function handleSearchChange(value: string) {
+    setSearch(value)
+    setCurrentPage(1)
+  }
+
+  function handleSortChange(value: FeedbackSort) {
+    setSort(value)
+    setCurrentPage(1)
+  }
+
+  function handleStatusFilterChange(value: FeedbackStatusFilter) {
+    setStatusFilter(value)
+    setCurrentPage(1)
+  }
 
   return (
     <div className="flex flex-col gap-4">
-      <InputGroup className="w-full lg:w-80">
-        <InputGroupAddon>
-          <Search aria-hidden="true" />
-        </InputGroupAddon>
-        <InputGroupInput
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search feedback..."
-          aria-label="Search feedback"
-        />
-      </InputGroup>
-
-      <Card className="gap-0 py-0">
+      <Card className="gap-0 overflow-hidden py-0">
         <CardHeader className="border-b py-4">
           <CardTitle>Feedback table</CardTitle>
           <CardDescription>
-            Showing {sortedFeedbacks.length} of {feedbacks.length} feedbacks
+            Showing {paginatedFeedbacks.length} of {sortedFeedbacks.length}{" "}
+            feedbacks
           </CardDescription>
         </CardHeader>
         <CardContent className="px-0">
-          <Table>
-            <TableHeader>
+          <div className="flex flex-col gap-3 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+            <InputGroup className="w-full lg:w-96">
+              <InputGroupAddon>
+                <Search aria-hidden="true" />
+              </InputGroupAddon>
+              <InputGroupInput
+                value={search}
+                onChange={(event) => handleSearchChange(event.target.value)}
+                placeholder="Search feedback..."
+                aria-label="Search feedback"
+              />
+            </InputGroup>
+          </div>
+
+          <Table className="min-w-[1260px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+            <colgroup>
+              <col className="w-[26rem]" />
+              <col className="w-[16rem]" />
+              <col className="w-[9rem]" />
+              <col className="w-[11rem]" />
+              <col className="w-[32rem]" />
+            </colgroup>
+            <TableHeader className="bg-muted/40">
               <TableRow>
-                <TableHead className="pl-4">
+                <TableHead className="h-12 pl-6">
                   <OwnerTableHeaderSelect
                     label="Feedback"
                     value={feedbackSortValue}
                     options={feedbackSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Member"
                     value={memberSortValue}
                     options={memberSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Rating"
                     value={ratingSortValue}
                     options={ratingSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Status"
                     value={statusFilter}
                     options={statusFilterOptions}
-                    onValueChange={setStatusFilter}
+                    onValueChange={handleStatusFilterChange}
                   />
                 </TableHead>
-                <TableHead className="pr-4">
+                <TableHead className="h-12 pr-6">
                   <OwnerTableHeaderSelect
                     label="Manager response"
                     value={responseSortValue}
                     options={responseSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedFeedbacks.length ? (
-                sortedFeedbacks.map((feedback) => (
-                  <TableRow key={feedback.id}>
-                    <TableCell className="max-w-80 pl-4">
-                      <div className="space-y-1">
-                        <p className="font-medium">{feedback.subject}</p>
-                        <p className="line-clamp-2 text-muted-foreground">
+                paginatedFeedbacks.map((feedback) => (
+                  <TableRow key={feedback.id} className="h-[4.5rem]">
+                    <TableCell className="pl-6">
+                      <div className="flex flex-col gap-1">
+                        <Link
+                          href={`/feedback/${feedback.id}`}
+                          className="font-medium break-words text-foreground underline-offset-4 hover:underline"
+                        >
+                          {feedback.subject}
+                        </Link>
+                        <p className="break-words text-muted-foreground">
                           {feedback.message}
                         </p>
                         <p className="font-mono text-xs text-muted-foreground">
@@ -302,16 +353,18 @@ export function OwnerFeedbackTable({ feedbacks }: OwnerFeedbackTableProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="min-w-40">
-                        <p className="font-medium">{feedback.memberName}</p>
-                        <p className="text-xs text-muted-foreground">
+                      <div>
+                        <p className="font-medium break-words">
+                          {feedback.memberName}
+                        </p>
+                        <p className="text-xs break-words text-muted-foreground">
                           {feedback.memberPhone}
                         </p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary" className="gap-1">
-                        <Star className="size-3" />
+                        <Star aria-hidden="true" />
                         {ratingText(feedback.rating)}
                       </Badge>
                     </TableCell>
@@ -323,13 +376,13 @@ export function OwnerFeedbackTable({ feedbacks }: OwnerFeedbackTableProps) {
                         {statusLabels[feedback.status]}
                       </Badge>
                     </TableCell>
-                    <TableCell className="max-w-96 pr-4">
+                    <TableCell className="pr-6">
                       {feedback.managerResponse ? (
-                        <div className="space-y-1">
-                          <p className="line-clamp-2">
+                        <div className="flex flex-col gap-1">
+                          <p className="break-words">
                             {feedback.managerResponse}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs break-words text-muted-foreground">
                             {feedback.responderName ?? "Unknown responder"}
                             {feedback.responderRole
                               ? ` (${feedback.responderRole})`
@@ -370,6 +423,17 @@ export function OwnerFeedbackTable({ feedbacks }: OwnerFeedbackTableProps) {
               )}
             </TableBody>
           </Table>
+          <div className="flex flex-col gap-3 border-t px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              Showing {visibleStart}-{visibleEnd} of {sortedFeedbacks.length}{" "}
+              feedbacks
+            </span>
+            <TablePagination
+              activePage={activePage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

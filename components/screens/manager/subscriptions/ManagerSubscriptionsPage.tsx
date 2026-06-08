@@ -5,6 +5,13 @@ import { PageShell } from "@/components/PageShell"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
   Table,
   TableBody,
   TableCell,
@@ -99,70 +106,88 @@ export async function ManagerSubscriptionsPage() {
       title="Subscriptions"
       description="Monitor member subscriptions across setup, payment, and activation."
     >
-      <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Member</TableHead>
-              <TableHead>Package</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((row, index) => {
-              const createdAt = new Date(row.created_at)
-              const previousRow = rows[index - 1]
-              const currentMonthKey = monthKey.format(createdAt)
-              const previousMonthKey = previousRow
-                ? monthKey.format(new Date(previousRow.created_at))
-                : null
-              const showMonth = currentMonthKey !== previousMonthKey
+      <Card className="gap-0 overflow-hidden py-0">
+        <CardHeader className="border-b py-4">
+          <CardTitle>Subscription directory</CardTitle>
+          <CardDescription>
+            Showing {rows.length} subscription records.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-0">
+          <Table className="min-w-[1060px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+            <colgroup>
+              <col className="w-[16rem]" />
+              <col className="w-[18rem]" />
+              <col className="w-[12rem]" />
+              <col className="w-[14rem]" />
+              <col className="w-[10rem]" />
+              <col className="w-[6rem]" />
+            </colgroup>
+            <TableHeader className="bg-muted/40">
+              <TableRow>
+                <TableHead className="h-12 pl-6">Member</TableHead>
+                <TableHead className="h-12">Package</TableHead>
+                <TableHead className="h-12">Date</TableHead>
+                <TableHead className="h-12">Status</TableHead>
+                <TableHead className="h-12">Amount</TableHead>
+                <TableHead className="h-12 pr-6 text-right">
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row, index) => {
+                const createdAt = new Date(row.created_at)
+                const previousRow = rows[index - 1]
+                const currentMonthKey = monthKey.format(createdAt)
+                const previousMonthKey = previousRow
+                  ? monthKey.format(new Date(previousRow.created_at))
+                  : null
+                const showMonth = currentMonthKey !== previousMonthKey
 
-              return (
-                <Fragment key={row.id}>
-                  {showMonth ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        className="bg-muted/40 py-2 text-xs font-medium text-muted-foreground"
-                      >
-                        {month.format(createdAt)}
+                return (
+                  <Fragment key={row.id}>
+                    {showMonth ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={6}
+                          className="bg-muted/50 py-2 pl-6 text-xs font-medium text-muted-foreground"
+                        >
+                          {month.format(createdAt)}
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                    <TableRow key={row.id} className="h-[4.5rem]">
+                      <TableCell className="pl-6 font-medium">
+                        {row.users?.full_name ?? "Member"}
+                      </TableCell>
+                      <TableCell>
+                        {row.membership_packages?.name ?? "Membership"}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">
+                        {date.format(createdAt)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={statusClassName(row.status)}>
+                          {getStatusLabel(row.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {currency.format(Number(row.final_price) || 0)}
+                      </TableCell>
+                      <TableCell className="pr-6 text-right">
+                        <Button asChild size="sm" variant="outline">
+                          <Link href={`/request/${row.id}`}>Open</Link>
+                        </Button>
                       </TableCell>
                     </TableRow>
-                  ) : null}
-                  <TableRow key={row.id}>
-                    <TableCell className="font-medium">
-                      {row.users?.full_name ?? "Member"}
-                    </TableCell>
-                    <TableCell>
-                      {row.membership_packages?.name ?? "Membership"}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {date.format(createdAt)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={statusClassName(row.status)}>
-                        {getStatusLabel(row.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {currency.format(Number(row.final_price) || 0)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button asChild size="sm" variant="outline">
-                        <Link href={`/request/${row.id}`}>Open</Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                </Fragment>
-              )
-            })}
-          </TableBody>
-        </Table>
-      </div>
+                  </Fragment>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </PageShell>
   )
 }

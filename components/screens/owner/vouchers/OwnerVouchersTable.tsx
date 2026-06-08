@@ -9,6 +9,10 @@ import type {
   VoucherView,
   VoucherViewStatus,
 } from "@/components/screens/owner/vouchers/OwnerVouchersPage"
+import {
+  TablePagination,
+  TABLE_ROWS_PER_PAGE,
+} from "@/components/TablePagination"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -142,18 +146,23 @@ function sortVouchers(vouchers: VoucherView[], sort: VoucherSort) {
     }
 
     if (sort === "starts_asc") {
-      return getDateValue(first.startsAt, Number.MAX_SAFE_INTEGER) -
+      return (
+        getDateValue(first.startsAt, Number.MAX_SAFE_INTEGER) -
         getDateValue(second.startsAt, Number.MAX_SAFE_INTEGER)
+      )
     }
 
     if (sort === "expires_desc") {
-      return getDateValue(second.expiresAt, 0) -
-        getDateValue(first.expiresAt, 0)
+      return (
+        getDateValue(second.expiresAt, 0) - getDateValue(first.expiresAt, 0)
+      )
     }
 
     if (sort === "expires_asc") {
-      return getDateValue(first.expiresAt, Number.MAX_SAFE_INTEGER) -
+      return (
+        getDateValue(first.expiresAt, Number.MAX_SAFE_INTEGER) -
         getDateValue(second.expiresAt, Number.MAX_SAFE_INTEGER)
+      )
     }
 
     return second.usage - first.usage
@@ -165,18 +174,31 @@ export function OwnerVouchersTable({
   canManage,
 }: OwnerVouchersTableProps) {
   const [sort, setSort] = useState<VoucherSort>("code_asc")
-  const [statusFilter, setStatusFilter] =
-    useState<VoucherStatusFilter>("all")
+  const [statusFilter, setStatusFilter] = useState<VoucherStatusFilter>("all")
+  const [currentPage, setCurrentPage] = useState(1)
   const filteredVouchers = vouchers.filter(
     (voucher) => statusFilter === "all" || voucher.status === statusFilter
   )
   const sortedVouchers = sortVouchers(filteredVouchers, sort)
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedVouchers.length / TABLE_ROWS_PER_PAGE)
+  )
+  const activePage = Math.min(currentPage, totalPages)
+  const startIndex = (activePage - 1) * TABLE_ROWS_PER_PAGE
+  const paginatedVouchers = sortedVouchers.slice(
+    startIndex,
+    startIndex + TABLE_ROWS_PER_PAGE
+  )
+  const visibleStart = paginatedVouchers.length ? startIndex + 1 : 0
+  const visibleEnd = Math.min(
+    startIndex + TABLE_ROWS_PER_PAGE,
+    sortedVouchers.length
+  )
   const codeSortValue =
     sort === "code_desc" || sort === "code_asc" ? sort : "code_asc"
   const discountSortValue =
-    sort === "discount_desc" || sort === "discount_asc"
-      ? sort
-      : "discount_asc"
+    sort === "discount_desc" || sort === "discount_asc" ? sort : "discount_asc"
   const usageSortValue =
     sort === "usage_asc" || sort === "usage_desc" ? sort : "usage_desc"
   const startsSortValue =
@@ -184,12 +206,23 @@ export function OwnerVouchersTable({
   const expiresSortValue =
     sort === "expires_asc" || sort === "expires_desc" ? sort : "expires_desc"
 
+  function handleSortChange(value: VoucherSort) {
+    setSort(value)
+    setCurrentPage(1)
+  }
+
+  function handleStatusFilterChange(value: VoucherStatusFilter) {
+    setStatusFilter(value)
+    setCurrentPage(1)
+  }
+
   return (
-    <Card>
-      <CardHeader className="border-b">
+    <Card className="gap-0 overflow-hidden py-0">
+      <CardHeader className="border-b py-4">
         <CardTitle>Voucher codes</CardTitle>
         <CardDescription>
-          Showing {sortedVouchers.length} of {vouchers.length} voucher records.
+          Showing {paginatedVouchers.length} of {sortedVouchers.length} voucher
+          records.
         </CardDescription>
         {canManage ? (
           <CardAction>
@@ -203,67 +236,76 @@ export function OwnerVouchersTable({
         ) : null}
       </CardHeader>
       <CardContent className="px-0">
-        <Table>
-          <TableHeader>
+        <Table className="min-w-[1120px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+          <colgroup>
+            <col className="w-[15rem]" />
+            <col className="w-[13rem]" />
+            <col className="w-[11rem]" />
+            <col className="w-[12rem]" />
+            <col className="w-[12rem]" />
+            <col className="w-[10rem]" />
+            <col className="w-[6rem]" />
+          </colgroup>
+          <TableHeader className="bg-muted/40">
             <TableRow>
-              <TableHead className="px-4">
+              <TableHead className="h-12 pl-6">
                 <OwnerTableHeaderSelect
                   label="Code"
                   value={codeSortValue}
                   options={codeSortOptions}
-                  onValueChange={setSort}
+                  onValueChange={handleSortChange}
                 />
               </TableHead>
-              <TableHead>
+              <TableHead className="h-12">
                 <OwnerTableHeaderSelect
                   label="Discount"
                   value={discountSortValue}
                   options={discountSortOptions}
-                  onValueChange={setSort}
+                  onValueChange={handleSortChange}
                 />
               </TableHead>
-              <TableHead className="w-36">
+              <TableHead className="h-12">
                 <OwnerTableHeaderSelect
                   label="Usage"
                   value={usageSortValue}
                   options={usageSortOptions}
-                  onValueChange={setSort}
+                  onValueChange={handleSortChange}
                 />
               </TableHead>
-              <TableHead>
+              <TableHead className="h-12">
                 <OwnerTableHeaderSelect
                   label="Starts"
                   value={startsSortValue}
                   options={startsSortOptions}
-                  onValueChange={setSort}
+                  onValueChange={handleSortChange}
                 />
               </TableHead>
-              <TableHead>
+              <TableHead className="h-12">
                 <OwnerTableHeaderSelect
                   label="Expires"
                   value={expiresSortValue}
                   options={expiresSortOptions}
-                  onValueChange={setSort}
+                  onValueChange={handleSortChange}
                 />
               </TableHead>
-              <TableHead>
+              <TableHead className="h-12">
                 <OwnerTableHeaderSelect
                   label="Status"
                   value={statusFilter}
                   options={statusFilterOptions}
-                  onValueChange={setStatusFilter}
+                  onValueChange={handleStatusFilterChange}
                 />
               </TableHead>
-              <TableHead className="pr-4 text-right">
+              <TableHead className="h-12 pr-6 text-right">
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sortedVouchers.length ? (
-              sortedVouchers.map((voucher) => (
-                <TableRow key={voucher.code}>
-                  <TableCell className="px-4">
+              paginatedVouchers.map((voucher) => (
+                <TableRow key={voucher.code} className="h-[4.5rem]">
+                  <TableCell className="pl-6">
                     <div className="flex items-center gap-2">
                       <BadgePercent
                         aria-hidden="true"
@@ -277,7 +319,7 @@ export function OwnerVouchersTable({
                   <TableCell className="font-medium">
                     {voucher.discountLabel}
                   </TableCell>
-                  <TableCell className="w-36">
+                  <TableCell>
                     <div className="grid grid-cols-[3.75rem_4.5rem] items-center gap-2">
                       <span className="font-mono text-xs tabular-nums">
                         {voucher.usage} / {voucher.quantity}
@@ -306,7 +348,7 @@ export function OwnerVouchersTable({
                       {voucher.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="pr-4 text-right">
+                  <TableCell className="pr-6 text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -321,7 +363,7 @@ export function OwnerVouchersTable({
                         <DropdownMenuGroup>
                           <DropdownMenuItem asChild>
                             <Link
-                              href={`/voucher/view=${encodeURIComponent(voucher.code)}`}
+                              href={`/voucher/${encodeURIComponent(voucher.code)}`}
                             >
                               View details
                             </Link>
@@ -360,6 +402,17 @@ export function OwnerVouchersTable({
             )}
           </TableBody>
         </Table>
+        <div className="flex flex-col gap-3 border-t px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            Showing {visibleStart}-{visibleEnd} of {sortedVouchers.length}{" "}
+            voucher records
+          </span>
+          <TablePagination
+            activePage={activePage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
       </CardContent>
     </Card>
   )

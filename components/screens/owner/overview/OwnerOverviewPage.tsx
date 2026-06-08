@@ -71,7 +71,10 @@ export function OwnerOverviewPage({
       />
 
       <section className="grid gap-4 lg:grid-cols-3">
-        <AverageMonthlyCard metrics={averageMonthlyMetrics} />
+        <MembershipTypesCard
+          memberships={membershipTypes}
+          totalActive={totalActiveMemberships}
+        />
         <FiveMonthBarChart
           title="Revenue by month"
           metricLabel="Revenue"
@@ -92,10 +95,7 @@ export function OwnerOverviewPage({
           rooms={equipmentRooms}
           statusCounts={equipmentStatusCounts}
         />
-        <MembershipTypesCard
-          memberships={membershipTypes}
-          totalActive={totalActiveMemberships}
-        />
+        <AverageMonthlyCard metrics={averageMonthlyMetrics} />
       </section>
     </PageShell>
   )

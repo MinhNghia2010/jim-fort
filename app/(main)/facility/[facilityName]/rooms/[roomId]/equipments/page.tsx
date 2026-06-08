@@ -20,6 +20,8 @@ export default async function FacilityRoomEquipmentPage({
     owner: (
       <OwnerRoomEquipmentPage facilityName={facilityName} roomId={roomId} />
     ),
-    manager: <ManagerRoomEquipmentPage />,
+    manager: (
+      <ManagerRoomEquipmentPage facilityName={facilityName} roomId={roomId} />
+    ),
   })
 }

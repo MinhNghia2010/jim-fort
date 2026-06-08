@@ -1,7 +1,6 @@
-import Link from "next/link"
-import { ArrowLeft, ShieldAlert } from "lucide-react"
+import { ShieldAlert } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { HistoryBackButton } from "@/components/HistoryBackButton"
 import {
   Empty,
   EmptyContent,
@@ -62,12 +61,7 @@ export default async function UnauthorizedPage({
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Button asChild>
-            <Link href={returnTo}>
-              <ArrowLeft data-icon="inline-start" />
-              <span>{buttonLabel}</span>
-            </Link>
-          </Button>
+          <HistoryBackButton fallbackHref={returnTo} label={buttonLabel} />
         </EmptyContent>
       </Empty>
     </section>

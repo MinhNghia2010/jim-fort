@@ -8,7 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
+  TablePagination,
+  TABLE_ROWS_PER_PAGE,
+} from "@/components/TablePagination"
+import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -223,6 +228,7 @@ export function MembersTable({
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<MemberStatusFilter>("all")
   const [sort, setSort] = useState<MemberSort>("joined_desc")
+  const [currentPage, setCurrentPage] = useState(1)
 
   const normalizedSearch = search.trim().toLowerCase()
   const filteredMembers = members.filter((member) => {
@@ -237,6 +243,21 @@ export function MembersTable({
     )
   })
   const sortedMembers = sortMembers(filteredMembers, sort)
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedMembers.length / TABLE_ROWS_PER_PAGE)
+  )
+  const activePage = Math.min(currentPage, totalPages)
+  const startIndex = (activePage - 1) * TABLE_ROWS_PER_PAGE
+  const paginatedMembers = sortedMembers.slice(
+    startIndex,
+    startIndex + TABLE_ROWS_PER_PAGE
+  )
+  const visibleStart = paginatedMembers.length ? startIndex + 1 : 0
+  const visibleEnd = Math.min(
+    startIndex + TABLE_ROWS_PER_PAGE,
+    sortedMembers.length
+  )
   const memberSortValue =
     sort === "member_desc" || sort === "member_asc" ? sort : "member_asc"
   const planSortValue =
@@ -244,108 +265,131 @@ export function MembersTable({
   const joinedSortValue =
     sort === "joined_asc" || sort === "joined_desc" ? sort : "joined_desc"
   const sessionsSortValue =
-    sort === "sessions_asc" || sort === "sessions_desc"
-      ? sort
-      : "sessions_desc"
+    sort === "sessions_asc" || sort === "sessions_desc" ? sort : "sessions_desc"
   const revenueSortValue =
     sort === "revenue_asc" || sort === "revenue_desc" ? sort : "revenue_desc"
 
+  function handleSearchChange(value: string) {
+    setSearch(value)
+    setCurrentPage(1)
+  }
+
+  function handleSortChange(value: MemberSort) {
+    setSort(value)
+    setCurrentPage(1)
+  }
+
+  function handleStatusFilterChange(value: MemberStatusFilter) {
+    setStatusFilter(value)
+    setCurrentPage(1)
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <InputGroup className="w-full lg:w-72">
-          <InputGroupAddon>
-            <Search aria-hidden="true" />
-          </InputGroupAddon>
-          <InputGroupInput
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search members..."
-            aria-label="Search members"
-          />
-        </InputGroup>
-
-        {canAddMember ? (
-          <Button asChild className="self-start lg:self-auto">
-            <Link href="/members/create">
-              <CirclePlus data-icon="inline-start" />
-              Add Member
-            </Link>
-          </Button>
-        ) : null}
-      </div>
-
-      <Card className="gap-0 py-0">
+      <Card className="gap-0 overflow-hidden py-0">
         <CardHeader className="border-b py-4">
           <CardTitle>Member directory</CardTitle>
           <CardDescription>
-            Showing {sortedMembers.length} of {members.length} members
+            Showing {paginatedMembers.length} of {sortedMembers.length} members
           </CardDescription>
+          {canAddMember ? (
+            <CardAction>
+              <Button asChild size="sm">
+                <Link href="/members/create">
+                  <CirclePlus data-icon="inline-start" />
+                  Add Member
+                </Link>
+              </Button>
+            </CardAction>
+          ) : null}
         </CardHeader>
         <CardContent className="px-0">
-          <Table>
-            <TableHeader>
+          <div className="flex flex-col gap-3 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+            <InputGroup className="w-full lg:w-96">
+              <InputGroupAddon>
+                <Search aria-hidden="true" />
+              </InputGroupAddon>
+              <InputGroupInput
+                value={search}
+                onChange={(event) => handleSearchChange(event.target.value)}
+                placeholder="Search members..."
+                aria-label="Search members"
+              />
+            </InputGroup>
+          </div>
+
+          <Table className="min-w-[1140px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+            <colgroup>
+              <col className="w-[18rem]" />
+              <col className="w-[14rem]" />
+              <col className="w-[10rem]" />
+              <col className="w-[12rem]" />
+              <col className="w-[8rem]" />
+              <col className="w-[10rem]" />
+              <col className="w-[6rem]" />
+            </colgroup>
+            <TableHeader className="bg-muted/40">
               <TableRow>
-                <TableHead className="pl-4">
+                <TableHead className="h-12 pl-6">
                   <OwnerTableHeaderSelect
                     label="Member"
                     value={memberSortValue}
                     options={memberSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Plan"
                     value={planSortValue}
                     options={planSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Joined"
                     value={joinedSortValue}
                     options={joinedSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Status"
                     value={statusFilter}
                     options={statusFilters}
-                    onValueChange={setStatusFilter}
+                    onValueChange={handleStatusFilterChange}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Sessions"
                     value={sessionsSortValue}
                     options={sessionsSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead>
+                <TableHead className="h-12">
                   <OwnerTableHeaderSelect
                     label="Revenue"
                     value={revenueSortValue}
                     options={revenueSortOptions}
-                    onValueChange={setSort}
+                    onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead className="pr-4 text-right">
+                <TableHead className="h-12 pr-6 text-right">
                   <span className="sr-only">Actions</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedMembers.length ? (
-                sortedMembers.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell className="pl-4">
-                      <div className="flex min-w-48 items-center gap-3">
-                        <Avatar>
+                paginatedMembers.map((member) => (
+                  <TableRow key={member.id} className="h-[4.5rem]">
+                    <TableCell className="pl-6">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="size-10">
                           {member.avatarUrl ? (
                             <AvatarImage
                               src={member.avatarUrl}
@@ -357,8 +401,10 @@ export function MembersTable({
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="truncate font-medium">{member.name}</p>
-                          <p className="truncate text-xs text-muted-foreground">
+                          <p className="leading-5 font-medium break-words">
+                            {member.name}
+                          </p>
+                          <p className="text-xs break-words text-muted-foreground">
                             {member.phone ?? "No phone number"}
                           </p>
                         </div>
@@ -382,7 +428,7 @@ export function MembersTable({
                     <TableCell className="font-medium tabular-nums">
                       {currencyFormatter.format(member.revenue)}
                     </TableCell>
-                    <TableCell className="pr-4 text-right">
+                    <TableCell className="pr-6 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
@@ -425,6 +471,17 @@ export function MembersTable({
               )}
             </TableBody>
           </Table>
+          <div className="flex flex-col gap-3 border-t px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              Showing {visibleStart}-{visibleEnd} of {sortedMembers.length}{" "}
+              members
+            </span>
+            <TablePagination
+              activePage={activePage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

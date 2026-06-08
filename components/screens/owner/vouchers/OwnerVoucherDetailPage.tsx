@@ -224,8 +224,8 @@ function VoucherDetailContent({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="border-b">
+      <Card className="gap-0 overflow-hidden py-0">
+        <CardHeader className="border-b py-4">
           <CardTitle>Redemption history</CardTitle>
           <CardDescription>
             Live records from voucher_redemptions.

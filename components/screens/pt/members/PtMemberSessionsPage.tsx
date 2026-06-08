@@ -57,7 +57,9 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
   const [sessionResult, feedbackResult] = await Promise.all([
     supabase
       .from("membership_pt_sessions")
-      .select("id,session_number,starts_at,ends_at,status,users:member_id(full_name)")
+      .select(
+        "id,session_number,starts_at,ends_at,status,users:member_id(full_name)"
+      )
       .eq("member_id", memberId)
       .order("starts_at", { ascending: true }),
     supabase.from("pt_session_feedbacks").select("session_id,status"),
@@ -138,52 +140,72 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
             </Card>
           </div>
 
-          <div className="rounded-lg border bg-card">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Session</TableHead>
-                  <TableHead>Start</TableHead>
-                  <TableHead>End</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Feedback</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sessions.map((session) => {
-                  const feedback = feedbackBySession.get(session.id)
+          <Card className="gap-0 overflow-hidden py-0">
+            <CardHeader className="border-b py-4">
+              <CardTitle>Session directory</CardTitle>
+              <CardDescription>
+                Showing {sessions.length} sessions for {memberName}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-0">
+              <Table className="min-w-[980px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+                <colgroup>
+                  <col className="w-[9rem]" />
+                  <col className="w-[17rem]" />
+                  <col className="w-[17rem]" />
+                  <col className="w-[11rem]" />
+                  <col className="w-[12rem]" />
+                  <col className="w-[6rem]" />
+                </colgroup>
+                <TableHeader className="bg-muted/40">
+                  <TableRow>
+                    <TableHead className="h-12 pl-6">Session</TableHead>
+                    <TableHead className="h-12">Start</TableHead>
+                    <TableHead className="h-12">End</TableHead>
+                    <TableHead className="h-12">Status</TableHead>
+                    <TableHead className="h-12">Feedback</TableHead>
+                    <TableHead className="h-12 pr-6 text-right">
+                      <span className="sr-only">Actions</span>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sessions.map((session) => {
+                    const feedback = feedbackBySession.get(session.id)
 
-                  return (
-                    <TableRow key={session.id}>
-                      <TableCell className="font-medium">
-                        #{session.session_number}
-                      </TableCell>
-                      <TableCell>
-                        {date.format(new Date(session.starts_at))}
-                      </TableCell>
-                      <TableCell>{date.format(new Date(session.ends_at))}</TableCell>
-                      <TableCell>
-                        <Badge>{session.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={feedback ? "secondary" : "outline"}>
-                          {feedback?.status ?? "not sent"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button asChild size="sm">
-                          <Link href={`/schedule/sessions/${session.id}`}>
-                            Open
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
+                    return (
+                      <TableRow key={session.id} className="h-[4.5rem]">
+                        <TableCell className="pl-6 font-medium">
+                          #{session.session_number}
+                        </TableCell>
+                        <TableCell>
+                          {date.format(new Date(session.starts_at))}
+                        </TableCell>
+                        <TableCell>
+                          {date.format(new Date(session.ends_at))}
+                        </TableCell>
+                        <TableCell>
+                          <Badge>{session.status}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={feedback ? "secondary" : "outline"}>
+                            {feedback?.status ?? "not sent"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="pr-6 text-right">
+                          <Button asChild size="sm">
+                            <Link href={`/schedule/sessions/${session.id}`}>
+                              Open
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </>
       ) : (
         <Empty className="min-h-80 border">

@@ -1,10 +1,16 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Dumbbell } from "lucide-react"
 
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
+import {
+  TablePagination,
+  TABLE_ROWS_PER_PAGE,
+} from "@/components/TablePagination"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Empty,
   EmptyDescription,
@@ -45,6 +51,8 @@ export interface OwnerRoomEquipmentRow {
 
 interface OwnerRoomEquipmentTableProps {
   equipments: readonly OwnerRoomEquipmentRow[]
+  facilityName?: string
+  roomId?: string
 }
 
 const machineSortOptions = [
@@ -173,13 +181,16 @@ function sortEquipments(
     }
 
     if (sort === "purchased_asc") {
-      return getDateValue(first.purchasedAt, Number.MAX_SAFE_INTEGER) -
+      return (
+        getDateValue(first.purchasedAt, Number.MAX_SAFE_INTEGER) -
         getDateValue(second.purchasedAt, Number.MAX_SAFE_INTEGER)
+      )
     }
 
     if (sort === "purchased_desc") {
-      return getDateValue(second.purchasedAt, 0) -
-        getDateValue(first.purchasedAt, 0)
+      return (
+        getDateValue(second.purchasedAt, 0) - getDateValue(first.purchasedAt, 0)
+      )
     }
 
     if (sort === "cost_asc") {
@@ -198,17 +209,41 @@ function sortEquipments(
   })
 }
 
+function getEquipmentDetailHref(
+  facilityName: string,
+  roomId: string,
+  equipmentId: string
+) {
+  return `/facility/${encodeURIComponent(facilityName)}/rooms/${roomId}/equipments/${equipmentId}`
+}
+
 export function OwnerRoomEquipmentTable({
   equipments,
+  facilityName,
+  roomId,
 }: OwnerRoomEquipmentTableProps) {
   const [sort, setSort] = useState<EquipmentSort>("machine_asc")
-  const [statusFilter, setStatusFilter] =
-    useState<EquipmentStatusFilter>("all")
+  const [statusFilter, setStatusFilter] = useState<EquipmentStatusFilter>("all")
+  const [currentPage, setCurrentPage] = useState(1)
   const filteredEquipments = equipments.filter(
-    (equipment) =>
-      statusFilter === "all" || equipment.status === statusFilter
+    (equipment) => statusFilter === "all" || equipment.status === statusFilter
   )
   const sortedEquipments = sortEquipments(filteredEquipments, sort)
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedEquipments.length / TABLE_ROWS_PER_PAGE)
+  )
+  const activePage = Math.min(currentPage, totalPages)
+  const startIndex = (activePage - 1) * TABLE_ROWS_PER_PAGE
+  const paginatedEquipments = sortedEquipments.slice(
+    startIndex,
+    startIndex + TABLE_ROWS_PER_PAGE
+  )
+  const visibleStart = paginatedEquipments.length ? startIndex + 1 : 0
+  const visibleEnd = Math.min(
+    startIndex + TABLE_ROWS_PER_PAGE,
+    sortedEquipments.length
+  )
   const machineSortValue =
     sort === "machine_desc" || sort === "machine_asc" ? sort : "machine_asc"
   const codeSortValue =
@@ -227,138 +262,193 @@ export function OwnerRoomEquipmentTable({
     sort === "cost_asc" || sort === "cost_desc" ? sort : "cost_desc"
   const noteSortValue =
     sort === "note_desc" || sort === "note_asc" ? sort : "note_asc"
+  const canShowAction = Boolean(facilityName && roomId)
+
+  function handleSortChange(value: EquipmentSort) {
+    setSort(value)
+    setCurrentPage(1)
+  }
+
+  function handleStatusFilterChange(value: EquipmentStatusFilter) {
+    setStatusFilter(value)
+    setCurrentPage(1)
+  }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="px-4">
-            <OwnerTableHeaderSelect
-              label="Machine"
-              value={machineSortValue}
-              options={machineSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead>
-            <OwnerTableHeaderSelect
-              label="Status"
-              value={statusFilter}
-              options={statusFilterOptions}
-              onValueChange={setStatusFilter}
-            />
-          </TableHead>
-          <TableHead>
-            <OwnerTableHeaderSelect
-              label="Code"
-              value={codeSortValue}
-              options={codeSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead>
-            <OwnerTableHeaderSelect
-              label="Serial"
-              value={serialSortValue}
-              options={serialSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead>
-            <OwnerTableHeaderSelect
-              label="Brand / Model"
-              value={brandModelSortValue}
-              options={brandModelSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead>
-            <OwnerTableHeaderSelect
-              label="Purchased"
-              value={purchasedSortValue}
-              options={purchasedSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead>
-            <OwnerTableHeaderSelect
-              label="Cost"
-              value={costSortValue}
-              options={costSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead className="pr-4">
-            <OwnerTableHeaderSelect
-              label="Note"
-              value={noteSortValue}
-              options={noteSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {sortedEquipments.length ? (
-          sortedEquipments.map((equipment) => (
-            <TableRow key={equipment.id}>
-              <TableCell className="px-4 font-medium">
-                {equipment.name}
-              </TableCell>
-              <TableCell>
-                <Badge
-                  variant="outline"
-                  className={statusClassName(equipment.status)}
-                >
-                  {statusLabels[equipment.status]}
-                </Badge>
-              </TableCell>
-              <TableCell className="font-mono text-xs text-muted-foreground">
-                {equipment.code}
-              </TableCell>
-              <TableCell className="font-mono text-xs text-muted-foreground">
-                {equipment.serial}
-              </TableCell>
-              <TableCell>
-                <div className="min-w-36">
-                  <p className="font-medium">{equipment.brand}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {equipment.model}
+    <>
+      <Table className="min-w-[1560px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+        <colgroup>
+          <col className="w-[14rem]" />
+          <col className="w-[12rem]" />
+          <col className="w-[10rem]" />
+          <col className="w-[12rem]" />
+          <col className="w-[14rem]" />
+          <col className="w-[11rem]" />
+          <col className="w-[10rem]" />
+          <col className="w-[18rem]" />
+          {canShowAction ? <col className="w-[6rem]" /> : null}
+        </colgroup>
+        <TableHeader className="bg-muted/40">
+          <TableRow>
+            <TableHead className="h-12 pl-6">
+              <OwnerTableHeaderSelect
+                label="Machine"
+                value={machineSortValue}
+                options={machineSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12">
+              <OwnerTableHeaderSelect
+                label="Status"
+                value={statusFilter}
+                options={statusFilterOptions}
+                onValueChange={handleStatusFilterChange}
+              />
+            </TableHead>
+            <TableHead className="h-12">
+              <OwnerTableHeaderSelect
+                label="Code"
+                value={codeSortValue}
+                options={codeSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12">
+              <OwnerTableHeaderSelect
+                label="Serial"
+                value={serialSortValue}
+                options={serialSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12">
+              <OwnerTableHeaderSelect
+                label="Brand / Model"
+                value={brandModelSortValue}
+                options={brandModelSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12">
+              <OwnerTableHeaderSelect
+                label="Purchased"
+                value={purchasedSortValue}
+                options={purchasedSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12">
+              <OwnerTableHeaderSelect
+                label="Cost"
+                value={costSortValue}
+                options={costSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12 pr-6">
+              <OwnerTableHeaderSelect
+                label="Note"
+                value={noteSortValue}
+                options={noteSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            {canShowAction ? (
+              <TableHead className="h-12 pr-6 text-right">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            ) : null}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sortedEquipments.length ? (
+            paginatedEquipments.map((equipment) => (
+              <TableRow key={equipment.id} className="h-[4.5rem]">
+                <TableCell className="pl-6 font-medium">
+                  {equipment.name}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className={statusClassName(equipment.status)}
+                  >
+                    {statusLabels[equipment.status]}
+                  </Badge>
+                </TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">
+                  {equipment.code}
+                </TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">
+                  {equipment.serial}
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <p className="font-medium break-words">{equipment.brand}</p>
+                    <p className="text-xs break-words text-muted-foreground">
+                      {equipment.model}
+                    </p>
+                  </div>
+                </TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">
+                  {equipment.purchasedAtLabel}
+                </TableCell>
+                <TableCell className="font-mono font-medium tabular-nums">
+                  {equipment.costLabel}
+                </TableCell>
+                <TableCell className="overflow-hidden pr-6">
+                  <p className="truncate text-muted-foreground">
+                    {equipment.note ?? "No note"}
                   </p>
-                </div>
-              </TableCell>
-              <TableCell className="font-mono text-xs text-muted-foreground">
-                {equipment.purchasedAtLabel}
-              </TableCell>
-              <TableCell className="font-mono font-medium tabular-nums">
-                {equipment.costLabel}
-              </TableCell>
-              <TableCell className="max-w-80 pr-4">
-                <p className="truncate text-muted-foreground">
-                  {equipment.note ?? "No note"}
-                </p>
+                </TableCell>
+                {canShowAction ? (
+                  <TableCell className="pr-6 text-right">
+                    <Button asChild variant="outline" size="sm">
+                      <Link
+                        href={getEquipmentDetailHref(
+                          facilityName!,
+                          roomId!,
+                          equipment.id
+                        )}
+                      >
+                        Details
+                      </Link>
+                    </Button>
+                  </TableCell>
+                ) : null}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={canShowAction ? 9 : 8} className="h-64">
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <Dumbbell />
+                    </EmptyMedia>
+                    <EmptyTitle>No equipment found</EmptyTitle>
+                    <EmptyDescription>
+                      Choose a different status filter or add equipment to this
+                      room.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </TableCell>
             </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell colSpan={8} className="h-64">
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <Dumbbell />
-                  </EmptyMedia>
-                  <EmptyTitle>No equipment found</EmptyTitle>
-                  <EmptyDescription>
-                    Choose a different status filter or add equipment to this
-                    room.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+          )}
+        </TableBody>
+      </Table>
+      <div className="flex flex-col gap-3 border-t px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <span>
+          Showing {visibleStart}-{visibleEnd} of {sortedEquipments.length}{" "}
+          equipment records
+        </span>
+        <TablePagination
+          activePage={activePage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
+    </>
   )
 }

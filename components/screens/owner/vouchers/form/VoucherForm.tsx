@@ -12,6 +12,7 @@ import {
   TicketCheck,
 } from "lucide-react"
 
+import { DatePickerInput } from "@/components/DatePickerInput"
 import { PageShell } from "@/components/PageShell"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -299,12 +300,12 @@ export function VoucherForm({
                     <FieldLabel htmlFor="voucher-starts-at">
                       Launch date
                     </FieldLabel>
-                    <Input
+                    <DatePickerInput
                       id="voucher-starts-at"
                       name="startsAt"
-                      type="date"
                       value={startsAt}
-                      onChange={(event) => setStartsAt(event.target.value)}
+                      onChange={setStartsAt}
+                      ariaLabel="Voucher launch date"
                       required
                     />
                   </Field>
@@ -313,12 +314,13 @@ export function VoucherForm({
                     <FieldLabel htmlFor="voucher-expires-at">
                       End date
                     </FieldLabel>
-                    <Input
+                    <DatePickerInput
                       id="voucher-expires-at"
                       name="expiresAt"
-                      type="date"
+                      min={startsAt || undefined}
                       value={expiresAt}
-                      onChange={(event) => setExpiresAt(event.target.value)}
+                      onChange={setExpiresAt}
+                      ariaLabel="Voucher end date"
                       required
                     />
                   </Field>

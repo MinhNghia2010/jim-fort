@@ -63,14 +63,18 @@ export async function PtOverviewPage() {
   const [sessionResult, feedbackResult] = await Promise.all([
     supabase
       .from("membership_pt_sessions")
-      .select("id,member_id,session_number,starts_at,status,users:member_id(full_name)")
+      .select(
+        "id,member_id,session_number,starts_at,status,users:member_id(full_name)"
+      )
       .order("starts_at", { ascending: true }),
     supabase.from("pt_session_feedbacks").select("session_id"),
   ])
 
   const sessions = (sessionResult.data ?? []) as unknown as SessionRow[]
   const feedbacks = (feedbackResult.data ?? []) as unknown as FeedbackRow[]
-  const feedbackSessionIds = new Set(feedbacks.map((feedback) => feedback.session_id))
+  const feedbackSessionIds = new Set(
+    feedbacks.map((feedback) => feedback.session_id)
+  )
   const now = new Date()
   const clients = new Set(sessions.map((session) => session.member_id))
   const todaySessions = sessions.filter((session) => isToday(session.starts_at))
@@ -125,30 +129,41 @@ export async function PtOverviewPage() {
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <Card>
-          <CardHeader>
+        <Card className="gap-0 overflow-hidden py-0">
+          <CardHeader className="border-b py-4">
             <CardTitle>Next sessions</CardTitle>
             <CardDescription>Open a session to review details.</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
+          <CardContent className="px-0">
+            <Table className="min-w-[560px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+              <colgroup>
+                <col className="w-[17rem]" />
+                <col className="w-[16rem]" />
+                <col className="w-[6rem]" />
+              </colgroup>
+              <TableHeader className="bg-muted/40">
                 <TableRow>
-                  <TableHead>Member</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead />
+                  <TableHead className="h-12 pl-6">Member</TableHead>
+                  <TableHead className="h-12">Time</TableHead>
+                  <TableHead className="h-12 pr-6 text-right">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {upcomingSessions.slice(0, 5).map((session) => (
-                  <TableRow key={session.id}>
-                    <TableCell className="font-medium">
+                  <TableRow key={session.id} className="h-[4.5rem]">
+                    <TableCell className="pl-6 font-medium">
                       {session.users?.full_name ?? "Member"}
                     </TableCell>
-                    <TableCell>{date.format(new Date(session.starts_at))}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell>
+                      {date.format(new Date(session.starts_at))}
+                    </TableCell>
+                    <TableCell className="pr-6 text-right">
                       <Button asChild size="sm">
-                        <Link href={`/schedule/sessions/${session.id}`}>Open</Link>
+                        <Link href={`/schedule/sessions/${session.id}`}>
+                          Open
+                        </Link>
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -168,32 +183,39 @@ export async function PtOverviewPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
+        <Card className="gap-0 overflow-hidden py-0">
+          <CardHeader className="border-b py-4">
             <CardTitle>Feedback queue</CardTitle>
             <CardDescription>
               Past sessions that still need member feedback.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
+          <CardContent className="px-0">
+            <Table className="min-w-[520px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+              <colgroup>
+                <col className="w-[17rem]" />
+                <col className="w-[9rem]" />
+                <col className="w-[8rem]" />
+              </colgroup>
+              <TableHeader className="bg-muted/40">
                 <TableRow>
-                  <TableHead>Member</TableHead>
-                  <TableHead>Session</TableHead>
-                  <TableHead />
+                  <TableHead className="h-12 pl-6">Member</TableHead>
+                  <TableHead className="h-12">Session</TableHead>
+                  <TableHead className="h-12 pr-6 text-right">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {needsFeedback.slice(0, 5).map((session) => (
-                  <TableRow key={session.id}>
-                    <TableCell className="font-medium">
+                  <TableRow key={session.id} className="h-[4.5rem]">
+                    <TableCell className="pl-6 font-medium">
                       {session.users?.full_name ?? "Member"}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">#{session.session_number}</Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="pr-6 text-right">
                       <Button asChild size="sm" variant="outline">
                         <Link href={`/schedule/sessions/${session.id}`}>
                           Feedback
@@ -222,7 +244,8 @@ export async function PtOverviewPage() {
         <CardHeader>
           <CardTitle>PT workflow</CardTitle>
           <CardDescription>
-            Your role starts after member acceptance and payment generate sessions.
+            Your role starts after member acceptance and payment generate
+            sessions.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">

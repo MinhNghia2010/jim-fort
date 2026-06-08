@@ -4,6 +4,7 @@ import { useActionState, useMemo, useState } from "react"
 import Link from "next/link"
 import { Archive, CircleAlert, CirclePlus, Loader2, Save } from "lucide-react"
 
+import { DatePickerInput } from "@/components/DatePickerInput"
 import { PageShell } from "@/components/PageShell"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -438,12 +439,12 @@ export function MembershipPackageForm({
                     <FieldLabel htmlFor="membership-release-date">
                       Release date
                     </FieldLabel>
-                    <Input
+                    <DatePickerInput
                       id="membership-release-date"
                       name="releaseDate"
-                      type="date"
                       value={releaseDate}
-                      onChange={(event) => setReleaseDate(event.target.value)}
+                      onChange={setReleaseDate}
+                      ariaLabel="Membership release date"
                     />
                     <FieldDescription>
                       Leave empty to release this plan immediately.
@@ -454,13 +455,13 @@ export function MembershipPackageForm({
                     <FieldLabel htmlFor="membership-end-date">
                       End date
                     </FieldLabel>
-                    <Input
+                    <DatePickerInput
                       id="membership-end-date"
                       name="endDate"
-                      type="date"
                       min={releaseDate || undefined}
                       value={endDate}
-                      onChange={(event) => setEndDate(event.target.value)}
+                      onChange={setEndDate}
+                      ariaLabel="Membership end date"
                     />
                     <FieldDescription>
                       Optional. Leave empty if the plan has no end date.

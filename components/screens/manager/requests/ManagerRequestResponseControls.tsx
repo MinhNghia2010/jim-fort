@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { CalendarDays, Clock3 } from "lucide-react"
+import { Clock3 } from "lucide-react"
 
+import { DatePickerInput } from "@/components/DatePickerInput"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
 import {
   InputGroup,
   InputGroupAddon,
@@ -46,23 +46,8 @@ type ManagerScheduleDatePickerProps = {
   name: string
 }
 
-const dateLabelFormatter = new Intl.DateTimeFormat("en-US", {
-  weekday: "short",
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-})
-
 const hourOptions = Array.from({ length: 24 }, (_, index) => index)
 const minuteOptions = Array.from({ length: 60 }, (_, index) => index)
-
-function dateToInputValue(date: Date) {
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("-")
-}
 
 function formatTime(hour: number, minute: number) {
   return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
@@ -126,43 +111,17 @@ export function ManagerTrainerSelect({
 export function ManagerScheduleDatePicker({
   name,
 }: ManagerScheduleDatePickerProps) {
-  const [date, setDate] = useState<Date>()
-  const [open, setOpen] = useState(false)
+  const [date, setDate] = useState("")
 
   return (
-    <>
-      <input
-        type="hidden"
-        name={name}
-        value={date ? dateToInputValue(date) : ""}
-      />
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            id={name}
-            type="button"
-            variant="outline"
-            data-empty={!date}
-            className="w-full justify-start text-left font-normal data-[empty=true]:text-muted-foreground"
-          >
-            <CalendarDays data-icon="inline-start" />
-            {date ? dateLabelFormatter.format(date) : "Pick a start date"}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={(nextDate) => {
-              setDate(nextDate)
-              setOpen(false)
-            }}
-            captionLayout="dropdown"
-            timeZone="Asia/Ho_Chi_Minh"
-          />
-        </PopoverContent>
-      </Popover>
-    </>
+    <DatePickerInput
+      id={name}
+      name={name}
+      value={date}
+      onChange={setDate}
+      ariaLabel="Schedule start date"
+      required
+    />
   )
 }
 

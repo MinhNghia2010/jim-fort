@@ -1,5 +1,21 @@
-import { RoutePlaceholder } from "@/components/RoutePlaceholder"
+import { OwnerEquipmentDetailPage } from "@/components/screens/owner/facility/OwnerEquipmentDetailPage"
 
-export function ManagerEquipmentDetailPage() {
-  return <RoutePlaceholder title="Manager Equipment Detail" />
+interface ManagerEquipmentDetailPageProps {
+  facilityName: string
+  roomId: string
+  equipmentId: string
+}
+
+export function ManagerEquipmentDetailPage({
+  facilityName,
+  roomId,
+  equipmentId,
+}: ManagerEquipmentDetailPageProps) {
+  return (
+    <OwnerEquipmentDetailPage
+      facilityName={facilityName}
+      roomId={roomId}
+      equipmentId={equipmentId}
+    />
+  )
 }

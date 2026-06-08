@@ -6,6 +6,10 @@ import { TicketCheck } from "lucide-react"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import type { VoucherRedemptionView } from "@/components/screens/owner/vouchers/OwnerVoucherDetailPage"
 import {
+  TablePagination,
+  TABLE_ROWS_PER_PAGE,
+} from "@/components/TablePagination"
+import {
   Empty,
   EmptyDescription,
   EmptyHeader,
@@ -85,13 +89,16 @@ function sortRedemptions(
     }
 
     if (sort === "redeemed_asc") {
-      return getDateValue(first.redeemedAt, Number.MAX_SAFE_INTEGER) -
+      return (
+        getDateValue(first.redeemedAt, Number.MAX_SAFE_INTEGER) -
         getDateValue(second.redeemedAt, Number.MAX_SAFE_INTEGER)
+      )
     }
 
     if (sort === "redeemed_desc") {
-      return getDateValue(second.redeemedAt, 0) -
-        getDateValue(first.redeemedAt, 0)
+      return (
+        getDateValue(second.redeemedAt, 0) - getDateValue(first.redeemedAt, 0)
+      )
     }
 
     return second.discountAmount - first.discountAmount
@@ -102,94 +109,130 @@ export function OwnerVoucherRedemptionsTable({
   redemptions,
 }: OwnerVoucherRedemptionsTableProps) {
   const [sort, setSort] = useState<RedemptionSort>("redeemed_desc")
+  const [currentPage, setCurrentPage] = useState(1)
   const sortedRedemptions = sortRedemptions([...redemptions], sort)
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedRedemptions.length / TABLE_ROWS_PER_PAGE)
+  )
+  const activePage = Math.min(currentPage, totalPages)
+  const startIndex = (activePage - 1) * TABLE_ROWS_PER_PAGE
+  const paginatedRedemptions = sortedRedemptions.slice(
+    startIndex,
+    startIndex + TABLE_ROWS_PER_PAGE
+  )
+  const visibleStart = paginatedRedemptions.length ? startIndex + 1 : 0
+  const visibleEnd = Math.min(
+    startIndex + TABLE_ROWS_PER_PAGE,
+    sortedRedemptions.length
+  )
   const memberSortValue =
     sort === "member_desc" || sort === "member_asc" ? sort : "member_asc"
   const planSortValue =
     sort === "plan_desc" || sort === "plan_asc" ? sort : "plan_asc"
   const discountSortValue =
-    sort === "discount_asc" || sort === "discount_desc"
-      ? sort
-      : "discount_desc"
+    sort === "discount_asc" || sort === "discount_desc" ? sort : "discount_desc"
   const redeemedSortValue =
-    sort === "redeemed_asc" || sort === "redeemed_desc"
-      ? sort
-      : "redeemed_desc"
+    sort === "redeemed_asc" || sort === "redeemed_desc" ? sort : "redeemed_desc"
+
+  function handleSortChange(value: RedemptionSort) {
+    setSort(value)
+    setCurrentPage(1)
+  }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="px-4">
-            <OwnerTableHeaderSelect
-              label="Member"
-              value={memberSortValue}
-              options={memberSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead>
-            <OwnerTableHeaderSelect
-              label="Membership plan"
-              value={planSortValue}
-              options={planSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead>
-            <OwnerTableHeaderSelect
-              label="Discount"
-              value={discountSortValue}
-              options={discountSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead className="pr-4">
-            <OwnerTableHeaderSelect
-              label="Redeemed"
-              value={redeemedSortValue}
-              options={redeemedSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {sortedRedemptions.length ? (
-          sortedRedemptions.map((redemption) => (
-            <TableRow key={redemption.id}>
-              <TableCell className="px-4 font-medium">
-                {redemption.memberName}
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {redemption.membershipPlanName}
-              </TableCell>
-              <TableCell className="font-medium">
-                {redemption.discountAmountLabel}
-              </TableCell>
-              <TableCell className="pr-4 font-mono text-xs text-muted-foreground">
-                {redemption.redeemedAtLabel}
+    <>
+      <Table className="min-w-[880px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+        <colgroup>
+          <col className="w-[18rem]" />
+          <col className="w-[20rem]" />
+          <col className="w-[12rem]" />
+          <col className="w-[15rem]" />
+        </colgroup>
+        <TableHeader className="bg-muted/40">
+          <TableRow>
+            <TableHead className="h-12 pl-6">
+              <OwnerTableHeaderSelect
+                label="Member"
+                value={memberSortValue}
+                options={memberSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12">
+              <OwnerTableHeaderSelect
+                label="Membership plan"
+                value={planSortValue}
+                options={planSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12">
+              <OwnerTableHeaderSelect
+                label="Discount"
+                value={discountSortValue}
+                options={discountSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12 pr-6">
+              <OwnerTableHeaderSelect
+                label="Redeemed"
+                value={redeemedSortValue}
+                options={redeemedSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sortedRedemptions.length ? (
+            paginatedRedemptions.map((redemption) => (
+              <TableRow key={redemption.id} className="h-[4.5rem]">
+                <TableCell className="pl-6 font-medium">
+                  {redemption.memberName}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {redemption.membershipPlanName}
+                </TableCell>
+                <TableCell className="font-medium">
+                  {redemption.discountAmountLabel}
+                </TableCell>
+                <TableCell className="pr-6 font-mono text-xs text-muted-foreground">
+                  {redemption.redeemedAtLabel}
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={4} className="h-64">
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <TicketCheck />
+                    </EmptyMedia>
+                    <EmptyTitle>No redemptions yet</EmptyTitle>
+                    <EmptyDescription>
+                      This voucher has not been redeemed by a subscription.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </TableCell>
             </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell colSpan={4} className="h-64">
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <TicketCheck />
-                  </EmptyMedia>
-                  <EmptyTitle>No redemptions yet</EmptyTitle>
-                  <EmptyDescription>
-                    This voucher has not been redeemed by a subscription.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+          )}
+        </TableBody>
+      </Table>
+      <div className="flex flex-col gap-3 border-t px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <span>
+          Showing {visibleStart}-{visibleEnd} of {sortedRedemptions.length}{" "}
+          redemptions
+        </span>
+        <TablePagination
+          activePage={activePage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
+    </>
   )
 }

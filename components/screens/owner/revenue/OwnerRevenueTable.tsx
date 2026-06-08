@@ -5,6 +5,10 @@ import { ReceiptText } from "lucide-react"
 
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import type { RevenueHistoryRow } from "@/components/screens/owner/revenue/OwnerRevenuePage"
+import {
+  TablePagination,
+  TABLE_ROWS_PER_PAGE,
+} from "@/components/TablePagination"
 import { Badge } from "@/components/ui/badge"
 import {
   Empty,
@@ -75,8 +79,10 @@ function getDateValue(value: string | null, nullValue: number) {
 function sortRevenueRows(rows: RevenueHistoryRow[], sort: RevenueSort) {
   return [...rows].sort((first, second) => {
     if (sort === "paid_asc") {
-      return getDateValue(first.paidAt, Number.MAX_SAFE_INTEGER) -
+      return (
+        getDateValue(first.paidAt, Number.MAX_SAFE_INTEGER) -
         getDateValue(second.paidAt, Number.MAX_SAFE_INTEGER)
+      )
     }
 
     if (sort === "member_asc") {
@@ -125,7 +131,23 @@ function sortRevenueRows(rows: RevenueHistoryRow[], sort: RevenueSort) {
 
 export function OwnerRevenueTable({ rows }: OwnerRevenueTableProps) {
   const [sort, setSort] = useState<RevenueSort>("paid_desc")
+  const [currentPage, setCurrentPage] = useState(1)
   const sortedRows = sortRevenueRows([...rows], sort)
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sortedRows.length / TABLE_ROWS_PER_PAGE)
+  )
+  const activePage = Math.min(currentPage, totalPages)
+  const startIndex = (activePage - 1) * TABLE_ROWS_PER_PAGE
+  const paginatedRows = sortedRows.slice(
+    startIndex,
+    startIndex + TABLE_ROWS_PER_PAGE
+  )
+  const visibleStart = paginatedRows.length ? startIndex + 1 : 0
+  const visibleEnd = Math.min(
+    startIndex + TABLE_ROWS_PER_PAGE,
+    sortedRows.length
+  )
   const paidAtSortValue =
     sort === "paid_asc" || sort === "paid_desc" ? sort : "paid_desc"
   const memberSortValue =
@@ -139,107 +161,134 @@ export function OwnerRevenueTable({ rows }: OwnerRevenueTableProps) {
   const amountSortValue =
     sort === "amount_asc" || sort === "amount_desc" ? sort : "amount_desc"
 
+  function handleSortChange(value: RevenueSort) {
+    setSort(value)
+    setCurrentPage(1)
+  }
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="px-4">
-            <OwnerTableHeaderSelect
-              label="Paid at"
-              value={paidAtSortValue}
-              options={paidAtSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead>
-            <OwnerTableHeaderSelect
-              label="Member"
-              value={memberSortValue}
-              options={memberSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead>
-            <OwnerTableHeaderSelect
-              label="Package"
-              value={packageSortValue}
-              options={packageSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead>
-            <OwnerTableHeaderSelect
-              label="Source"
-              value={sourceSortValue}
-              options={sourceSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead>
-            <OwnerTableHeaderSelect
-              label="Method"
-              value={methodSortValue}
-              options={methodSortOptions}
-              onValueChange={setSort}
-            />
-          </TableHead>
-          <TableHead className="pr-4 text-right">
-            <OwnerTableHeaderSelect
-              label="Amount"
-              value={amountSortValue}
-              options={amountSortOptions}
-              onValueChange={setSort}
-              className="ml-auto"
-            />
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {sortedRows.length ? (
-          sortedRows.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell className="px-4 font-mono text-xs text-muted-foreground">
-                {row.paidAtLabel}
-              </TableCell>
-              <TableCell>
-                <div className="min-w-40">
-                  <p className="truncate font-medium">{row.memberName}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {row.memberPhone}
-                  </p>
-                </div>
-              </TableCell>
-              <TableCell>{row.packageName}</TableCell>
-              <TableCell>
-                <Badge variant="secondary">{row.type}</Badge>
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {row.methodLabel}
-              </TableCell>
-              <TableCell className="pr-4 text-right font-mono font-medium tabular-nums">
-                {row.amountLabel}
+    <>
+      <Table className="min-w-[1100px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+        <colgroup>
+          <col className="w-[13rem]" />
+          <col className="w-[17rem]" />
+          <col className="w-[17rem]" />
+          <col className="w-[14rem]" />
+          <col className="w-[12rem]" />
+          <col className="w-[10rem]" />
+        </colgroup>
+        <TableHeader className="bg-muted/40">
+          <TableRow>
+            <TableHead className="h-12 pl-6">
+              <OwnerTableHeaderSelect
+                label="Paid at"
+                value={paidAtSortValue}
+                options={paidAtSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12">
+              <OwnerTableHeaderSelect
+                label="Member"
+                value={memberSortValue}
+                options={memberSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12">
+              <OwnerTableHeaderSelect
+                label="Package"
+                value={packageSortValue}
+                options={packageSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12">
+              <OwnerTableHeaderSelect
+                label="Source"
+                value={sourceSortValue}
+                options={sourceSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12">
+              <OwnerTableHeaderSelect
+                label="Method"
+                value={methodSortValue}
+                options={methodSortOptions}
+                onValueChange={handleSortChange}
+              />
+            </TableHead>
+            <TableHead className="h-12 pr-6 text-right">
+              <OwnerTableHeaderSelect
+                label="Amount"
+                value={amountSortValue}
+                options={amountSortOptions}
+                onValueChange={handleSortChange}
+                className="ml-auto"
+              />
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sortedRows.length ? (
+            paginatedRows.map((row) => (
+              <TableRow key={row.id} className="h-[4.5rem]">
+                <TableCell className="pl-6 font-mono text-xs text-muted-foreground">
+                  {row.paidAtLabel}
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <p className="font-medium break-words">{row.memberName}</p>
+                    <p className="text-xs break-words text-muted-foreground">
+                      {row.memberPhone}
+                    </p>
+                  </div>
+                </TableCell>
+                <TableCell>{row.packageName}</TableCell>
+                <TableCell>
+                  <Badge variant="secondary">{row.type}</Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {row.methodLabel}
+                </TableCell>
+                <TableCell className="pr-6 text-right font-mono font-medium tabular-nums">
+                  {row.amountLabel}
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={6} className="h-64">
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <ReceiptText />
+                    </EmptyMedia>
+                    <EmptyTitle>
+                      No paid membership subscriptions yet
+                    </EmptyTitle>
+                    <EmptyDescription>
+                      Paid subscription payments will appear here once members
+                      complete checkout.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </TableCell>
             </TableRow>
-          ))
-        ) : (
-          <TableRow>
-            <TableCell colSpan={6} className="h-64">
-              <Empty>
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <ReceiptText />
-                  </EmptyMedia>
-                  <EmptyTitle>No paid membership subscriptions yet</EmptyTitle>
-                  <EmptyDescription>
-                    Paid subscription payments will appear here once members
-                    complete checkout.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+          )}
+        </TableBody>
+      </Table>
+      <div className="flex flex-col gap-3 border-t px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+        <span>
+          Showing {visibleStart}-{visibleEnd} of {sortedRows.length} payments
+        </span>
+        <TablePagination
+          activePage={activePage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
+    </>
   )
 }

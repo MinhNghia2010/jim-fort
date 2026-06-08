@@ -5,6 +5,13 @@ import { PageShell } from "@/components/PageShell"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
   Empty,
   EmptyDescription,
   EmptyHeader,
@@ -51,7 +58,9 @@ const date = new Intl.DateTimeFormat("en-US", {
 
 function summarizeClients(sessions: SessionRow[], feedbacks: FeedbackRow[]) {
   const now = new Date()
-  const feedbackSessionIds = new Set(feedbacks.map((feedback) => feedback.session_id))
+  const feedbackSessionIds = new Set(
+    feedbacks.map((feedback) => feedback.session_id)
+  )
   const clients = new Map<string, ClientSummary>()
 
   for (const session of sessions) {
@@ -128,52 +137,74 @@ export async function PtMembersPage() {
       description="Members connected to your generated PT sessions."
     >
       {clients.length ? (
-        <div className="rounded-lg border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Upcoming</TableHead>
-                <TableHead>Completed</TableHead>
-                <TableHead>Feedback</TableHead>
-                <TableHead>Next session</TableHead>
-                <TableHead>Last session</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {clients.map((client) => (
-                <TableRow key={client.memberId}>
-                  <TableCell className="font-medium">{client.name}</TableCell>
-                  <TableCell>{client.totalSessions}</TableCell>
-                  <TableCell>{client.upcomingSessions}</TableCell>
-                  <TableCell>{client.completedSessions}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{client.feedbackCount}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    {client.nextSessionAt
-                      ? date.format(new Date(client.nextSessionAt))
-                      : "None"}
-                  </TableCell>
-                  <TableCell>
-                    {client.lastSessionAt
-                      ? date.format(new Date(client.lastSessionAt))
-                      : "None"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={`/members/${client.memberId}/sessions`}>
-                        Sessions
-                      </Link>
-                    </Button>
-                  </TableCell>
+        <Card className="gap-0 overflow-hidden py-0">
+          <CardHeader className="border-b py-4">
+            <CardTitle>Client directory</CardTitle>
+            <CardDescription>
+              Showing {clients.length} assigned clients.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-0">
+            <Table className="min-w-[1220px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+              <colgroup>
+                <col className="w-[18rem]" />
+                <col className="w-[7rem]" />
+                <col className="w-[8rem]" />
+                <col className="w-[8rem]" />
+                <col className="w-[8rem]" />
+                <col className="w-[17rem]" />
+                <col className="w-[17rem]" />
+                <col className="w-[8rem]" />
+              </colgroup>
+              <TableHeader className="bg-muted/40">
+                <TableRow>
+                  <TableHead className="h-12 pl-6">Member</TableHead>
+                  <TableHead className="h-12">Total</TableHead>
+                  <TableHead className="h-12">Upcoming</TableHead>
+                  <TableHead className="h-12">Completed</TableHead>
+                  <TableHead className="h-12">Feedback</TableHead>
+                  <TableHead className="h-12">Next session</TableHead>
+                  <TableHead className="h-12">Last session</TableHead>
+                  <TableHead className="h-12 pr-6 text-right">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {clients.map((client) => (
+                  <TableRow key={client.memberId} className="h-[4.5rem]">
+                    <TableCell className="pl-6 font-medium">
+                      {client.name}
+                    </TableCell>
+                    <TableCell>{client.totalSessions}</TableCell>
+                    <TableCell>{client.upcomingSessions}</TableCell>
+                    <TableCell>{client.completedSessions}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{client.feedbackCount}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {client.nextSessionAt
+                        ? date.format(new Date(client.nextSessionAt))
+                        : "None"}
+                    </TableCell>
+                    <TableCell>
+                      {client.lastSessionAt
+                        ? date.format(new Date(client.lastSessionAt))
+                        : "None"}
+                    </TableCell>
+                    <TableCell className="pr-6 text-right">
+                      <Button asChild size="sm" variant="outline">
+                        <Link href={`/members/${client.memberId}/sessions`}>
+                          Sessions
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       ) : (
         <Empty className="min-h-80 border">
           <EmptyHeader>

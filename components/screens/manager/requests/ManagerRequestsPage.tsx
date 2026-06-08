@@ -5,8 +5,28 @@ import { PageShell } from "@/components/PageShell"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { createClient } from "@/lib/supabase/server"
 
 type RequestRow = {
@@ -49,38 +69,59 @@ export async function ManagerRequestsPage() {
       ) : null}
 
       {requests.length ? (
-        <div className="rounded-lg border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Package</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {requests.map((request) => (
-                <TableRow key={request.id}>
-                  <TableCell className="font-medium">
-                    {request.users?.full_name ?? "Member"}
-                  </TableCell>
-                  <TableCell>{request.membership_packages?.name ?? "Membership"}</TableCell>
-                  <TableCell>
-                    <Badge>{request.status.replaceAll("_", " ")}</Badge>
-                  </TableCell>
-                  <TableCell>{date.format(new Date(request.created_at))}</TableCell>
-                  <TableCell className="text-right">
-                    <Button asChild size="sm">
-                      <Link href={`/request/${request.id}`}>Open</Link>
-                    </Button>
-                  </TableCell>
+        <Card className="gap-0 overflow-hidden py-0">
+          <CardHeader className="border-b py-4">
+            <CardTitle>Request queue</CardTitle>
+            <CardDescription>
+              Showing {requests.length} pending request records.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-0">
+            <Table className="min-w-[900px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+              <colgroup>
+                <col className="w-[17rem]" />
+                <col className="w-[20rem]" />
+                <col className="w-[14rem]" />
+                <col className="w-[15rem]" />
+                <col className="w-[6rem]" />
+              </colgroup>
+              <TableHeader className="bg-muted/40">
+                <TableRow>
+                  <TableHead className="h-12 pl-6">Member</TableHead>
+                  <TableHead className="h-12">Package</TableHead>
+                  <TableHead className="h-12">Status</TableHead>
+                  <TableHead className="h-12">Created</TableHead>
+                  <TableHead className="h-12 pr-6 text-right">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {requests.map((request) => (
+                  <TableRow key={request.id} className="h-[4.5rem]">
+                    <TableCell className="pl-6 font-medium">
+                      {request.users?.full_name ?? "Member"}
+                    </TableCell>
+                    <TableCell>
+                      {request.membership_packages?.name ?? "Membership"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge>{request.status.replaceAll("_", " ")}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {date.format(new Date(request.created_at))}
+                    </TableCell>
+                    <TableCell className="pr-6 text-right">
+                      <Button asChild size="sm">
+                        <Link href={`/request/${request.id}`}>Open</Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       ) : (
         <Empty className="min-h-80 border">
           <EmptyHeader>

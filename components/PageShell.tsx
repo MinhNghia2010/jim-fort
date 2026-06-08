@@ -1,8 +1,6 @@
 import type { ReactNode } from "react"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { HistoryBackButton } from "@/components/HistoryBackButton"
 
 interface PageShellProps {
   title: string
@@ -25,12 +23,12 @@ export function PageShell({
     <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6 lg:p-8">
       <div className="flex flex-col gap-2">
         {backHref ? (
-          <Button variant="ghost" asChild className="w-fit px-0">
-            <Link href={backHref}>
-              <ArrowLeft data-icon="inline-start" />
-              {backLabel}
-            </Link>
-          </Button>
+          <HistoryBackButton
+            fallbackHref={backHref}
+            label={backLabel}
+            variant="ghost"
+            className="w-fit px-0"
+          />
         ) : null}
 
         <div className="flex flex-col gap-1">
