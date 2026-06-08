@@ -7,37 +7,29 @@ import { toast } from "sonner"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 
-type MemberActionState = {
+type ActionState = {
   error?: string
 }
 
-type MemberAction = (
-  state: MemberActionState,
+type ServerAction = (
+  state: ActionState,
   formData: FormData
-) => Promise<MemberActionState>
+) => Promise<ActionState>
 
-interface MemberActionFormProps {
-  action: MemberAction
-  children: React.ReactNode
-  submitLabel: string
-  pendingLabel?: string
-  buttonVariant?: React.ComponentProps<typeof Button>["variant"]
-  buttonClassName?: string
-  successMessage?: string
-}
-
-const initialState: MemberActionState = {}
-
-export function MemberActionForm({
+export function ManagerActionForm({
   action,
   children,
   submitLabel,
   pendingLabel = "Saving",
-  buttonVariant,
-  buttonClassName,
   successMessage = "Action completed",
-}: MemberActionFormProps) {
-  const [state, formAction, pending] = useActionState(action, initialState)
+}: {
+  action: ServerAction
+  children: React.ReactNode
+  submitLabel: string
+  pendingLabel?: string
+  successMessage?: string
+}) {
+  const [state, formAction, pending] = useActionState(action, {})
   const wasPending = useRef(false)
 
   useEffect(() => {
@@ -61,7 +53,7 @@ export function MemberActionForm({
   }, [pending, state.error, successMessage])
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form action={formAction} className="grid gap-3">
       {children}
       {state.error ? (
         <Alert variant="destructive">
@@ -69,12 +61,7 @@ export function MemberActionForm({
           <AlertDescription>{state.error}</AlertDescription>
         </Alert>
       ) : null}
-      <Button
-        type="submit"
-        disabled={pending}
-        variant={buttonVariant}
-        className={buttonClassName}
-      >
+      <Button type="submit" disabled={pending}>
         {pending ? (
           <>
             <Loader2 data-icon="inline-start" className="animate-spin" />

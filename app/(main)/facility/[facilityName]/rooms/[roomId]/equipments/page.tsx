@@ -3,11 +3,23 @@ import { OwnerRoomEquipmentPage } from "@/components/screens/owner/facility/Owne
 import { getAuthenticatedRole } from "@/lib/auth/current-role"
 import { renderRolePage } from "@/lib/role-page"
 
-export default async function FacilityRoomEquipmentPage() {
+interface FacilityRoomEquipmentPageProps {
+  params: Promise<{
+    facilityName: string
+    roomId: string
+  }>
+}
+
+export default async function FacilityRoomEquipmentPage({
+  params,
+}: FacilityRoomEquipmentPageProps) {
   const role = await getAuthenticatedRole()
+  const { facilityName, roomId } = await params
 
   return renderRolePage(role, {
-    owner: <OwnerRoomEquipmentPage />,
+    owner: (
+      <OwnerRoomEquipmentPage facilityName={facilityName} roomId={roomId} />
+    ),
     manager: <ManagerRoomEquipmentPage />,
   })
 }

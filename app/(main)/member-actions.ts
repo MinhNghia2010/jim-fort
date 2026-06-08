@@ -41,6 +41,8 @@ function parseChoice(value: string, choices: readonly string[]) {
   return choices.includes(value) ? value : null
 }
 
+const weeklySlotIndexes = [0, 1, 2, 3, 4, 5, 6]
+
 export async function createMemberSubscription(
   _state: MemberActionState,
   formData: FormData
@@ -92,7 +94,6 @@ export async function savePtPreference(
 ): Promise<MemberActionState> {
   const subscriptionId = stringValue(formData, "subscriptionId")
   const preferredPtId = stringValue(formData, "preferredPtId")
-  const sessionsPerWeek = parseInteger(stringValue(formData, "sessionsPerWeek"))
   const preferredPtGender = parseChoice(stringValue(formData, "preferredPtGender"), [
     "no_preference",
     "male",
@@ -111,12 +112,55 @@ export async function savePtPreference(
     return { error: "Select a PT subscription." }
   }
 
-  if (!sessionsPerWeek || sessionsPerWeek < 1 || sessionsPerWeek > 7) {
-    return { error: "Choose between 1 and 7 sessions per week." }
-  }
-
   if (!preferredPtGender || !experienceLevel) {
     return { error: "Select valid PT preferences." }
+  }
+
+  const incompleteSlot = weeklySlotIndexes.some((index) => {
+    const start = stringValue(formData, `slotStart${index}`)
+    const end = stringValue(formData, `slotEnd${index}`)
+
+    return Boolean(start) !== Boolean(end)
+  })
+
+  if (incompleteSlot) {
+    return { error: "Choose both start and end time for each selected day." }
+  }
+
+  const slots = weeklySlotIndexes
+    .map((index) => {
+      const day = parseInteger(stringValue(formData, `slotDay${index}`))
+      const start = stringValue(formData, `slotStart${index}`)
+      const end = stringValue(formData, `slotEnd${index}`)
+
+      if (!start && !end) {
+        return null
+      }
+
+      if (day === null) {
+        return null
+      }
+
+      return {
+        day_of_week: day,
+        start_time: start,
+        end_time: end,
+      }
+    })
+    .filter(
+      (
+        slot
+      ): slot is {
+        day_of_week: number
+        start_time: string
+        end_time: string
+      } => Boolean(slot)
+    )
+
+  if (!slots.length) {
+    return {
+      error: "Choose at least one day and time for PT sessions.",
+    }
   }
 
   const context = await getMemberContext()
@@ -129,7 +173,7 @@ export async function savePtPreference(
     subscription_id: subscriptionId,
     preferred_pt_id: preferredPtId || null,
     preferred_pt_gender: preferredPtGender,
-    sessions_per_week: sessionsPerWeek,
+    sessions_per_week: slots.length,
     training_goal: trainingGoal || null,
     experience_level: experienceLevel,
     notes: notes || null,
@@ -154,38 +198,10 @@ export async function savePtPreference(
     return { error: `Unable to replace availability: ${deleteError.message}` }
   }
 
-  const slots = [0, 1, 2]
-    .map((index) => {
-      const day = parseInteger(stringValue(formData, `slotDay${index}`))
-      const start = stringValue(formData, `slotStart${index}`)
-      const end = stringValue(formData, `slotEnd${index}`)
-
-      if (day === null || !start || !end) {
-        return null
-      }
-
-      return {
-        pt_preference_id: data.id,
-        day_of_week: day,
-        start_time: start,
-        end_time: end,
-      }
-    })
-    .filter(
-      (
-        slot
-      ): slot is {
-        pt_preference_id: string
-        day_of_week: number
-        start_time: string
-        end_time: string
-      } => Boolean(slot)
-    )
-
   if (slots.length) {
     const { error: slotError } = await context.supabase
       .from("membership_pt_preference_time_slots")
-      .insert(slots)
+      .insert(slots.map((slot) => ({ ...slot, pt_preference_id: data.id })))
 
     if (slotError) {
       return { error: `Unable to save availability: ${slotError.message}` }

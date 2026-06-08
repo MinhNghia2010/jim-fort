@@ -41,7 +41,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import { cn } from "@/lib/utils"
 
 export type MemberStatus =
@@ -77,6 +77,38 @@ const statusFilters = [
 ] as const
 
 type MemberStatusFilter = (typeof statusFilters)[number]["value"]
+
+const memberSortOptions = [
+  { value: "member_asc", label: "A-Z" },
+  { value: "member_desc", label: "Z-A" },
+] as const
+
+const planSortOptions = [
+  { value: "plan_asc", label: "A-Z" },
+  { value: "plan_desc", label: "Z-A" },
+] as const
+
+const joinedSortOptions = [
+  { value: "joined_desc", label: "Latest" },
+  { value: "joined_asc", label: "Oldest" },
+] as const
+
+const sessionsSortOptions = [
+  { value: "sessions_desc", label: "High-Low" },
+  { value: "sessions_asc", label: "Low-High" },
+] as const
+
+const revenueSortOptions = [
+  { value: "revenue_desc", label: "High-Low" },
+  { value: "revenue_asc", label: "Low-High" },
+] as const
+
+type MemberSort =
+  | (typeof memberSortOptions)[number]["value"]
+  | (typeof planSortOptions)[number]["value"]
+  | (typeof joinedSortOptions)[number]["value"]
+  | (typeof sessionsSortOptions)[number]["value"]
+  | (typeof revenueSortOptions)[number]["value"]
 
 const statusLabels: Record<MemberStatus, string> = {
   pending_pt_setup: "Pending PT setup",
@@ -122,6 +154,56 @@ function matchesStatus(status: MemberStatus, filter: MemberStatusFilter) {
   return status === filter
 }
 
+function compareText(first: string, second: string) {
+  return first.localeCompare(second, undefined, { sensitivity: "base" })
+}
+
+function compareDate(first: string, second: string) {
+  return new Date(first).getTime() - new Date(second).getTime()
+}
+
+function sortMembers(members: MemberTableRow[], sort: MemberSort) {
+  return [...members].sort((first, second) => {
+    if (sort === "member_asc") {
+      return compareText(first.name, second.name)
+    }
+
+    if (sort === "member_desc") {
+      return compareText(second.name, first.name)
+    }
+
+    if (sort === "plan_asc") {
+      return compareText(first.plan, second.plan)
+    }
+
+    if (sort === "plan_desc") {
+      return compareText(second.plan, first.plan)
+    }
+
+    if (sort === "joined_asc") {
+      return compareDate(first.joinedAt, second.joinedAt)
+    }
+
+    if (sort === "sessions_desc") {
+      return second.sessions - first.sessions
+    }
+
+    if (sort === "sessions_asc") {
+      return first.sessions - second.sessions
+    }
+
+    if (sort === "revenue_desc") {
+      return second.revenue - first.revenue
+    }
+
+    if (sort === "revenue_asc") {
+      return first.revenue - second.revenue
+    }
+
+    return compareDate(second.joinedAt, first.joinedAt)
+  })
+}
+
 function getStatusClassName(status: MemberStatus) {
   return cn(
     "border font-medium",
@@ -140,6 +222,7 @@ export function MembersTable({
 }: MembersTableProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<MemberStatusFilter>("all")
+  const [sort, setSort] = useState<MemberSort>("joined_desc")
 
   const normalizedSearch = search.trim().toLowerCase()
   const filteredMembers = members.filter((member) => {
@@ -153,43 +236,34 @@ export function MembersTable({
       matchesStatus(member.status, statusFilter)
     )
   })
+  const sortedMembers = sortMembers(filteredMembers, sort)
+  const memberSortValue =
+    sort === "member_desc" || sort === "member_asc" ? sort : "member_asc"
+  const planSortValue =
+    sort === "plan_desc" || sort === "plan_asc" ? sort : "plan_asc"
+  const joinedSortValue =
+    sort === "joined_asc" || sort === "joined_desc" ? sort : "joined_desc"
+  const sessionsSortValue =
+    sort === "sessions_asc" || sort === "sessions_desc"
+      ? sort
+      : "sessions_desc"
+  const revenueSortValue =
+    sort === "revenue_asc" || sort === "revenue_desc" ? sort : "revenue_desc"
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
-          <InputGroup className="w-full lg:w-72">
-            <InputGroupAddon>
-              <Search aria-hidden="true" />
-            </InputGroupAddon>
-            <InputGroupInput
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search members..."
-              aria-label="Search members"
-            />
-          </InputGroup>
-
-          <ToggleGroup
-            type="single"
-            value={statusFilter}
-            onValueChange={(value) => {
-              if (value) {
-                setStatusFilter(value as MemberStatusFilter)
-              }
-            }}
-            variant="outline"
-            size="sm"
-            className="max-w-full overflow-x-auto"
-            aria-label="Filter members by status"
-          >
-            {statusFilters.map((filter) => (
-              <ToggleGroupItem key={filter.value} value={filter.value}>
-                {filter.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-        </div>
+        <InputGroup className="w-full lg:w-72">
+          <InputGroupAddon>
+            <Search aria-hidden="true" />
+          </InputGroupAddon>
+          <InputGroupInput
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search members..."
+            aria-label="Search members"
+          />
+        </InputGroup>
 
         {canAddMember ? (
           <Button asChild className="self-start lg:self-auto">
@@ -205,27 +279,69 @@ export function MembersTable({
         <CardHeader className="border-b py-4">
           <CardTitle>Member directory</CardTitle>
           <CardDescription>
-            Showing {filteredMembers.length} of {members.length} members
+            Showing {sortedMembers.length} of {members.length} members
           </CardDescription>
         </CardHeader>
         <CardContent className="px-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-4">Member</TableHead>
-                <TableHead>Plan</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Sessions</TableHead>
-                <TableHead>Revenue</TableHead>
+                <TableHead className="pl-4">
+                  <OwnerTableHeaderSelect
+                    label="Member"
+                    value={memberSortValue}
+                    options={memberSortOptions}
+                    onValueChange={setSort}
+                  />
+                </TableHead>
+                <TableHead>
+                  <OwnerTableHeaderSelect
+                    label="Plan"
+                    value={planSortValue}
+                    options={planSortOptions}
+                    onValueChange={setSort}
+                  />
+                </TableHead>
+                <TableHead>
+                  <OwnerTableHeaderSelect
+                    label="Joined"
+                    value={joinedSortValue}
+                    options={joinedSortOptions}
+                    onValueChange={setSort}
+                  />
+                </TableHead>
+                <TableHead>
+                  <OwnerTableHeaderSelect
+                    label="Status"
+                    value={statusFilter}
+                    options={statusFilters}
+                    onValueChange={setStatusFilter}
+                  />
+                </TableHead>
+                <TableHead>
+                  <OwnerTableHeaderSelect
+                    label="Sessions"
+                    value={sessionsSortValue}
+                    options={sessionsSortOptions}
+                    onValueChange={setSort}
+                  />
+                </TableHead>
+                <TableHead>
+                  <OwnerTableHeaderSelect
+                    label="Revenue"
+                    value={revenueSortValue}
+                    options={revenueSortOptions}
+                    onValueChange={setSort}
+                  />
+                </TableHead>
                 <TableHead className="pr-4 text-right">
                   <span className="sr-only">Actions</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredMembers.length ? (
-                filteredMembers.map((member) => (
+              {sortedMembers.length ? (
+                sortedMembers.map((member) => (
                   <TableRow key={member.id}>
                     <TableCell className="pl-4">
                       <div className="flex min-w-48 items-center gap-3">

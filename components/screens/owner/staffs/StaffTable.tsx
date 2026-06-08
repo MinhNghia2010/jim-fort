@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -41,7 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import { cn } from "@/lib/utils"
 
 export type StaffStatus = "active" | "inactive" | "on_leave" | "terminated"
@@ -72,6 +73,38 @@ const statusFilters = [
 
 type StaffStatusFilter = (typeof statusFilters)[number]["value"]
 
+const staffSortOptions = [
+  { value: "staff_asc", label: "A-Z" },
+  { value: "staff_desc", label: "Z-A" },
+] as const
+
+const roleSortOptions = [
+  { value: "role_asc", label: "A-Z" },
+  { value: "role_desc", label: "Z-A" },
+] as const
+
+const phoneSortOptions = [
+  { value: "phone_asc", label: "A-Z" },
+  { value: "phone_desc", label: "Z-A" },
+] as const
+
+const hiredSortOptions = [
+  { value: "hired_desc", label: "Latest" },
+  { value: "hired_asc", label: "Oldest" },
+] as const
+
+const notesSortOptions = [
+  { value: "notes_asc", label: "A-Z" },
+  { value: "notes_desc", label: "Z-A" },
+] as const
+
+type StaffSort =
+  | (typeof staffSortOptions)[number]["value"]
+  | (typeof roleSortOptions)[number]["value"]
+  | (typeof phoneSortOptions)[number]["value"]
+  | (typeof hiredSortOptions)[number]["value"]
+  | (typeof notesSortOptions)[number]["value"]
+
 const statusLabels: Record<StaffStatus, string> = {
   active: "Active",
   inactive: "Inactive",
@@ -97,6 +130,58 @@ function getInitials(name: string) {
   )
 }
 
+function compareText(first: string | null, second: string | null) {
+  return (first ?? "").localeCompare(second ?? "", undefined, {
+    sensitivity: "base",
+  })
+}
+
+function getDateValue(value: string | null) {
+  return value ? new Date(value).getTime() : 0
+}
+
+function sortStaffs(staffs: StaffTableRow[], sort: StaffSort) {
+  return [...staffs].sort((first, second) => {
+    if (sort === "staff_asc") {
+      return compareText(first.name, second.name)
+    }
+
+    if (sort === "staff_desc") {
+      return compareText(second.name, first.name)
+    }
+
+    if (sort === "role_asc") {
+      return compareText(first.role, second.role)
+    }
+
+    if (sort === "role_desc") {
+      return compareText(second.role, first.role)
+    }
+
+    if (sort === "phone_asc") {
+      return compareText(first.phone, second.phone)
+    }
+
+    if (sort === "phone_desc") {
+      return compareText(second.phone, first.phone)
+    }
+
+    if (sort === "hired_asc") {
+      return getDateValue(first.hiredAt) - getDateValue(second.hiredAt)
+    }
+
+    if (sort === "notes_asc") {
+      return compareText(first.note, second.note)
+    }
+
+    if (sort === "notes_desc") {
+      return compareText(second.note, first.note)
+    }
+
+    return getDateValue(second.hiredAt) - getDateValue(first.hiredAt)
+  })
+}
+
 function getStatusClassName(status: StaffStatus) {
   return cn(
     "border font-medium",
@@ -114,6 +199,7 @@ function getStatusClassName(status: StaffStatus) {
 export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StaffStatusFilter>("all")
+  const [sort, setSort] = useState<StaffSort>("staff_asc")
 
   const normalizedSearch = search.trim().toLowerCase()
   const filteredStaffs = staffs.filter((staff) => {
@@ -127,79 +213,109 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
       (statusFilter === "all" || staff.status === statusFilter)
     )
   })
+  const sortedStaffs = sortStaffs(filteredStaffs, sort)
+  const staffSortValue =
+    sort === "staff_desc" || sort === "staff_asc" ? sort : "staff_asc"
+  const roleSortValue =
+    sort === "role_desc" || sort === "role_asc" ? sort : "role_asc"
+  const phoneSortValue =
+    sort === "phone_desc" || sort === "phone_asc" ? sort : "phone_asc"
+  const hiredSortValue =
+    sort === "hired_asc" || sort === "hired_desc" ? sort : "hired_desc"
+  const notesSortValue =
+    sort === "notes_desc" || sort === "notes_asc" ? sort : "notes_asc"
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
-          <InputGroup className="w-full lg:w-72">
-            <InputGroupAddon>
-              <Search aria-hidden="true" />
-            </InputGroupAddon>
-            <InputGroupInput
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search staffs..."
-              aria-label="Search staffs"
-            />
-          </InputGroup>
-
-          <ToggleGroup
-            type="single"
-            value={statusFilter}
-            onValueChange={(value) => {
-              if (value) {
-                setStatusFilter(value as StaffStatusFilter)
-              }
-            }}
-            variant="outline"
-            size="sm"
-            className="max-w-full overflow-x-auto"
-            aria-label="Filter staffs by status"
-          >
-            {statusFilters.map((filter) => (
-              <ToggleGroupItem key={filter.value} value={filter.value}>
-                {filter.label}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-        </div>
-
-        {canAddStaff ? (
-          <Button asChild className="self-start lg:self-auto">
-            <Link href="/staffs/add">
-              <CirclePlus data-icon="inline-start" />
-              Add Staff
-            </Link>
-          </Button>
-        ) : null}
-      </div>
+      <InputGroup className="w-full lg:w-72">
+        <InputGroupAddon>
+          <Search aria-hidden="true" />
+        </InputGroupAddon>
+        <InputGroupInput
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search staffs..."
+          aria-label="Search staffs"
+        />
+      </InputGroup>
 
       <Card className="gap-0 py-0">
         <CardHeader className="border-b py-4">
           <CardTitle>Staff directory</CardTitle>
           <CardDescription>
-            Showing {filteredStaffs.length} of {staffs.length} staffs
+            Showing {sortedStaffs.length} of {staffs.length} staffs
           </CardDescription>
+          {canAddStaff ? (
+            <CardAction>
+              <Button asChild size="sm">
+                <Link href="/staffs/add">
+                  <CirclePlus data-icon="inline-start" />
+                  Add Staff
+                </Link>
+              </Button>
+            </CardAction>
+          ) : null}
         </CardHeader>
         <CardContent className="px-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-4">Staff</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Hired</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Notes</TableHead>
+                <TableHead className="pl-4">
+                  <OwnerTableHeaderSelect
+                    label="Staff"
+                    value={staffSortValue}
+                    options={staffSortOptions}
+                    onValueChange={setSort}
+                  />
+                </TableHead>
+                <TableHead>
+                  <OwnerTableHeaderSelect
+                    label="Role"
+                    value={roleSortValue}
+                    options={roleSortOptions}
+                    onValueChange={setSort}
+                  />
+                </TableHead>
+                <TableHead>
+                  <OwnerTableHeaderSelect
+                    label="Phone"
+                    value={phoneSortValue}
+                    options={phoneSortOptions}
+                    onValueChange={setSort}
+                  />
+                </TableHead>
+                <TableHead>
+                  <OwnerTableHeaderSelect
+                    label="Hired"
+                    value={hiredSortValue}
+                    options={hiredSortOptions}
+                    onValueChange={setSort}
+                  />
+                </TableHead>
+                <TableHead>
+                  <OwnerTableHeaderSelect
+                    label="Status"
+                    value={statusFilter}
+                    options={statusFilters}
+                    onValueChange={setStatusFilter}
+                  />
+                </TableHead>
+                <TableHead>
+                  <OwnerTableHeaderSelect
+                    label="Notes"
+                    value={notesSortValue}
+                    options={notesSortOptions}
+                    onValueChange={setSort}
+                  />
+                </TableHead>
                 <TableHead className="pr-4 text-right">
                   <span className="sr-only">Actions</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStaffs.length ? (
-                filteredStaffs.map((staff) => (
+              {sortedStaffs.length ? (
+                sortedStaffs.map((staff) => (
                   <TableRow key={staff.id}>
                     <TableCell className="pl-4">
                       <div className="flex min-w-48 items-center gap-3">

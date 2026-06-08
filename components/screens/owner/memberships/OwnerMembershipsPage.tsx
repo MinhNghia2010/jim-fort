@@ -135,7 +135,7 @@ function PlanCard({
   return (
     <Card
       style={getPlanAccentStyle(plan.color)}
-      className="relative border-0 bg-card/95 shadow-sm ring-1 ring-foreground/10 transition-all hover:-translate-y-0.5 hover:shadow-md"
+      className="relative h-full border-0 bg-card/95 shadow-sm ring-1 ring-foreground/10 transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
       <div
         aria-hidden="true"
@@ -168,7 +168,7 @@ function PlanCard({
           </Badge>
         </CardAction>
       </CardHeader>
-      <CardContent className="relative flex flex-col gap-5">
+      <CardContent className="relative flex flex-1 flex-col gap-5">
         <div className="rounded-2xl bg-[color-mix(in_srgb,var(--plan-color)_9%,transparent)] p-4 ring-1 ring-[color-mix(in_srgb,var(--plan-color)_18%,transparent)]">
           <div className="flex items-end gap-2">
             <p className="font-heading text-3xl font-semibold tracking-tight tabular-nums">
@@ -195,7 +195,7 @@ function PlanCard({
       </CardContent>
       <CardFooter
         className={cn(
-          "relative grid grid-cols-1 gap-3 bg-[color-mix(in_srgb,var(--plan-color)_7%,var(--muted))]",
+          "relative mt-auto grid grid-cols-1 gap-3 bg-[color-mix(in_srgb,var(--plan-color)_7%,var(--muted))]",
           canManage ? "sm:grid-cols-[1fr_1fr_auto]" : "sm:grid-cols-2"
         )}
       >
@@ -351,7 +351,7 @@ export function OwnerMembershipsContent({
                   {group.plans.length === 1 ? "plan" : "plans"}
                 </Badge>
               </div>
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid auto-rows-fr gap-4 lg:grid-cols-2">
                 {group.plans.map((plan) => (
                   <PlanCard key={plan.id} plan={plan} canManage={canManage} />
                 ))}

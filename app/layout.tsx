@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Geist_Mono, Source_Sans_3 } from "next/font/google"
 
+import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
 import "./globals.css"
@@ -35,7 +36,10 @@ export default function RootLayout({
         fontMono.variable
       )}
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <Toaster position="top-right" richColors />
+      </body>
     </html>
   )
 }
