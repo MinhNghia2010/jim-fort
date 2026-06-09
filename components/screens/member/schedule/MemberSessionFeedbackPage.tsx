@@ -72,7 +72,6 @@ export async function MemberSessionFeedbackPage({
   return (
     <PageShell
       backHref={`/schedule/sessions/${sessionId}`}
-      backLabel="Back to session"
       eyebrow="Session feedback"
       title={
         feedback?.membership_pt_sessions

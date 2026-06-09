@@ -142,13 +142,7 @@ export function OwnerVoucherRedemptionsTable({
 
   return (
     <>
-      <Table className="min-w-[880px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-        <colgroup>
-          <col className="w-[18rem]" />
-          <col className="w-[20rem]" />
-          <col className="w-[12rem]" />
-          <col className="w-[15rem]" />
-        </colgroup>
+      <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
         <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="h-12 pl-6">
@@ -198,7 +192,7 @@ export function OwnerVoucherRedemptionsTable({
                 <TableCell className="font-medium">
                   {redemption.discountAmountLabel}
                 </TableCell>
-                <TableCell className="pr-6 font-mono text-xs text-muted-foreground">
+                <TableCell className="pr-6 font-mono text-xs break-words text-muted-foreground">
                   {redemption.redeemedAtLabel}
                 </TableCell>
               </TableRow>

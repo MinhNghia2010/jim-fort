@@ -135,7 +135,6 @@ export function VoucherForm({
   return (
     <PageShell
       backHref="/vouchers"
-      backLabel="Back to vouchers"
       title={isEditMode ? "Edit voucher" : "Create voucher"}
       description={
         isEditMode

@@ -145,17 +145,7 @@ export async function PtMembersPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-0">
-            <Table className="min-w-[1220px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-              <colgroup>
-                <col className="w-[18rem]" />
-                <col className="w-[7rem]" />
-                <col className="w-[8rem]" />
-                <col className="w-[8rem]" />
-                <col className="w-[8rem]" />
-                <col className="w-[17rem]" />
-                <col className="w-[17rem]" />
-                <col className="w-[8rem]" />
-              </colgroup>
+            <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
               <TableHeader className="bg-muted/40">
                 <TableRow>
                   <TableHead className="h-12 pl-6">Member</TableHead>

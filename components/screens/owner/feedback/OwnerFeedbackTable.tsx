@@ -280,14 +280,7 @@ export function OwnerFeedbackTable({ feedbacks }: OwnerFeedbackTableProps) {
             </InputGroup>
           </div>
 
-          <Table className="min-w-[1260px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-            <colgroup>
-              <col className="w-[26rem]" />
-              <col className="w-[16rem]" />
-              <col className="w-[9rem]" />
-              <col className="w-[11rem]" />
-              <col className="w-[32rem]" />
-            </colgroup>
+          <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">
@@ -347,7 +340,7 @@ export function OwnerFeedbackTable({ feedbacks }: OwnerFeedbackTableProps) {
                         <p className="break-words text-muted-foreground">
                           {feedback.message}
                         </p>
-                        <p className="font-mono text-xs text-muted-foreground">
+                        <p className="font-mono text-xs break-words text-muted-foreground">
                           {dateFormatter.format(new Date(feedback.createdAt))}
                         </p>
                       </div>
@@ -389,7 +382,7 @@ export function OwnerFeedbackTable({ feedbacks }: OwnerFeedbackTableProps) {
                               : ""}
                           </p>
                           {feedback.respondedAt ? (
-                            <p className="font-mono text-xs text-muted-foreground">
+                            <p className="font-mono text-xs break-words text-muted-foreground">
                               {dateFormatter.format(
                                 new Date(feedback.respondedAt)
                               )}

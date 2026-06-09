@@ -202,7 +202,6 @@ export async function MemberScheduleSessionPage({
   return (
     <PageShell
       backHref="/schedule"
-      backLabel="Back to schedule"
       eyebrow="Member session"
       title={session ? `Session ${session.session_number}` : "Session"}
       description="Review your generated PT session details and trainer feedback."

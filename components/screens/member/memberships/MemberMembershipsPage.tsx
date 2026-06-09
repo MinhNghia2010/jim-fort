@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react"
 import Link from "next/link"
 import { Check, Dumbbell, PackageCheck } from "lucide-react"
 
@@ -23,6 +22,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { createClient } from "@/lib/supabase/server"
+import { cn } from "@/lib/utils"
 
 type PackageRow = {
   id: string
@@ -35,22 +35,21 @@ type PackageRow = {
   gym_facilities: { name: string | null } | null
 }
 
+type ActiveSubscriptionRow = {
+  id: string
+  package_id: string
+  status: string
+  expires_at: string | null
+}
+
 const currency = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
 })
 
-const planColors = [
-  "var(--chart-1)",
-  "var(--chart-5)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-2)",
-] as const
-
-type PlanAccentStyle = CSSProperties & {
-  [key: `--${string}`]: string | number | undefined
-}
+const date = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+})
 
 function formatMoney(value: number | string) {
   return currency.format(Number(value) || 0)
@@ -90,19 +89,14 @@ function buildFeatures(plan: PackageRow) {
   ]
 }
 
-function getPlanAccentStyle(color: string): PlanAccentStyle {
-  return {
-    "--plan-color": color,
-  }
-}
-
 function MemberPlanCard({
   plan,
-  color,
+  activeSubscription,
 }: {
   plan: PackageRow
-  color: string
+  activeSubscription: ActiveSubscriptionRow | null
 }) {
+  const isActive = Boolean(activeSubscription)
   const description =
     plan.description ??
     (plan.has_pt
@@ -111,42 +105,23 @@ function MemberPlanCard({
 
   return (
     <Card
-      style={getPlanAccentStyle(color)}
-      className="relative h-full border-0 bg-card/95 shadow-sm ring-1 ring-foreground/10 transition-all hover:-translate-y-0.5 hover:shadow-md"
+      className={cn(
+        "h-full bg-card shadow-sm transition-shadow hover:shadow-md",
+        isActive && "border-primary/40 bg-primary/5 ring-1 ring-primary/15"
+      )}
     >
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-1.5 bg-[linear-gradient(90deg,var(--plan-color),transparent)]"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute -top-10 -right-8 size-32 rounded-full bg-[var(--plan-color)] opacity-10"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute right-10 bottom-14 size-20 rounded-full bg-[var(--plan-color)] opacity-5"
-      />
-
-      <CardHeader className="relative">
-        <CardTitle className="flex items-center gap-2">
-          <span
-            aria-hidden="true"
-            className="size-2.5 shrink-0 rounded-full bg-[var(--plan-color)] shadow-[0_0_0_4px_color-mix(in_srgb,var(--plan-color)_14%,transparent)]"
-          />
-          {plan.name}
-        </CardTitle>
+      <CardHeader>
+        <CardTitle>{plan.name}</CardTitle>
         <CardDescription>{description}</CardDescription>
-        <CardAction>
-          <Badge
-            variant={plan.has_pt ? "default" : "secondary"}
-            className="border-[color:var(--plan-color)] bg-[color-mix(in_srgb,var(--plan-color)_12%,transparent)] text-[color:var(--plan-color)]"
-          >
+        <CardAction className="flex items-center gap-2">
+          {isActive ? <Badge>Active plan</Badge> : null}
+          <Badge variant={plan.has_pt ? "secondary" : "outline"}>
             {plan.has_pt ? "PT" : "Access"}
           </Badge>
         </CardAction>
       </CardHeader>
-      <CardContent className="relative flex flex-1 flex-col gap-5">
-        <div className="rounded-2xl bg-[color-mix(in_srgb,var(--plan-color)_9%,transparent)] p-4 ring-1 ring-[color-mix(in_srgb,var(--plan-color)_18%,transparent)]">
+      <CardContent className="flex flex-1 flex-col gap-5">
+        <div className="rounded-lg border bg-muted/30 p-4">
           <div className="flex items-end gap-2">
             <p className="font-heading text-3xl font-semibold tracking-tight tabular-nums">
               {formatMoney(plan.price)}
@@ -159,26 +134,43 @@ function MemberPlanCard({
         <div className="flex flex-col gap-2">
           {buildFeatures(plan).map((feature) => (
             <div key={feature} className="flex items-start gap-2">
-              <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--plan-color)_14%,transparent)]">
-                <Check
-                  aria-hidden="true"
-                  className="size-3.5 text-[color:var(--plan-color)]"
-                />
+              <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <Check aria-hidden="true" className="size-3.5" />
               </span>
               <span className="text-sm text-muted-foreground">{feature}</span>
             </div>
           ))}
         </div>
+        {isActive && activeSubscription?.expires_at ? (
+          <div className="rounded-lg border bg-background p-3">
+            <p className="text-xs text-muted-foreground">Expires</p>
+            <p className="font-medium">
+              {date.format(new Date(activeSubscription.expires_at))}
+            </p>
+          </div>
+        ) : null}
         <div className="mt-auto">
-          <MemberActionForm
-            action={createMemberSubscription}
-            submitLabel={plan.has_pt ? "Start PT setup" : "Subscribe"}
-            pendingLabel="Creating"
-            buttonVariant="outline"
-            buttonClassName="w-full rounded-full border-[color:var(--plan-color)] bg-background/90 px-4 text-[color:var(--plan-color)] shadow-sm hover:bg-[var(--plan-color)] hover:text-white"
-          >
-            <input type="hidden" name="packageId" value={plan.id} />
-          </MemberActionForm>
+          {isActive ? (
+            <MemberActionForm
+              action={createMemberSubscription}
+              submitLabel="Extend expiry"
+              pendingLabel="Creating"
+              buttonVariant="outline"
+              buttonClassName="w-full"
+            >
+              <input type="hidden" name="packageId" value={plan.id} />
+            </MemberActionForm>
+          ) : (
+            <MemberActionForm
+              action={createMemberSubscription}
+              submitLabel={plan.has_pt ? "Start PT setup" : "Subscribe"}
+              pendingLabel="Creating"
+              buttonVariant="outline"
+              buttonClassName="w-full"
+            >
+              <input type="hidden" name="packageId" value={plan.id} />
+            </MemberActionForm>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -187,16 +179,43 @@ function MemberPlanCard({
 
 export async function MemberMembershipsPage() {
   const supabase = await createClient()
-  const { data, error } = await supabase
-    .from("membership_packages")
-    .select(
-      "id,name,description,price,has_pt,duration_days,session_count,gym_facilities(name)"
-    )
-    .eq("status", "active")
-    .order("has_pt", { ascending: true })
-    .order("price", { ascending: true })
+  const [packagesResult, activeSubscriptionsResult] = await Promise.all([
+    supabase
+      .from("membership_packages")
+      .select(
+        "id,name,description,price,has_pt,duration_days,session_count,gym_facilities(name)"
+      )
+      .eq("status", "active")
+      .order("has_pt", { ascending: true })
+      .order("price", { ascending: true }),
+    supabase
+      .from("membership_subscriptions")
+      .select("id,package_id,status,expires_at")
+      .eq("status", "active"),
+  ])
 
-  const packages = (data ?? []) as unknown as PackageRow[]
+  const packages = (packagesResult.data ?? []) as unknown as PackageRow[]
+  const activeSubscriptions = (activeSubscriptionsResult.data ??
+    []) as unknown as ActiveSubscriptionRow[]
+  const activeSubscriptionsByPackage = activeSubscriptions.reduce(
+    (map, subscription) => {
+      const current = map.get(subscription.package_id)
+      const currentTime = current?.expires_at
+        ? new Date(current.expires_at).getTime()
+        : 0
+      const subscriptionTime = subscription.expires_at
+        ? new Date(subscription.expires_at).getTime()
+        : 0
+
+      if (!current || subscriptionTime >= currentTime) {
+        map.set(subscription.package_id, subscription)
+      }
+
+      return map
+    },
+    new Map<string, ActiveSubscriptionRow>()
+  )
+  const error = packagesResult.error ?? activeSubscriptionsResult.error
 
   return (
     <PageShell
@@ -213,11 +232,13 @@ export async function MemberMembershipsPage() {
 
       {packages.length ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {packages.map((plan, index) => (
+          {packages.map((plan) => (
             <MemberPlanCard
               key={plan.id}
               plan={plan}
-              color={planColors[index % planColors.length]}
+              activeSubscription={
+                activeSubscriptionsByPackage.get(plan.id) ?? null
+              }
             />
           ))}
         </div>
@@ -237,8 +258,8 @@ export async function MemberMembershipsPage() {
 
       <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground">
         <Dumbbell data-icon="inline-start" />
-        PT package flow: subscribe, save preferences, wait for manager assignment,
-        accept the PT, then pay from{" "}
+        PT package flow: subscribe, save preferences, wait for manager
+        assignment, accept the PT, then pay from{" "}
         <Link href="/subscriptions" className="font-medium underline">
           Subscriptions
         </Link>

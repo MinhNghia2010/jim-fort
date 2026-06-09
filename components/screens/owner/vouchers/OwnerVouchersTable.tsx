@@ -236,16 +236,7 @@ export function OwnerVouchersTable({
         ) : null}
       </CardHeader>
       <CardContent className="px-0">
-        <Table className="min-w-[1120px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-          <colgroup>
-            <col className="w-[15rem]" />
-            <col className="w-[13rem]" />
-            <col className="w-[11rem]" />
-            <col className="w-[12rem]" />
-            <col className="w-[12rem]" />
-            <col className="w-[10rem]" />
-            <col className="w-[6rem]" />
-          </colgroup>
+        <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
           <TableHeader className="bg-muted/40">
             <TableRow>
               <TableHead className="h-12 pl-6">
@@ -334,10 +325,10 @@ export function OwnerVouchersTable({
                       />
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">
+                  <TableCell className="font-mono text-xs break-words text-muted-foreground">
                     {voucher.startsAtLabel}
                   </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">
+                  <TableCell className="font-mono text-xs break-words text-muted-foreground">
                     {voucher.expiresAtLabel}
                   </TableCell>
                   <TableCell>

@@ -6,9 +6,11 @@ import { toast } from "sonner"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 type MemberActionState = {
   error?: string
+  message?: string
 }
 
 type MemberAction = (
@@ -23,6 +25,10 @@ interface MemberActionFormProps {
   pendingLabel?: string
   buttonVariant?: React.ComponentProps<typeof Button>["variant"]
   buttonClassName?: string
+  submitName?: string
+  submitValue?: string
+  actionsClassName?: string
+  secondaryAction?: React.ReactNode
   successMessage?: string
 }
 
@@ -35,6 +41,10 @@ export function MemberActionForm({
   pendingLabel = "Saving",
   buttonVariant,
   buttonClassName,
+  submitName,
+  submitValue,
+  actionsClassName,
+  secondaryAction,
   successMessage = "Action completed",
 }: MemberActionFormProps) {
   const [state, formAction, pending] = useActionState(action, initialState)
@@ -57,8 +67,8 @@ export function MemberActionForm({
       return
     }
 
-    toast.success(successMessage)
-  }, [pending, state.error, successMessage])
+    toast.success(state.message ?? successMessage)
+  }, [pending, state.error, state.message, successMessage])
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
@@ -69,21 +79,26 @@ export function MemberActionForm({
           <AlertDescription>{state.error}</AlertDescription>
         </Alert>
       ) : null}
-      <Button
-        type="submit"
-        disabled={pending}
-        variant={buttonVariant}
-        className={buttonClassName}
-      >
-        {pending ? (
-          <>
-            <Loader2 data-icon="inline-start" className="animate-spin" />
-            {pendingLabel}
-          </>
-        ) : (
-          submitLabel
-        )}
-      </Button>
+      <div className={cn("flex flex-col gap-2", actionsClassName)}>
+        <Button
+          type="submit"
+          disabled={pending}
+          variant={buttonVariant}
+          className={buttonClassName}
+          name={submitName}
+          value={submitValue}
+        >
+          {pending ? (
+            <>
+              <Loader2 data-icon="inline-start" className="animate-spin" />
+              {pendingLabel}
+            </>
+          ) : (
+            submitLabel
+          )}
+        </Button>
+        {secondaryAction}
+      </div>
     </form>
   )
 }

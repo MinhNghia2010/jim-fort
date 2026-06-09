@@ -8,14 +8,14 @@ interface SegmentedProgressBarProps {
 export function SegmentedProgressBar({ items }: SegmentedProgressBarProps) {
   if (items.length === 0) {
     return (
-      <div className="flex min-w-[720px] items-center justify-center rounded-lg border bg-muted/40 px-3 py-3 text-xs text-muted-foreground">
+      <div className="flex w-full items-center justify-center rounded-lg border bg-muted/40 px-3 py-3 text-xs text-muted-foreground">
         No membership access data yet
       </div>
     )
   }
 
   return (
-    <div className="flex min-w-[720px] overflow-hidden rounded-lg border bg-muted/40">
+    <div className="flex w-full overflow-hidden rounded-lg border bg-muted/40">
       {items.map((item) => (
         <div
           key={item.label}

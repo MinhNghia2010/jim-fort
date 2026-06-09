@@ -135,12 +135,7 @@ export async function PtOverviewPage() {
             <CardDescription>Open a session to review details.</CardDescription>
           </CardHeader>
           <CardContent className="px-0">
-            <Table className="min-w-[560px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-              <colgroup>
-                <col className="w-[17rem]" />
-                <col className="w-[16rem]" />
-                <col className="w-[6rem]" />
-              </colgroup>
+            <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
               <TableHeader className="bg-muted/40">
                 <TableRow>
                   <TableHead className="h-12 pl-6">Member</TableHead>
@@ -191,12 +186,7 @@ export async function PtOverviewPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-0">
-            <Table className="min-w-[520px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-              <colgroup>
-                <col className="w-[17rem]" />
-                <col className="w-[9rem]" />
-                <col className="w-[8rem]" />
-              </colgroup>
+            <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
               <TableHeader className="bg-muted/40">
                 <TableRow>
                   <TableHead className="h-12 pl-6">Member</TableHead>

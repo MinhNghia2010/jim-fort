@@ -1,14 +1,15 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Activity, Archive, CircleAlert, Dumbbell, Wrench } from "lucide-react"
+import { Activity, CircleAlert, Dumbbell, Wrench } from "lucide-react"
 
 import {
-  getFacilityRoomPageData,
+  getRoomEquipmentPageData,
   getRoomEquipmentHref,
   type RoomStatus,
 } from "@/app/(main)/facility/data"
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { OwnerRoomEquipmentTable } from "@/components/screens/owner/facility/OwnerRoomEquipmentTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,13 +21,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty"
 import { cn } from "@/lib/utils"
 
 interface OwnerFacilityRoomPageProps {
@@ -55,7 +49,7 @@ export async function OwnerFacilityRoomPage({
   facilityName,
   roomId,
 }: OwnerFacilityRoomPageProps) {
-  const data = await getFacilityRoomPageData(facilityName, roomId)
+  const data = await getRoomEquipmentPageData(facilityName, roomId)
 
   if (!data.room && !data.errorMessage) {
     notFound()
@@ -78,7 +72,19 @@ export async function OwnerFacilityRoomPage({
     )
   }
 
-  const { facility, room, statusCounts } = data
+  const { facility, room } = data
+  const statusCounts = {
+    active: data.equipments.filter((equipment) => equipment.status === "active")
+      .length,
+    maintenance: data.equipments.filter(
+      (equipment) => equipment.status === "maintenance"
+    ).length,
+    broken: data.equipments.filter((equipment) => equipment.status === "broken")
+      .length,
+    retired: data.equipments.filter(
+      (equipment) => equipment.status === "retired"
+    ).length,
+  }
 
   return (
     <PageShell
@@ -157,7 +163,7 @@ export async function OwnerFacilityRoomPage({
             </div>
             <Button asChild>
               <Link href={getRoomEquipmentHref(facility.name, room.id)}>
-                View equipment
+                Open equipment page
               </Link>
             </Button>
           </CardContent>
@@ -165,50 +171,58 @@ export async function OwnerFacilityRoomPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Equipment preview</CardTitle>
+            <CardTitle>Equipment health</CardTitle>
             <CardDescription>
-              First {data.equipmentPreview.length} equipment records in this
-              room.
+              Current equipment status split for this room.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            {data.equipmentPreview.length ? (
-              <div className="flex flex-col gap-3">
-                {data.equipmentPreview.map((equipment) => (
-                  <div
-                    key={equipment.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border p-3"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-medium break-words">
-                        {equipment.name}
-                      </p>
-                      <p className="text-xs break-words text-muted-foreground">
-                        {equipment.brand} {equipment.model}
-                      </p>
-                    </div>
-                    <Badge variant="secondary" className="capitalize">
-                      {equipment.status}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <Empty className="min-h-48">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <Archive />
-                  </EmptyMedia>
-                  <EmptyTitle>No equipment found</EmptyTitle>
-                  <EmptyDescription>
-                    Equipment assigned to this room will appear here.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            )}
+          <CardContent className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl bg-muted/40 p-4">
+              <p className="text-xs text-muted-foreground">Active</p>
+              <p className="font-heading text-2xl font-semibold tabular-nums">
+                {statusCounts.active}
+              </p>
+            </div>
+            <div className="rounded-xl bg-muted/40 p-4">
+              <p className="text-xs text-muted-foreground">Maintenance</p>
+              <p className="font-heading text-2xl font-semibold tabular-nums">
+                {statusCounts.maintenance}
+              </p>
+            </div>
+            <div className="rounded-xl bg-muted/40 p-4">
+              <p className="text-xs text-muted-foreground">Broken</p>
+              <p className="font-heading text-2xl font-semibold tabular-nums">
+                {statusCounts.broken}
+              </p>
+            </div>
+            <div className="rounded-xl bg-muted/40 p-4">
+              <p className="text-xs text-muted-foreground">Retired</p>
+              <p className="font-heading text-2xl font-semibold tabular-nums">
+                {statusCounts.retired}
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
+
+      <Card className="gap-0 overflow-hidden py-0">
+        <CardHeader className="border-b py-4">
+          <CardTitle>Equipment list</CardTitle>
+          <CardDescription>
+            Showing {data.equipments.length} equipment records in {room.name}.
+          </CardDescription>
+          <CardAction>
+            <Badge variant="secondary">{data.equipments.length} records</Badge>
+          </CardAction>
+        </CardHeader>
+        <CardContent className="px-0">
+          <OwnerRoomEquipmentTable
+            equipments={data.equipments}
+            facilityName={facility.name}
+            roomId={room.id}
+          />
+        </CardContent>
+      </Card>
     </PageShell>
   )
 }

@@ -34,8 +34,6 @@ export default async function UnauthorizedPage({
   const params = await searchParams
   const attemptedRoute = getSearchParam(params.from)
   const returnTo = getSafeInternalHref(params.returnTo)
-  const buttonLabel =
-    returnTo === "/overview" ? "Go to overview" : "Back to previous page"
 
   return (
     <section className="flex min-h-[calc(100svh-3.5rem)] items-center justify-center bg-background p-6">
@@ -61,7 +59,7 @@ export default async function UnauthorizedPage({
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <HistoryBackButton fallbackHref={returnTo} label={buttonLabel} />
+          <HistoryBackButton fallbackHref={returnTo} />
         </EmptyContent>
       </Empty>
     </section>

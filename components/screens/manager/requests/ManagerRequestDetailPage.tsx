@@ -87,7 +87,6 @@ export async function ManagerRequestDetailPage({ requestId }: Props) {
       title="PT Setup Request"
       description="Assign a trainer and weekly schedule for member approval."
       backHref="/request"
-      backLabel="Requests"
     >
       {error ? (
         <Alert variant="destructive">

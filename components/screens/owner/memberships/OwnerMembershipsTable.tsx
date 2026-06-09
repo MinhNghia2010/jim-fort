@@ -211,175 +211,160 @@ export function OwnerMembershipsTable({
         </CardAction>
       </CardHeader>
       <CardContent className="px-0">
-        <div className="overflow-x-auto">
-          <Table className="min-w-[1180px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-            <colgroup>
-              <col className="w-[18rem]" />
-              <col className="w-[9rem]" />
-              <col className="w-[10rem]" />
-              <col className="w-[9rem]" />
-              <col className="w-[27rem]" />
-              <col className="w-[9rem]" />
-              <col className="w-[12rem]" />
-              {canManage ? <col className="w-[7rem]" /> : null}
-            </colgroup>
-            <TableHeader className="bg-muted/40">
-              <TableRow>
-                <TableHead className="h-12 pl-6">
-                  <OwnerTableHeaderSelect
-                    label="Plan"
-                    value={planSortValue}
-                    options={planSortOptions}
-                    onValueChange={setSort}
-                  />
+        <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+          <TableHeader className="bg-muted/40">
+            <TableRow>
+              <TableHead className="h-12 pl-6">
+                <OwnerTableHeaderSelect
+                  label="Plan"
+                  value={planSortValue}
+                  options={planSortOptions}
+                  onValueChange={setSort}
+                />
+              </TableHead>
+              <TableHead className="h-12">
+                <OwnerTableHeaderSelect
+                  label="Price"
+                  value={priceSortValue}
+                  options={priceSortOptions}
+                  onValueChange={setSort}
+                />
+              </TableHead>
+              <TableHead className="h-12">
+                <OwnerTableHeaderSelect
+                  label="Term"
+                  value={termSortValue}
+                  options={termSortOptions}
+                  onValueChange={setSort}
+                />
+              </TableHead>
+              <TableHead className="h-12">
+                <OwnerTableHeaderSelect
+                  label="Status"
+                  value={statusFilter}
+                  options={statusFilterOptions}
+                  onValueChange={setStatusFilter}
+                />
+              </TableHead>
+              <TableHead className="h-12">Features</TableHead>
+              <TableHead className="h-12">
+                <OwnerTableHeaderSelect
+                  label="Active members"
+                  value={membersSortValue}
+                  options={membersSortOptions}
+                  onValueChange={setSort}
+                />
+              </TableHead>
+              <TableHead className="h-12">
+                <OwnerTableHeaderSelect
+                  label="Revenue"
+                  value={revenueSortValue}
+                  options={revenueSortOptions}
+                  onValueChange={setSort}
+                />
+              </TableHead>
+              {canManage ? (
+                <TableHead className="h-12 pr-6 text-right">
+                  <span className="sr-only">Actions</span>
                 </TableHead>
-                <TableHead className="h-12">
-                  <OwnerTableHeaderSelect
-                    label="Price"
-                    value={priceSortValue}
-                    options={priceSortOptions}
-                    onValueChange={setSort}
-                  />
-                </TableHead>
-                <TableHead className="h-12">
-                  <OwnerTableHeaderSelect
-                    label="Term"
-                    value={termSortValue}
-                    options={termSortOptions}
-                    onValueChange={setSort}
-                  />
-                </TableHead>
-                <TableHead className="h-12">
-                  <OwnerTableHeaderSelect
-                    label="Status"
-                    value={statusFilter}
-                    options={statusFilterOptions}
-                    onValueChange={setStatusFilter}
-                  />
-                </TableHead>
-                <TableHead className="h-12">Features</TableHead>
-                <TableHead className="h-12">
-                  <OwnerTableHeaderSelect
-                    label="Active members"
-                    value={membersSortValue}
-                    options={membersSortOptions}
-                    onValueChange={setSort}
-                  />
-                </TableHead>
-                <TableHead className="h-12">
-                  <OwnerTableHeaderSelect
-                    label="Revenue"
-                    value={revenueSortValue}
-                    options={revenueSortOptions}
-                    onValueChange={setSort}
-                  />
-                </TableHead>
-                {canManage ? (
-                  <TableHead className="h-12 pr-6 text-right">
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                ) : null}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedPlans.length ? (
-                sortedPlans.map((plan) => (
-                  <TableRow key={plan.id} className="h-[4.5rem]">
-                    <TableCell className="pl-6">
-                      <div className="flex items-start gap-3">
-                        <span
-                          aria-hidden="true"
-                          className="mt-1 size-2.5 shrink-0 rounded-full"
-                          style={{ backgroundColor: plan.color }}
-                        />
-                        <div className="min-w-0">
-                          <p className="leading-5 font-semibold break-words">
-                            {plan.name}
-                          </p>
-                          <p className="text-sm break-words text-muted-foreground">
-                            {plan.description}
-                          </p>
-                        </div>
+              ) : null}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedPlans.length ? (
+              sortedPlans.map((plan) => (
+                <TableRow key={plan.id} className="h-[4.5rem]">
+                  <TableCell className="pl-6">
+                    <div className="flex items-start gap-3">
+                      <span
+                        aria-hidden="true"
+                        className="mt-1 size-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: plan.color }}
+                      />
+                      <div className="min-w-0">
+                        <p className="leading-5 font-semibold break-words">
+                          {plan.name}
+                        </p>
+                        <p className="text-sm break-words text-muted-foreground">
+                          {plan.description}
+                        </p>
                       </div>
-                    </TableCell>
-                    <TableCell className="font-heading text-lg font-semibold tabular-nums">
-                      {plan.priceLabel}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {plan.termLabel}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={statusVariant(plan.status)}
-                        className="capitalize"
-                      >
-                        {plan.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {plan.features.length ? (
-                        <div className="flex flex-col gap-1.5">
-                          {plan.features.map((feature) => (
-                            <div
-                              key={feature}
-                              className="flex items-start gap-2"
-                            >
-                              <Check
-                                aria-hidden="true"
-                                className="mt-0.5 size-3.5 shrink-0 text-muted-foreground"
-                              />
-                              <span className="text-sm break-words text-muted-foreground">
-                                {feature}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">
-                          No listed features
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-mono font-medium tabular-nums">
-                      {plan.activeMembers.toLocaleString("en-US")}
-                    </TableCell>
-                    <TableCell className="font-mono font-medium tabular-nums">
-                      {plan.revenueLabel}
-                    </TableCell>
-                    {canManage ? (
-                      <TableCell className="pr-6 text-right">
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/memberships/edit?planId=${plan.id}`}>
-                            <Pencil data-icon="inline-start" />
-                            Edit
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    ) : null}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={canManage ? 8 : 7} className="h-64">
-                    <Empty>
-                      <EmptyHeader>
-                        <EmptyMedia variant="icon">
-                          <PackageCheck />
-                        </EmptyMedia>
-                        <EmptyTitle>No membership plans found</EmptyTitle>
-                        <EmptyDescription>
-                          {plans.length
-                            ? "Try a different status filter."
-                            : "Plans from the live membership_packages table will appear here."}
-                        </EmptyDescription>
-                      </EmptyHeader>
-                    </Empty>
+                    </div>
                   </TableCell>
+                  <TableCell className="font-heading text-lg font-semibold tabular-nums">
+                    {plan.priceLabel}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {plan.termLabel}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={statusVariant(plan.status)}
+                      className="capitalize"
+                    >
+                      {plan.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {plan.features.length ? (
+                      <div className="flex flex-col gap-1.5">
+                        {plan.features.map((feature) => (
+                          <div key={feature} className="flex items-start gap-2">
+                            <Check
+                              aria-hidden="true"
+                              className="mt-0.5 size-3.5 shrink-0 text-muted-foreground"
+                            />
+                            <span className="text-sm break-words text-muted-foreground">
+                              {feature}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        No listed features
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="font-mono font-medium tabular-nums">
+                    {plan.activeMembers.toLocaleString("en-US")}
+                  </TableCell>
+                  <TableCell className="font-mono font-medium tabular-nums">
+                    {plan.revenueLabel}
+                  </TableCell>
+                  {canManage ? (
+                    <TableCell className="pr-6 text-right">
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/memberships/edit?planId=${plan.id}`}>
+                          <Pencil data-icon="inline-start" />
+                          Edit
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  ) : null}
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={canManage ? 8 : 7} className="h-64">
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <PackageCheck />
+                      </EmptyMedia>
+                      <EmptyTitle>No membership plans found</EmptyTitle>
+                      <EmptyDescription>
+                        {plans.length
+                          ? "Try a different status filter."
+                          : "Plans from the live membership_packages table will appear here."}
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   )

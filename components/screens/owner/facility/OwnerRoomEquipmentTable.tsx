@@ -276,18 +276,7 @@ export function OwnerRoomEquipmentTable({
 
   return (
     <>
-      <Table className="min-w-[1560px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-        <colgroup>
-          <col className="w-[14rem]" />
-          <col className="w-[12rem]" />
-          <col className="w-[10rem]" />
-          <col className="w-[12rem]" />
-          <col className="w-[14rem]" />
-          <col className="w-[11rem]" />
-          <col className="w-[10rem]" />
-          <col className="w-[18rem]" />
-          {canShowAction ? <col className="w-[6rem]" /> : null}
-        </colgroup>
+      <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
         <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="h-12 pl-6">
@@ -376,10 +365,10 @@ export function OwnerRoomEquipmentTable({
                     {statusLabels[equipment.status]}
                   </Badge>
                 </TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">
+                <TableCell className="font-mono text-xs break-words text-muted-foreground">
                   {equipment.code}
                 </TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">
+                <TableCell className="font-mono text-xs break-words text-muted-foreground">
                   {equipment.serial}
                 </TableCell>
                 <TableCell>
@@ -390,7 +379,7 @@ export function OwnerRoomEquipmentTable({
                     </p>
                   </div>
                 </TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">
+                <TableCell className="font-mono text-xs break-words text-muted-foreground">
                   {equipment.purchasedAtLabel}
                 </TableCell>
                 <TableCell className="font-mono font-medium tabular-nums">

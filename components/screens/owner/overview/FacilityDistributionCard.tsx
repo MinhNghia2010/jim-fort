@@ -41,7 +41,7 @@ export function FacilityDistributionCard({
           </Button>
         </CardAction>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
+      <CardContent>
         <SegmentedProgressBar items={items} />
       </CardContent>
     </Card>

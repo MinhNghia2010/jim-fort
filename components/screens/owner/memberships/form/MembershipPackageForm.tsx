@@ -266,7 +266,6 @@ export function MembershipPackageForm({
     return (
       <PageShell
         backHref="/memberships"
-        backLabel="Back to memberships"
         title={title}
         description={descriptionText}
       >
@@ -293,7 +292,6 @@ export function MembershipPackageForm({
   return (
     <PageShell
       backHref="/memberships"
-      backLabel="Back to memberships"
       title={title}
       description={descriptionText}
     >

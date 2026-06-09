@@ -304,16 +304,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
             </InputGroup>
           </div>
 
-          <Table className="min-w-[1180px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-            <colgroup>
-              <col className="w-[18rem]" />
-              <col className="w-[10rem]" />
-              <col className="w-[10rem]" />
-              <col className="w-[10rem]" />
-              <col className="w-[10rem]" />
-              <col className="w-[17rem]" />
-              <col className="w-[6rem]" />
-            </colgroup>
+          <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">

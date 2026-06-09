@@ -114,15 +114,7 @@ export async function ManagerSubscriptionsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="px-0">
-          <Table className="min-w-[1060px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-            <colgroup>
-              <col className="w-[16rem]" />
-              <col className="w-[18rem]" />
-              <col className="w-[12rem]" />
-              <col className="w-[14rem]" />
-              <col className="w-[10rem]" />
-              <col className="w-[6rem]" />
-            </colgroup>
+          <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">Member</TableHead>
@@ -164,7 +156,7 @@ export async function ManagerSubscriptionsPage() {
                       <TableCell>
                         {row.membership_packages?.name ?? "Membership"}
                       </TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">
+                      <TableCell className="font-mono text-xs break-words text-muted-foreground">
                         {date.format(createdAt)}
                       </TableCell>
                       <TableCell>

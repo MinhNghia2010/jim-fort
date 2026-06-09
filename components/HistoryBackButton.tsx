@@ -9,12 +9,12 @@ import { Button } from "@/components/ui/button"
 interface HistoryBackButtonProps
   extends Pick<ComponentProps<typeof Button>, "className" | "variant"> {
   fallbackHref: string
-  label: string
+  label?: string
 }
 
 export function HistoryBackButton({
   fallbackHref,
-  label,
+  label = "Back",
   className,
   variant,
 }: HistoryBackButtonProps) {

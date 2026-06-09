@@ -364,8 +364,8 @@ export async function MemberSchedulePage({ month }: MemberSchedulePageProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto rounded-lg border">
-                <div className="min-w-[980px]" role="table">
+              <div className="rounded-lg border">
+                <div className="w-full" role="table">
                   <div
                     className="grid border-b bg-muted/60"
                     role="row"

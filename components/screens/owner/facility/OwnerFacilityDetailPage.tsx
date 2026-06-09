@@ -1,10 +1,17 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Building2, Dumbbell, MapPin, Phone, Users } from "lucide-react"
+import {
+  ArrowRight,
+  Building2,
+  CircleAlert,
+  Dumbbell,
+  MapPin,
+  Phone,
+  Users,
+} from "lucide-react"
 
 import {
   getFacilityDetailPageData,
-  getRoomEquipmentHref,
   getRoomHref,
   type RoomStatus,
 } from "@/app/(main)/facility/data"
@@ -12,12 +19,12 @@ import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -28,14 +35,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 
 interface OwnerFacilityDetailPageProps {
@@ -181,95 +180,89 @@ export async function OwnerFacilityDetailPage({
               <Badge variant="secondary">{facility.roomCount} rooms</Badge>
             </CardAction>
           </CardHeader>
-          <CardContent className="px-0">
-            <Table className="min-w-[820px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-              <colgroup>
-                <col className="w-[16rem]" />
-                <col className="w-[10rem]" />
-                <col className="w-[10rem]" />
-                <col className="w-[11rem]" />
-                <col className="w-[13rem]" />
-              </colgroup>
-              <TableHeader className="bg-muted/40">
-                <TableRow>
-                  <TableHead className="h-12 pl-6">Room</TableHead>
-                  <TableHead className="h-12">Status</TableHead>
-                  <TableHead className="h-12">Equipment</TableHead>
-                  <TableHead className="h-12">Issues</TableHead>
-                  <TableHead className="h-12 pr-6 text-right">
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {facility.rooms.length ? (
-                  facility.rooms.map((room) => (
-                    <TableRow key={room.id} className="h-[4.5rem]">
-                      <TableCell className="pl-6">
-                        <div>
-                          <p className="leading-5 font-semibold break-words">
+          <CardContent className="p-4">
+            {facility.rooms.length ? (
+              <div className="grid gap-4 md:grid-cols-2">
+                {facility.rooms.map((room) => (
+                  <Link
+                    key={room.id}
+                    href={getRoomHref(facility.name, room.id)}
+                    aria-label={`Open ${room.name} room details`}
+                    className="group rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                  >
+                    <Card className="h-full transition-colors group-hover:border-primary/50 group-hover:bg-muted/30">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-base">
+                          <MapPin
+                            aria-hidden="true"
+                            className="size-4 text-muted-foreground"
+                          />
+                          <span className="min-w-0 break-words">
                             {room.name}
-                          </p>
-                          <p className="text-xs break-words text-muted-foreground">
-                            Updated {room.updatedAtLabel}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={roomStatusClassName(room.status)}
-                        >
-                          {roomStatusLabels[room.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-mono font-medium tabular-nums">
-                        {room.equipmentCount}
-                      </TableCell>
-                      <TableCell className="font-mono font-medium tabular-nums">
-                        {room.issueEquipmentCount}
-                      </TableCell>
-                      <TableCell className="pr-6">
-                        <div className="flex justify-end gap-2">
-                          <Button asChild variant="outline" size="sm">
-                            <Link href={getRoomHref(facility.name, room.id)}>
-                              Room
-                            </Link>
-                          </Button>
-                          <Button asChild size="sm">
-                            <Link
-                              href={getRoomEquipmentHref(
-                                facility.name,
-                                room.id
-                              )}
-                            >
+                          </span>
+                        </CardTitle>
+                        <CardDescription className="break-words">
+                          {room.description}
+                        </CardDescription>
+                        <CardAction>
+                          <Badge
+                            variant="outline"
+                            className={roomStatusClassName(room.status)}
+                          >
+                            {roomStatusLabels[room.status]}
+                          </Badge>
+                        </CardAction>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="rounded-xl bg-muted/40 p-3">
+                            <p className="text-xs text-muted-foreground">
                               Equipment
-                            </Link>
-                          </Button>
+                            </p>
+                            <p className="font-heading text-2xl font-semibold tabular-nums">
+                              {room.equipmentCount}
+                            </p>
+                          </div>
+                          <div className="rounded-xl bg-muted/40 p-3">
+                            <p className="text-xs text-muted-foreground">
+                              Issues
+                            </p>
+                            <p className="font-heading text-2xl font-semibold tabular-nums">
+                              {room.issueEquipmentCount}
+                            </p>
+                          </div>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-64">
-                      <Empty>
-                        <EmptyHeader>
-                          <EmptyMedia variant="icon">
-                            <MapPin />
-                          </EmptyMedia>
-                          <EmptyTitle>No rooms found</EmptyTitle>
-                          <EmptyDescription>
-                            Room records from the live rooms table will appear
-                            here.
-                          </EmptyDescription>
-                        </EmptyHeader>
-                      </Empty>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                      </CardContent>
+                      <CardFooter className="justify-between text-sm text-muted-foreground">
+                        <span className="flex items-center gap-2">
+                          <CircleAlert aria-hidden="true" className="size-4" />
+                          Updated {room.updatedAtLabel}
+                        </span>
+                        <span className="flex items-center gap-1 font-medium text-foreground">
+                          Details
+                          <ArrowRight
+                            aria-hidden="true"
+                            className="size-4 transition-transform group-hover:translate-x-0.5"
+                          />
+                        </span>
+                      </CardFooter>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Empty className="min-h-64">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <MapPin />
+                  </EmptyMedia>
+                  <EmptyTitle>No rooms found</EmptyTitle>
+                  <EmptyDescription>
+                    Room records from the live rooms table will appear here.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            )}
           </CardContent>
         </Card>
       </div>

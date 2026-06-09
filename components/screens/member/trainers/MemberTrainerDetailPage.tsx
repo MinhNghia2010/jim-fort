@@ -105,7 +105,6 @@ export async function MemberTrainerDetailPage({
   return (
     <PageShell
       backHref="/trainers"
-      backLabel="Back to trainers"
       eyebrow={trainer?.gym_facilities?.name ?? "Member trainer"}
       title={trainer?.users?.full_name ?? "Trainer"}
       description="Trainer profile, assignment status, and your upcoming PT sessions."

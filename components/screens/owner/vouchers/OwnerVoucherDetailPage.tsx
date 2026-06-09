@@ -64,7 +64,6 @@ function VoucherNotFoundContent({
   return (
     <PageShell
       backHref="/vouchers"
-      backLabel="Back to vouchers"
       title="Voucher not found"
       description="This voucher could not be found from the current live voucher data."
     >
@@ -115,7 +114,6 @@ function VoucherDetailContent({
   return (
     <PageShell
       backHref="/vouchers"
-      backLabel="Back to vouchers"
       eyebrow={facilityLabel}
       title={voucher.code}
       description="Voucher details, limits, dates, and redemption history."

@@ -172,7 +172,6 @@ function FeedbackNotFoundContent({ feedbackId }: OwnerFeedbackDetailPageProps) {
   return (
     <PageShell
       backHref="/feedback"
-      backLabel="Back to feedback"
       title="Feedback not found"
       description="This feedback record is not available from the current owner account."
     >
@@ -251,7 +250,6 @@ export async function OwnerFeedbackDetailPage({
   return (
     <PageShell
       backHref="/feedback"
-      backLabel="Back to feedback"
       eyebrow={facilityName}
       title={feedback?.subject ?? "Feedback detail"}
       description="Review the member feedback, facility context, and manager response."

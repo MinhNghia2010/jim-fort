@@ -20,7 +20,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import {
   Popover,
   PopoverContent,
@@ -118,7 +124,9 @@ function dayKey(date: Date) {
     day: "2-digit",
     timeZone,
   }).formatToParts(date)
-  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value])
+  )
 
   return `${values.year}-${values.month}-${values.day}`
 }
@@ -135,7 +143,9 @@ function buildCalendarDays(year: number, monthIndex: number): CalendarDay[] {
   const firstOfMonth = new Date(year, monthIndex, 1)
   const firstCalendarDay = new Date(firstOfMonth)
 
-  firstCalendarDay.setDate(firstCalendarDay.getDate() - mondayFirstOffset(firstOfMonth))
+  firstCalendarDay.setDate(
+    firstCalendarDay.getDate() - mondayFirstOffset(firstOfMonth)
+  )
 
   const days: CalendarDay[] = []
 
@@ -194,7 +204,9 @@ export async function PtSchedulePage({ month }: PtSchedulePageProps) {
   const [sessionResult, feedbackResult] = await Promise.all([
     supabase
       .from("membership_pt_sessions")
-      .select("id,session_number,starts_at,ends_at,status,users:member_id(full_name)")
+      .select(
+        "id,session_number,starts_at,ends_at,status,users:member_id(full_name)"
+      )
       .order("starts_at", { ascending: true }),
     supabase
       .from("pt_session_feedbacks")
@@ -224,7 +236,8 @@ export async function PtSchedulePage({ month }: PtSchedulePageProps) {
   for (const daySessions of sessionsByDay.values()) {
     daySessions.sort(
       (first, second) =>
-        new Date(first.starts_at).getTime() - new Date(second.starts_at).getTime()
+        new Date(first.starts_at).getTime() -
+        new Date(second.starts_at).getTime()
     )
   }
 
@@ -262,7 +275,9 @@ export async function PtSchedulePage({ month }: PtSchedulePageProps) {
               <CardHeader className="flex flex-row items-center justify-between gap-3">
                 <div>
                   <CardTitle>Month sessions</CardTitle>
-                  <CardDescription>{monthTitle.format(selectedMonth)}</CardDescription>
+                  <CardDescription>
+                    {monthTitle.format(selectedMonth)}
+                  </CardDescription>
                 </div>
                 <CalendarDays className="size-5 text-muted-foreground" />
               </CardHeader>
@@ -298,7 +313,9 @@ export async function PtSchedulePage({ month }: PtSchedulePageProps) {
               <CardHeader className="flex flex-row items-center justify-between gap-3">
                 <div>
                   <CardTitle>Needs feedback</CardTitle>
-                  <CardDescription>Past sessions without feedback</CardDescription>
+                  <CardDescription>
+                    Past sessions without feedback
+                  </CardDescription>
                 </div>
                 <MessageSquareWarning className="size-5 text-muted-foreground" />
               </CardHeader>
@@ -346,8 +363,8 @@ export async function PtSchedulePage({ month }: PtSchedulePageProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto rounded-lg border">
-                <div className="min-w-[980px]" role="table">
+              <div className="rounded-lg border">
+                <div className="w-full" role="table">
                   <div
                     className="grid border-b bg-muted/60"
                     role="row"
@@ -382,9 +399,7 @@ export async function PtSchedulePage({ month }: PtSchedulePageProps) {
                             <div
                               key={day.key}
                               className={`min-h-36 p-2 ${
-                                dayIndex < weekdays.length - 1
-                                  ? "border-r"
-                                  : ""
+                                dayIndex < weekdays.length - 1 ? "border-r" : ""
                               } ${
                                 day.inMonth ? "bg-background" : "bg-muted/20"
                               }`}
@@ -408,7 +423,9 @@ export async function PtSchedulePage({ month }: PtSchedulePageProps) {
                               </div>
                               <div className="grid gap-1.5">
                                 {daySessions.map((session) => {
-                                  const feedback = feedbackBySession.get(session.id)
+                                  const feedback = feedbackBySession.get(
+                                    session.id
+                                  )
 
                                   return (
                                     <Popover key={session.id}>
@@ -425,7 +442,8 @@ export async function PtSchedulePage({ month }: PtSchedulePageProps) {
                                             )}
                                           </span>
                                           <span className="min-w-0 truncate">
-                                            {session.users?.full_name ?? "Member"}
+                                            {session.users?.full_name ??
+                                              "Member"}
                                           </span>
                                         </button>
                                       </PopoverTrigger>
@@ -435,7 +453,8 @@ export async function PtSchedulePage({ month }: PtSchedulePageProps) {
                                       >
                                         <PopoverHeader>
                                           <PopoverTitle>
-                                            {session.users?.full_name ?? "Member"}
+                                            {session.users?.full_name ??
+                                              "Member"}
                                           </PopoverTitle>
                                           <PopoverDescription>
                                             Session #{session.session_number}
@@ -475,7 +494,9 @@ export async function PtSchedulePage({ month }: PtSchedulePageProps) {
                                             </span>
                                             <Badge
                                               variant={
-                                                feedback ? "secondary" : "outline"
+                                                feedback
+                                                  ? "secondary"
+                                                  : "outline"
                                               }
                                             >
                                               {feedback?.status ?? "not sent"}

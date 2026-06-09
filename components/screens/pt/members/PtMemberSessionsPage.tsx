@@ -90,7 +90,6 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
       title={`${memberName} Sessions`}
       description="All sessions generated for this client."
       backHref="/members"
-      backLabel="My Clients"
     >
       {error ? (
         <Alert variant="destructive">
@@ -148,15 +147,7 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
               </CardDescription>
             </CardHeader>
             <CardContent className="px-0">
-              <Table className="min-w-[980px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-                <colgroup>
-                  <col className="w-[9rem]" />
-                  <col className="w-[17rem]" />
-                  <col className="w-[17rem]" />
-                  <col className="w-[11rem]" />
-                  <col className="w-[12rem]" />
-                  <col className="w-[6rem]" />
-                </colgroup>
+              <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
                 <TableHeader className="bg-muted/40">
                   <TableRow>
                     <TableHead className="h-12 pl-6">Session</TableHead>

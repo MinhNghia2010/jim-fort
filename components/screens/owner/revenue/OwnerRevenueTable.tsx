@@ -168,15 +168,7 @@ export function OwnerRevenueTable({ rows }: OwnerRevenueTableProps) {
 
   return (
     <>
-      <Table className="min-w-[1100px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-        <colgroup>
-          <col className="w-[13rem]" />
-          <col className="w-[17rem]" />
-          <col className="w-[17rem]" />
-          <col className="w-[14rem]" />
-          <col className="w-[12rem]" />
-          <col className="w-[10rem]" />
-        </colgroup>
+      <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
         <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="h-12 pl-6">
@@ -234,7 +226,7 @@ export function OwnerRevenueTable({ rows }: OwnerRevenueTableProps) {
           {sortedRows.length ? (
             paginatedRows.map((row) => (
               <TableRow key={row.id} className="h-[4.5rem]">
-                <TableCell className="pl-6 font-mono text-xs text-muted-foreground">
+                <TableCell className="pl-6 font-mono text-xs break-words text-muted-foreground">
                   {row.paidAtLabel}
                 </TableCell>
                 <TableCell>

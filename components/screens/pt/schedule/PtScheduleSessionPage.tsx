@@ -59,7 +59,6 @@ export async function PtScheduleSessionPage({ sessionId }: Props) {
       title={`Session ${session?.session_number ?? ""}`}
       description="Review session details and send member feedback."
       backHref="/schedule"
-      backLabel="Schedule"
     >
       {error ? (
         <Alert variant="destructive">

@@ -1,18 +1,10 @@
-import Link from "next/link"
-import { ClipboardList } from "lucide-react"
-
 import { PageShell } from "@/components/PageShell"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+  MemberSubscriptionsTable,
+  type MemberSubscriptionStatus,
+  type MemberSubscriptionTableRow,
+} from "@/components/screens/member/subscriptions/MemberSubscriptionsTable"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { createClient } from "@/lib/supabase/server"
 
 type SubscriptionRow = {
@@ -25,10 +17,31 @@ type SubscriptionRow = {
   gym_facilities: { name: string | null } | null
 }
 
-const currency = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-})
+const knownStatuses: readonly MemberSubscriptionStatus[] = [
+  "pending_pt_setup",
+  "pending_payment",
+  "active",
+  "expired",
+  "cancelled",
+]
+
+function toSubscriptionStatus(status: string): MemberSubscriptionStatus {
+  return knownStatuses.includes(status as MemberSubscriptionStatus)
+    ? (status as MemberSubscriptionStatus)
+    : "unknown"
+}
+
+function toTableRow(subscription: SubscriptionRow): MemberSubscriptionTableRow {
+  return {
+    id: subscription.id,
+    plan: subscription.membership_packages?.name ?? "Membership",
+    facility: subscription.gym_facilities?.name ?? "Jim Fort",
+    status: toSubscriptionStatus(subscription.status),
+    type: subscription.has_pt_snapshot ? "pt" : "access",
+    createdAt: subscription.created_at,
+    amount: Number(subscription.final_price) || 0,
+  }
+}
 
 export async function MemberSubscriptionsPage() {
   const supabase = await createClient()
@@ -40,6 +53,7 @@ export async function MemberSubscriptionsPage() {
     .order("created_at", { ascending: false })
 
   const subscriptions = (data ?? []) as unknown as SubscriptionRow[]
+  const rows = subscriptions.map(toTableRow)
 
   return (
     <PageShell
@@ -54,48 +68,7 @@ export async function MemberSubscriptionsPage() {
         </Alert>
       ) : null}
 
-      {subscriptions.length ? (
-        <div className="grid gap-4">
-          {subscriptions.map((subscription) => (
-            <Card key={subscription.id}>
-              <CardHeader>
-                <CardTitle>
-                  {subscription.membership_packages?.name ?? "Membership"}
-                </CardTitle>
-                <CardDescription>
-                  {subscription.gym_facilities?.name ?? "Jim Fort"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge>{subscription.status.replaceAll("_", " ")}</Badge>
-                  <Badge variant="secondary">
-                    {subscription.has_pt_snapshot ? "PT package" : "Access package"}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">
-                    {currency.format(Number(subscription.final_price) || 0)}
-                  </span>
-                </div>
-                <Button asChild>
-                  <Link href={`/subscriptions/${subscription.id}`}>Open</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <Empty className="min-h-80 border">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <ClipboardList />
-            </EmptyMedia>
-            <EmptyTitle>No subscriptions yet</EmptyTitle>
-            <EmptyDescription>
-              Start from Membership Plans to create your first subscription.
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      )}
+      <MemberSubscriptionsTable subscriptions={rows} />
     </PageShell>
   )
 }

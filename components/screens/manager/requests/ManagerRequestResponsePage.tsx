@@ -128,7 +128,6 @@ export async function ManagerRequestResponsePage({ requestId }: Props) {
       title="Create Response"
       description="Propose a trainer and schedule without changing the member request."
       backHref={`/request/${requestId}`}
-      backLabel="Request detail"
     >
       {error ? (
         <Alert variant="destructive">
