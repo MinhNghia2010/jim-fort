@@ -1,10 +1,9 @@
 "use client"
 
-import Link from "next/link"
 import { ReceiptText } from "lucide-react"
 
 import { StatusBadge } from "@/components/StatusBadge"
-import { TableActionButton } from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import {
   ALL_MONTHS_VALUE,
   getTableMonthFilterOptions,
@@ -80,14 +79,7 @@ export function MemberPaymentsTable({ payments }: MemberPaymentsTableProps) {
           label="Filter payments by month"
         />
       </div>
-      <Table className="min-w-[840px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-        <colgroup>
-          <col className="w-[14%]" />
-          <col className="w-[18%]" />
-          <col className="w-[20%]" />
-          <col className="w-[34%]" />
-          <col className="w-[14%]" />
-        </colgroup>
+      <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
         <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="h-12 pl-6">Amount</TableHead>
@@ -116,9 +108,15 @@ export function MemberPaymentsTable({ payments }: MemberPaymentsTableProps) {
                   {date.format(new Date(getPaymentDate(payment)))}
                 </TableCell>
                 <TableCell className="pr-6 text-right">
-                  <TableActionButton asChild tone="view">
-                    <Link href={`/payments/${payment.id}`}>Details</Link>
-                  </TableActionButton>
+                  <TableRowActions
+                    label="Open payment actions"
+                    actions={[
+                      {
+                        href: `/payments/${payment.id}`,
+                        label: "Details",
+                      },
+                    ]}
+                  />
                 </TableCell>
               </TableRow>
             ))

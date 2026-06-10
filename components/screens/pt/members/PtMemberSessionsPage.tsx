@@ -1,9 +1,8 @@
-import Link from "next/link"
 import { CalendarDays } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
 import { StatusBadge } from "@/components/StatusBadge"
-import { TableActionButton } from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   Card,
@@ -147,15 +146,7 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
               </CardDescription>
             </CardHeader>
             <CardContent className="px-0">
-              <Table className="min-w-[860px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-                <colgroup>
-                  <col className="w-[10%]" />
-                  <col className="w-[22%]" />
-                  <col className="w-[22%]" />
-                  <col className="w-[16%]" />
-                  <col className="w-[18%]" />
-                  <col className="w-[12%]" />
-                </colgroup>
+              <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
                 <TableHeader className="bg-muted/40">
                   <TableRow>
                     <TableHead className="h-12 pl-6">Session</TableHead>
@@ -195,15 +186,15 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
                           </StatusBadge>
                         </TableCell>
                         <TableCell className="pr-6 text-right">
-                          <TableActionButton
-                            asChild
-                            tone="schedule"
-                            className="min-w-16"
-                          >
-                            <Link href={`/schedule/sessions/${session.id}`}>
-                              Open
-                            </Link>
-                          </TableActionButton>
+                          <TableRowActions
+                            label={`Open actions for session ${session.session_number}`}
+                            actions={[
+                              {
+                                href: `/schedule/sessions/${session.id}`,
+                                label: "Open",
+                              },
+                            ]}
+                          />
                         </TableCell>
                       </TableRow>
                     )

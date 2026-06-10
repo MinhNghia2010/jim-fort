@@ -60,14 +60,14 @@ export function HistoryBackButton({
 
     return null
   }, [])
-  const [previousPath, setPreviousPath] = useState<string | null>(() =>
-    resolvePreviousPath()
-  )
+  const [previousPath, setPreviousPath] = useState<string | null>(null)
 
   useEffect(() => {
     function handleHistoryChange() {
       setPreviousPath(resolvePreviousPath())
     }
+
+    handleHistoryChange()
 
     window.addEventListener(
       NAVIGATION_HISTORY_CHANGE_EVENT,

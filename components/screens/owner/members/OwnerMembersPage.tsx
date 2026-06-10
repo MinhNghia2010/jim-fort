@@ -5,16 +5,22 @@ import type { MemberTableRow } from "@/components/screens/owner/members/MembersT
 interface OwnerMembersContentProps {
   members: MemberTableRow[]
   canAddMember?: boolean
+  canEditMember?: boolean
+  canDeleteMember?: boolean
 }
 
 export function OwnerMembersContent({
   members,
   canAddMember = false,
+  canEditMember = false,
+  canDeleteMember = false,
 }: OwnerMembersContentProps) {
   return (
     <OwnerMembersClientContent
       members={members}
       canAddMember={canAddMember}
+      canEditMember={canEditMember}
+      canDeleteMember={canDeleteMember}
     />
   )
 }
@@ -22,5 +28,7 @@ export function OwnerMembersContent({
 export async function OwnerMembersPage() {
   const members = await getMembersPageData()
 
-  return <OwnerMembersContent members={members} />
+  return (
+    <OwnerMembersContent members={members} canEditMember canDeleteMember />
+  )
 }

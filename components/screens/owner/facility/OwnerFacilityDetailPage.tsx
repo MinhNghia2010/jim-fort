@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Building2,
   CircleAlert,
+  CirclePlus,
   Dumbbell,
   MapPin,
   Phone,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react"
 
 import {
+  getCreateRoomHref,
   getFacilityDetailPageData,
   getRoomHref,
   type RoomStatus,
@@ -20,6 +22,7 @@ import { StatusBadge } from "@/components/StatusBadge"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
@@ -87,6 +90,15 @@ export async function OwnerFacilityDetailPage({
           <AlertDescription>{data.errorMessage}</AlertDescription>
         </Alert>
       ) : null}
+
+      <div className="flex justify-end">
+        <Button asChild>
+          <Link href={getCreateRoomHref(facility.name)}>
+            <CirclePlus data-icon="inline-start" />
+            Add room
+          </Link>
+        </Button>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <ManagementMetricCard

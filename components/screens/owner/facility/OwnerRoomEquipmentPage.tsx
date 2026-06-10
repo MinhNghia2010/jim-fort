@@ -1,10 +1,16 @@
 import { notFound } from "next/navigation"
-import { Dumbbell } from "lucide-react"
+import Link from "next/link"
+import { CirclePlus, Dumbbell } from "lucide-react"
 
-import { getRoomEquipmentPageData } from "@/app/(main)/facility/data"
+import {
+  getCreateEquipmentHref,
+  getRoomEquipmentPageData,
+  getRoomHref,
+} from "@/app/(main)/facility/data"
 import { PageShell } from "@/components/PageShell"
 import { OwnerRoomEquipmentTable } from "@/components/screens/owner/facility/OwnerRoomEquipmentTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -30,9 +36,11 @@ export async function OwnerRoomEquipmentPage({
 
   const facilityNameLabel = data.facility?.name ?? "Facility"
   const roomName = data.room?.name ?? "Room"
+  const roomBackHref = getRoomHref(data.facility?.name ?? facilityName, roomId)
 
   return (
     <PageShell
+      backHref={roomBackHref}
       eyebrow={facilityNameLabel}
       title={`${roomName} equipment`}
       description="Review room machines, status, identifiers, purchase details, and notes."
@@ -42,6 +50,22 @@ export async function OwnerRoomEquipmentPage({
           <AlertTitle>Equipment could not be loaded</AlertTitle>
           <AlertDescription>{data.errorMessage}</AlertDescription>
         </Alert>
+      ) : null}
+
+      {data.facility && data.room ? (
+        <div className="flex justify-end">
+          <Button asChild>
+            <Link
+              href={getCreateEquipmentHref(
+                data.facility.name,
+                data.room.id
+              )}
+            >
+              <CirclePlus data-icon="inline-start" />
+              Add equipment
+            </Link>
+          </Button>
+        </div>
       ) : null}
 
       <Card className="gap-0 overflow-hidden py-0">

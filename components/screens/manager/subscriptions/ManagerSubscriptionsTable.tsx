@@ -1,11 +1,10 @@
 "use client"
 
 import { Fragment, useState } from "react"
-import Link from "next/link"
-import { ClipboardList, Eye } from "lucide-react"
+import { ClipboardList } from "lucide-react"
 
 import { StatusBadge } from "@/components/StatusBadge"
-import { TableActionButton } from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import {
   ALL_MONTHS_VALUE,
   getTableMonthFilterOptions,
@@ -102,15 +101,7 @@ export function ManagerSubscriptionsTable({
             label="Filter subscriptions by created month"
           />
         </div>
-        <Table className="min-w-[920px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-          <colgroup>
-            <col className="w-[26%]" />
-            <col className="w-[26%]" />
-            <col className="w-[14%]" />
-            <col className="w-[16%]" />
-            <col className="w-[8%]" />
-            <col className="w-[10%]" />
-          </colgroup>
+        <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
           <TableHeader className="bg-muted/40">
             <TableRow>
               <TableHead className="h-12 pl-6">Member</TableHead>
@@ -163,16 +154,15 @@ export function ManagerSubscriptionsTable({
                         {currency.format(Number(row.final_price) || 0)}
                       </TableCell>
                       <TableCell className="pr-6 text-right">
-                        <TableActionButton
-                          asChild
-                          tone="view"
-                          className="min-w-24"
-                        >
-                          <Link href={`/subscriptions/${row.id}`}>
-                            <Eye data-icon="inline-start" />
-                            View detail
-                          </Link>
-                        </TableActionButton>
+                        <TableRowActions
+                          label={`Open actions for ${row.users?.full_name ?? "member"}`}
+                          actions={[
+                            {
+                              href: `/subscriptions/${row.id}`,
+                              label: "View detail",
+                            },
+                          ]}
+                        />
                       </TableCell>
                     </TableRow>
                   </Fragment>

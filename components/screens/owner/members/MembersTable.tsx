@@ -2,14 +2,13 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { CirclePlus, MoreHorizontal, Search, Users } from "lucide-react"
+import { CirclePlus, Search, Users } from "lucide-react"
 
+import { deleteMember } from "@/app/(main)/members/actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import {
-  TableActionButton,
-  TableActionIconButton,
-} from "@/components/TableActionButton"
+import { TableActionButton } from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import {
   ALL_MONTHS_VALUE,
   getTableMonthFilterOptions,
@@ -28,13 +27,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   Empty,
   EmptyDescription,
@@ -80,6 +72,8 @@ export interface MemberTableRow {
 interface MembersTableProps {
   members: MemberTableRow[]
   canAddMember?: boolean
+  canEditMember?: boolean
+  canDeleteMember?: boolean
   monthFilter?: string
   onMonthFilterChange?: (value: string) => void
 }
@@ -235,6 +229,8 @@ function getStatusClassName(status: MemberStatus) {
 export function MembersTable({
   members,
   canAddMember = false,
+  canEditMember = false,
+  canDeleteMember = false,
   monthFilter: controlledMonthFilter,
   onMonthFilterChange,
 }: MembersTableProps) {
@@ -355,16 +351,7 @@ export function MembersTable({
             />
           </div>
 
-          <Table className="min-w-[1020px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-            <colgroup>
-              <col className="w-[28%]" />
-              <col className="w-[20%]" />
-              <col className="w-[13%]" />
-              <col className="w-[15%]" />
-              <col className="w-[8%]" />
-              <col className="w-[9%]" />
-              <col className="w-[7%]" />
-            </colgroup>
+          <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">
@@ -459,31 +446,42 @@ export function MembersTable({
                         {statusLabels[member.status]}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-medium tabular-nums whitespace-nowrap">
+                    <TableCell className="font-medium whitespace-nowrap tabular-nums">
                       {member.sessions}
                     </TableCell>
-                    <TableCell className="font-medium tabular-nums whitespace-nowrap">
+                    <TableCell className="font-medium whitespace-nowrap tabular-nums">
                       {currencyFormatter.format(member.revenue)}
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <TableActionIconButton
-                            aria-label={`Open actions for ${member.name}`}
-                          >
-                            <MoreHorizontal />
-                          </TableActionIconButton>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuGroup>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/members/${member.id}`}>
-                                View member
-                              </Link>
-                            </DropdownMenuItem>
-                          </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <TableRowActions
+                        label={`Open actions for ${member.name}`}
+                        actions={[
+                          {
+                            href: `/members/${member.id}`,
+                            label: "View member",
+                          },
+                          ...(canEditMember
+                            ? [
+                                {
+                                  href: `/members/${member.id}/edit`,
+                                  label: "Edit member",
+                                },
+                              ]
+                            : []),
+                        ]}
+                        deleteAction={
+                          canDeleteMember
+                            ? {
+                                action: deleteMember,
+                                description: `Delete ${member.name}? This permanently removes the member login, subscriptions, payments, sessions, and feedback.`,
+                                inputName: "memberId",
+                                inputValue: member.id,
+                                successMessage: "Member deleted",
+                                title: "Delete member account?",
+                              }
+                            : undefined
+                        }
+                      />
                     </TableCell>
                   </TableRow>
                 ))

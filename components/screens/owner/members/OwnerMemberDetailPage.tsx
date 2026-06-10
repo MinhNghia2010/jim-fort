@@ -4,6 +4,7 @@ import {
   CreditCard,
   DollarSign,
   Dumbbell,
+  Pencil,
   Phone,
   SearchX,
   UserRound,
@@ -14,6 +15,8 @@ import {
   type MemberDetailData,
   type MemberDetailSubscription,
 } from "@/app/(main)/members/data"
+import { deleteMember } from "@/app/(main)/members/actions"
+import { DeleteConfirmationButton } from "@/components/DeleteConfirmationButton"
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
 import { StatusBadge } from "@/components/StatusBadge"
@@ -47,6 +50,8 @@ interface OwnerMemberDetailPageProps {
   memberId: string
   viewerLabel?: string
   showSessionsLink?: boolean
+  canEdit?: boolean
+  canDelete?: boolean
 }
 
 const statusLabels = {
@@ -145,6 +150,8 @@ export async function OwnerMemberDetailPage({
   memberId,
   viewerLabel = "Member directory",
   showSessionsLink = false,
+  canEdit = true,
+  canDelete = true,
 }: OwnerMemberDetailPageProps) {
   let member = null
   let loadError: string | null = null
@@ -297,6 +304,25 @@ export async function OwnerMemberDetailPage({
                     </Link>
                   </Button>
                 ) : null}
+                {canEdit ? (
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/members/${member.id}/edit`}>
+                      <Pencil data-icon="inline-start" />
+                      Edit
+                    </Link>
+                  </Button>
+                ) : null}
+                {canDelete ? (
+                  <DeleteConfirmationButton
+                    action={deleteMember}
+                    description={`Delete ${member.name}? This permanently removes the member login, subscriptions, payments, sessions, and feedback.`}
+                    inputName="memberId"
+                    inputValue={member.id}
+                    label="Delete"
+                    successMessage="Member deleted"
+                    title="Delete member account?"
+                  />
+                ) : null}
               </CardContent>
             </Card>
           </div>
@@ -310,15 +336,7 @@ export async function OwnerMemberDetailPage({
             </CardHeader>
             <CardContent className="px-0">
               {member.subscriptions.length ? (
-                <Table className="min-w-[860px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-                  <colgroup>
-                    <col className="w-[27%]" />
-                    <col className="w-[23%]" />
-                    <col className="w-[15%]" />
-                    <col className="w-[10%]" />
-                    <col className="w-[12%]" />
-                    <col className="w-[13%]" />
-                  </colgroup>
+                <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
                   <TableHeader className="bg-muted/40">
                     <TableRow>
                       <TableHead className="h-12 pl-6">Plan</TableHead>
@@ -348,7 +366,7 @@ export async function OwnerMemberDetailPage({
                             {statusLabels[subscription.status]}
                           </StatusBadge>
                         </TableCell>
-                        <TableCell className="font-medium tabular-nums whitespace-nowrap">
+                        <TableCell className="font-medium whitespace-nowrap tabular-nums">
                           {currencyFormatter.format(subscription.finalPrice)}
                         </TableCell>
                         <TableCell className="whitespace-nowrap text-muted-foreground">
@@ -386,14 +404,7 @@ export async function OwnerMemberDetailPage({
             </CardHeader>
             <CardContent className="px-0">
               {member.sessions.length ? (
-                <Table className="min-w-[820px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-                  <colgroup>
-                    <col className="w-[10%]" />
-                    <col className="w-[32%]" />
-                    <col className="w-[20%]" />
-                    <col className="w-[20%]" />
-                    <col className="w-[18%]" />
-                  </colgroup>
+                <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
                   <TableHeader className="bg-muted/40">
                     <TableRow>
                       <TableHead className="h-12 pl-6">Session</TableHead>

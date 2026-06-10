@@ -196,8 +196,19 @@ export function getRoomHref(facilityName: string, roomId: string) {
   return `${getFacilityHref(facilityName)}/rooms/${roomId}`
 }
 
+export function getCreateRoomHref(facilityName: string) {
+  return `${getFacilityHref(facilityName)}/rooms/create`
+}
+
 export function getRoomEquipmentHref(facilityName: string, roomId: string) {
   return `${getRoomHref(facilityName, roomId)}/equipments`
+}
+
+export function getCreateEquipmentHref(
+  facilityName: string,
+  roomId: string
+) {
+  return `${getRoomEquipmentHref(facilityName, roomId)}/create`
 }
 
 export function getEquipmentHref(

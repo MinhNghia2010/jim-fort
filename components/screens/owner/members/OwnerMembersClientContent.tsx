@@ -17,6 +17,8 @@ import {
 interface OwnerMembersClientContentProps {
   members: MemberTableRow[]
   canAddMember?: boolean
+  canEditMember?: boolean
+  canDeleteMember?: boolean
 }
 
 function isCurrentMonth(value: string) {
@@ -32,6 +34,8 @@ function isCurrentMonth(value: string) {
 export function OwnerMembersClientContent({
   members,
   canAddMember = false,
+  canEditMember = false,
+  canDeleteMember = false,
 }: OwnerMembersClientContentProps) {
   const [monthFilter, setMonthFilter] = useState(ALL_MONTHS_VALUE)
   const summaryMembers =
@@ -75,6 +79,8 @@ export function OwnerMembersClientContent({
       <MembersTable
         members={members}
         canAddMember={canAddMember}
+        canEditMember={canEditMember}
+        canDeleteMember={canDeleteMember}
         monthFilter={monthFilter}
         onMonthFilterChange={setMonthFilter}
       />

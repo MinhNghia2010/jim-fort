@@ -3,6 +3,7 @@
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select"
@@ -43,11 +44,13 @@ export function OwnerTableHeaderSelect<TValue extends string = string>({
         <span>{label}</span>
       </SelectTrigger>
       <SelectContent position="popper" align="start">
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
-          </SelectItem>
-        ))}
+        <SelectGroup>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectGroup>
       </SelectContent>
     </Select>
   )

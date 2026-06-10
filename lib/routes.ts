@@ -136,6 +136,11 @@ export const appRoutes = [
     roles: ["owner", "manager"],
   },
   {
+    label: "Create Facility Room",
+    path: "/facility/[facilityName]/rooms/create",
+    roles: ["owner"],
+  },
+  {
     label: "Facility Room",
     path: "/facility/[facilityName]/rooms/[roomId]",
     roles: ["owner", "manager"],
@@ -144,6 +149,11 @@ export const appRoutes = [
     label: "Facility Room Equipments",
     path: "/facility/[facilityName]/rooms/[roomId]/equipments",
     roles: ["owner", "manager"],
+  },
+  {
+    label: "Create Room Equipment",
+    path: "/facility/[facilityName]/rooms/[roomId]/equipments/create",
+    roles: ["owner"],
   },
   {
     label: "Equipment Detail",
@@ -183,7 +193,7 @@ export const appRoutes = [
   {
     label: "Payment Detail",
     path: "/payments/[paymentId]",
-    roles: ["member"],
+    roles: ["owner", "manager", "member"],
   },
   {
     label: "Feedback",

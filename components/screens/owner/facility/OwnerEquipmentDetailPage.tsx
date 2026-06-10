@@ -11,7 +11,11 @@ import {
 } from "lucide-react"
 
 import { reportEquipmentIssue } from "@/app/(main)/manager-actions"
-import { getEquipmentDetailPageData } from "@/app/(main)/facility/data"
+import {
+  getEquipmentDetailPageData,
+  getRoomEquipmentHref,
+} from "@/app/(main)/facility/data"
+import { FormSelect } from "@/components/FormSelect"
 import { PageShell } from "@/components/PageShell"
 import { StatusBadge } from "@/components/StatusBadge"
 import { ManagerActionForm } from "@/components/screens/manager/ManagerActionForm"
@@ -26,10 +30,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 
 interface OwnerEquipmentDetailPageProps {
@@ -57,6 +57,10 @@ export async function OwnerEquipmentDetailPage({
     roomId,
     equipmentId
   )
+  const equipmentListBackHref = getRoomEquipmentHref(
+    data.facility?.name ?? facilityName,
+    data.room?.id ?? roomId
+  )
 
   if (!data.equipment && !data.errorMessage) {
     notFound()
@@ -65,6 +69,7 @@ export async function OwnerEquipmentDetailPage({
   if (!data.facility || !data.room || !data.equipment) {
     return (
       <PageShell
+        backHref={equipmentListBackHref}
         eyebrow="Equipment"
         title="Equipment not available"
         description="The requested equipment record could not be loaded."
@@ -83,6 +88,7 @@ export async function OwnerEquipmentDetailPage({
 
   return (
     <PageShell
+      backHref={equipmentListBackHref}
       eyebrow={`${facility.name} / ${room.name}`}
       title={equipment.name}
       description={equipment.description}
@@ -225,19 +231,18 @@ export async function OwnerEquipmentDetailPage({
 
                 <div className="grid gap-2">
                   <Label htmlFor="status">Status</Label>
-                  <NativeSelect
+                  <FormSelect
                     id="status"
                     name="status"
                     defaultValue={equipment.status}
-                    className="w-full"
+                    options={Object.entries(statusLabels).map(
+                      ([value, label]) => ({
+                        value,
+                        label,
+                      })
+                    )}
                     required
-                  >
-                    {Object.entries(statusLabels).map(([value, label]) => (
-                      <NativeSelectOption key={value} value={value}>
-                        {label}
-                      </NativeSelectOption>
-                    ))}
-                  </NativeSelect>
+                  />
                 </div>
 
                 <div className="grid gap-2">

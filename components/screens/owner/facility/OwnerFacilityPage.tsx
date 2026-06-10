@@ -78,15 +78,7 @@ export async function OwnerFacilityPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="px-0">
-          <Table className="min-w-[920px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-            <colgroup>
-              <col className="w-[30%]" />
-              <col className="w-[34%]" />
-              <col className="w-[9%]" />
-              <col className="w-[11%]" />
-              <col className="w-[8%]" />
-              <col className="w-[8%]" />
-            </colgroup>
+          <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">Facility</TableHead>

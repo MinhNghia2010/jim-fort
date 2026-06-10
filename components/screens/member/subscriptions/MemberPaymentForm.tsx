@@ -6,11 +6,11 @@ import { useFormStatus } from "react-dom"
 import { CreditCard, Landmark, X } from "lucide-react"
 
 import { checkoutSubscription } from "@/app/(main)/member-actions"
+import { FormSelect } from "@/components/FormSelect"
 import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { NativeSelect } from "@/components/ui/native-select"
 
 type PaymentMethod = "card" | "bank_transfer"
 
@@ -99,19 +99,13 @@ export function MemberPaymentForm({
       <input type="hidden" name="subscriptionId" value={subscriptionId} />
       <div className="grid gap-2">
         <Label htmlFor={methodId}>Payment method</Label>
-        <NativeSelect
+        <FormSelect
           id={methodId}
           name="method"
-          className="w-full"
+          options={paymentMethods}
           value={method}
-          onChange={(event) => setMethod(event.target.value as PaymentMethod)}
-        >
-          {paymentMethods.map((paymentMethod) => (
-            <option key={paymentMethod.value} value={paymentMethod.value}>
-              {paymentMethod.label}
-            </option>
-          ))}
-        </NativeSelect>
+          onValueChange={(value) => setMethod(value as PaymentMethod)}
+        />
       </div>
 
       {method === "card" ? (

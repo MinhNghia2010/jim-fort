@@ -8,6 +8,8 @@ import type {
   MembershipPlanKind,
   MembershipStatus,
 } from "@/components/screens/owner/memberships/form/types"
+import type { DeleteActionState } from "@/components/DeleteConfirmationDialog"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
 type MembershipPackagePayload = {
@@ -322,4 +324,79 @@ export async function updateMembershipPackage(
 
   revalidatePath("/memberships")
   redirect("/memberships")
+}
+
+export async function deleteMembershipPackage(
+  _state: DeleteActionState,
+  formData: FormData
+): Promise<DeleteActionState> {
+  const packageId = stringValue(formData, "packageId")
+
+  if (!packageId) {
+    return { error: "Select a membership plan to delete." }
+  }
+
+  const ownerClient = await getOwnerClient()
+
+  if ("error" in ownerClient) {
+    return { error: ownerClient.error }
+  }
+
+  const { data: accessiblePackage, error: accessError } =
+    await ownerClient.supabase
+      .from("membership_packages")
+      .select("id, name")
+      .eq("id", packageId)
+      .maybeSingle()
+
+  if (accessError) {
+    return {
+      error: `Unable to verify membership plan access: ${accessError.message}`,
+    }
+  }
+
+  if (!accessiblePackage) {
+    return { error: "This membership plan is not available to delete." }
+  }
+
+  const admin = createAdminClient()
+  const { count, error: subscriptionError } = await admin
+    .from("membership_subscriptions")
+    .select("id", { count: "exact", head: true })
+    .eq("package_id", packageId)
+
+  if (subscriptionError) {
+    return {
+      error: `Unable to check membership history: ${subscriptionError.message}`,
+    }
+  }
+
+  if ((count ?? 0) > 0) {
+    return {
+      error:
+        "This plan has subscription history and cannot be deleted. Archive it instead.",
+    }
+  }
+
+  const { data: deletedPackage, error: deleteError } = await admin
+    .from("membership_packages")
+    .delete()
+    .eq("id", packageId)
+    .select("id")
+    .maybeSingle()
+
+  if (deleteError) {
+    return {
+      error: `Unable to delete membership plan: ${deleteError.message}`,
+    }
+  }
+
+  if (!deletedPackage) {
+    return { error: "The membership plan was not deleted." }
+  }
+
+  revalidatePath("/memberships")
+  revalidatePath("/overview")
+
+  return { message: `${accessiblePackage.name} was deleted.` }
 }

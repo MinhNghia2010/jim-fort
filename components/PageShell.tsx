@@ -7,6 +7,7 @@ interface PageShellProps {
   description: string
   eyebrow?: string
   backHref?: string
+  backLabel?: string
   children: ReactNode
 }
 
@@ -15,6 +16,7 @@ export function PageShell({
   description,
   eyebrow,
   backHref,
+  backLabel,
   children,
 }: PageShellProps) {
   return (
@@ -23,6 +25,7 @@ export function PageShell({
         {backHref ? (
           <HistoryBackButton
             fallbackHref={backHref}
+            label={backLabel}
             variant="ghost"
             className="w-fit px-0"
           />

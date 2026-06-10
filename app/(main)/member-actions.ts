@@ -526,7 +526,8 @@ export async function savePtPreference(
   formData: FormData
 ): Promise<MemberActionState> {
   const subscriptionId = stringValue(formData, "subscriptionId")
-  const preferredPtId = stringValue(formData, "preferredPtId")
+  const rawPreferredPtId = stringValue(formData, "preferredPtId")
+  const preferredPtId = rawPreferredPtId === "none" ? "" : rawPreferredPtId
   const preferredPtGender = parseChoice(
     stringValue(formData, "preferredPtGender"),
     ["no_preference", "male", "female"]

@@ -3,12 +3,15 @@ import {
   BriefcaseBusiness,
   CalendarClock,
   CircleDot,
+  Pencil,
   Phone,
   SearchX,
   UserCog,
 } from "lucide-react"
 
+import { deleteStaff } from "@/app/(main)/staffs/actions"
 import { getStaffDetailData } from "@/app/(main)/staffs/data"
+import { DeleteConfirmationButton } from "@/components/DeleteConfirmationButton"
 import { PageShell } from "@/components/PageShell"
 import { StatusBadge } from "@/components/StatusBadge"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
@@ -27,6 +30,7 @@ import { Separator } from "@/components/ui/separator"
 
 interface OwnerStaffDetailPageProps {
   staffId: string
+  canDelete?: boolean
 }
 
 const statusLabels = {
@@ -97,6 +101,7 @@ function StaffNotFound() {
 
 export async function OwnerStaffDetailPage({
   staffId,
+  canDelete = true,
 }: OwnerStaffDetailPageProps) {
   let staff = null
   let loadError: string | null = null
@@ -175,10 +180,24 @@ export async function OwnerStaffDetailPage({
                     </CardDescription>
                   </div>
                 </div>
-                <CardAction>
+                <CardAction className="flex items-center gap-2">
                   <Button asChild size="sm">
-                    <Link href={`/staffs/${staff.id}/edit`}>Edit staff</Link>
+                    <Link href={`/staffs/${staff.id}/edit`}>
+                      <Pencil data-icon="inline-start" />
+                      Edit
+                    </Link>
                   </Button>
+                  {canDelete ? (
+                    <DeleteConfirmationButton
+                      action={deleteStaff}
+                      description={`Delete ${staff.name}? Directory records are removed permanently. Login accounts are deleted only when they have no protected operational history.`}
+                      inputName="staffId"
+                      inputValue={staff.id}
+                      label="Delete"
+                      successMessage="Staff deleted"
+                      title="Delete staff record?"
+                    />
+                  ) : null}
                 </CardAction>
               </CardHeader>
               <CardContent className="grid gap-5">

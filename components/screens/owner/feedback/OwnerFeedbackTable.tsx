@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { MessageSquare, Search, Star } from "lucide-react"
-import Link from "next/link"
 
 import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
@@ -16,10 +15,7 @@ import {
   matchesTableMonthFilter,
   TableMonthFilter,
 } from "@/components/TableMonthFilter"
-import {
-  TableActionButton,
-  type TableActionTone,
-} from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -204,19 +200,16 @@ function feedbackSearchText(feedback: OwnerFeedbackRow) {
     .toLowerCase()
 }
 
-function getManagerAction(feedback: OwnerFeedbackRow): {
-  label: string
-  tone: TableActionTone
-} {
+function getManagerAction(feedback: OwnerFeedbackRow) {
   if (feedback.status === "responded") {
-    return { label: "Update", tone: "edit" }
+    return { label: "Update" }
   }
 
   if (feedback.status === "closed") {
-    return { label: "View", tone: "view" }
+    return { label: "View" }
   }
 
-  return { label: "Respond", tone: "feedback" }
+  return { label: "Respond" }
 }
 
 export function OwnerFeedbackTable({
@@ -327,15 +320,7 @@ export function OwnerFeedbackTable({
             />
           </div>
 
-          <Table className="min-w-[980px] table-fixed text-[0.925rem] [&_td]:overflow-hidden [&_td]:whitespace-normal [&_th]:whitespace-normal">
-            <colgroup>
-              <col className="w-[29%]" />
-              <col className="w-[17%]" />
-              <col className="w-[8%]" />
-              <col className="w-[12%]" />
-              <col className="w-[24%]" />
-              <col className="w-[10%]" />
-            </colgroup>
+          <Table className="table-auto text-[0.925rem] [&_td]:overflow-hidden [&_td]:whitespace-normal [&_th]:whitespace-normal">
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">
@@ -388,10 +373,7 @@ export function OwnerFeedbackTable({
                 paginatedFeedbacks.map((feedback) => {
                   const tableAction = managerActions
                     ? getManagerAction(feedback)
-                    : ({ label: "View", tone: "view" } satisfies {
-                        label: string
-                        tone: TableActionTone
-                      })
+                    : { label: "View" }
 
                   return (
                     <TableRow key={feedback.id} className="h-[4.5rem]">
@@ -490,15 +472,15 @@ export function OwnerFeedbackTable({
                         )}
                       </TableCell>
                       <TableCell className="pr-6 text-right">
-                        <TableActionButton
-                          asChild
-                          tone={tableAction.tone}
-                          aria-label={`${tableAction.label} ${feedback.subject}`}
-                        >
-                          <Link href={`/feedback/${feedback.id}`}>
-                            {tableAction.label}
-                          </Link>
-                        </TableActionButton>
+                        <TableRowActions
+                          label={`${tableAction.label} ${feedback.subject}`}
+                          actions={[
+                            {
+                              href: `/feedback/${feedback.id}`,
+                              label: tableAction.label,
+                            },
+                          ]}
+                        />
                       </TableCell>
                     </TableRow>
                   )

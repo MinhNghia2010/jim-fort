@@ -1,11 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { ClipboardList } from "lucide-react"
 
 import { StatusBadge } from "@/components/StatusBadge"
-import { TableActionButton } from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import {
   ALL_MONTHS_VALUE,
   getTableMonthFilterOptions,
@@ -70,14 +69,7 @@ export function ManagerRequestsTable({ requests }: ManagerRequestsTableProps) {
           label="Filter requests by created month"
         />
       </div>
-      <Table className="min-w-[780px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-        <colgroup>
-          <col className="w-[30%]" />
-          <col className="w-[30%]" />
-          <col className="w-[17%]" />
-          <col className="w-[13%]" />
-          <col className="w-[10%]" />
-        </colgroup>
+      <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
         <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="h-12 pl-6">Member</TableHead>
@@ -106,9 +98,15 @@ export function ManagerRequestsTable({ requests }: ManagerRequestsTableProps) {
                   {date.format(new Date(request.created_at))}
                 </TableCell>
                 <TableCell className="pr-6 text-right">
-                  <TableActionButton asChild tone="view">
-                    <Link href={`/request/${request.id}`}>Open</Link>
-                  </TableActionButton>
+                  <TableRowActions
+                    label={`Open actions for ${request.users?.full_name ?? "member"}`}
+                    actions={[
+                      {
+                        href: `/request/${request.id}`,
+                        label: "Open",
+                      },
+                    ]}
+                  />
                 </TableCell>
               </TableRow>
             ))

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ReceiptText, Search } from "lucide-react"
 
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
+import { TableRowActions } from "@/components/TableRowActions"
 import type { RevenueHistoryRow } from "@/components/screens/owner/revenue/OwnerRevenuePage"
 import {
   ALL_MONTHS_VALUE,
@@ -248,15 +249,7 @@ export function OwnerRevenueTable({
           label="Filter revenue by paid month"
         />
       </div>
-      <Table className="min-w-[920px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-        <colgroup>
-          <col className="w-[14%]" />
-          <col className="w-[27%]" />
-          <col className="w-[17%]" />
-          <col className="w-[15%]" />
-          <col className="w-[10%]" />
-          <col className="w-[17%]" />
-        </colgroup>
+      <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
         <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="h-12 pl-6">
@@ -299,14 +292,16 @@ export function OwnerRevenueTable({
                 onValueChange={handleSortChange}
               />
             </TableHead>
-            <TableHead className="h-12 pr-6 text-right">
+            <TableHead className="h-12">
               <OwnerTableHeaderSelect
                 label="Amount"
                 value={amountSortValue}
                 options={amountSortOptions}
                 onValueChange={handleSortChange}
-                className="ml-auto"
               />
+            </TableHead>
+            <TableHead className="h-12 pr-6 text-right">
+              <span className="sr-only">Actions</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -337,14 +332,25 @@ export function OwnerRevenueTable({
                 <TableCell className="text-muted-foreground">
                   {row.methodLabel}
                 </TableCell>
-                <TableCell className="pr-6 text-right font-mono font-medium tabular-nums whitespace-nowrap">
+                <TableCell className="font-mono font-medium whitespace-nowrap tabular-nums">
                   {row.amountLabel}
+                </TableCell>
+                <TableCell className="pr-6 text-right">
+                  <TableRowActions
+                    label={`Open actions for ${row.packageName}`}
+                    actions={[
+                      {
+                        href: `/payments/${row.id}`,
+                        label: "View detail",
+                      },
+                    ]}
+                  />
                 </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="h-64">
+              <TableCell colSpan={7} className="h-64">
                 <Empty>
                   <EmptyHeader>
                     <EmptyMedia variant="icon">

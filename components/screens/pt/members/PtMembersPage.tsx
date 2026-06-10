@@ -1,8 +1,7 @@
-import Link from "next/link"
 import { Users } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
-import { TableActionButton } from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -145,17 +144,7 @@ export async function PtMembersPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-0">
-            <Table className="min-w-[980px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-              <colgroup>
-                <col className="w-[28%]" />
-                <col className="w-[8%]" />
-                <col className="w-[8%]" />
-                <col className="w-[8%]" />
-                <col className="w-[9%]" />
-                <col className="w-[16%]" />
-                <col className="w-[15%]" />
-                <col className="w-[8%]" />
-              </colgroup>
+            <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
               <TableHeader className="bg-muted/40">
                 <TableRow>
                   <TableHead className="h-12 pl-6">Member</TableHead>
@@ -176,13 +165,13 @@ export async function PtMembersPage() {
                     <TableCell className="pl-6 font-medium">
                       {client.name}
                     </TableCell>
-                    <TableCell className="font-medium tabular-nums whitespace-nowrap">
+                    <TableCell className="font-medium whitespace-nowrap tabular-nums">
                       {client.totalSessions}
                     </TableCell>
-                    <TableCell className="font-medium tabular-nums whitespace-nowrap">
+                    <TableCell className="font-medium whitespace-nowrap tabular-nums">
                       {client.upcomingSessions}
                     </TableCell>
-                    <TableCell className="font-medium tabular-nums whitespace-nowrap">
+                    <TableCell className="font-medium whitespace-nowrap tabular-nums">
                       {client.completedSessions}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
@@ -199,15 +188,15 @@ export async function PtMembersPage() {
                         : "None"}
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <TableActionButton
-                        asChild
-                        tone="schedule"
-                        className="min-w-16"
-                      >
-                        <Link href={`/members/${client.memberId}/sessions`}>
-                          Sessions
-                        </Link>
-                      </TableActionButton>
+                      <TableRowActions
+                        label={`Open actions for ${client.name}`}
+                        actions={[
+                          {
+                            href: `/members/${client.memberId}/sessions`,
+                            label: "Sessions",
+                          },
+                        ]}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

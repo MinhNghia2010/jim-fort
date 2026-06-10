@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { ReactNode } from "react"
 import {
   CalendarClock,
   Mail,
@@ -26,6 +27,7 @@ import { Separator } from "@/components/ui/separator"
 
 interface ProfilePageContentProps {
   roleLabel: string
+  children?: ReactNode
 }
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -75,6 +77,7 @@ function DetailRow({
 }
 
 export async function ProfilePageContent({
+  children,
   roleLabel,
 }: ProfilePageContentProps) {
   const profile = await getCurrentProfileData()
@@ -187,6 +190,8 @@ export async function ProfilePageContent({
           </CardContent>
         </Card>
       </div>
+
+      {children}
     </PageShell>
   )
 }

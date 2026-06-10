@@ -80,11 +80,12 @@ export function DatePickerInput({
         name={name}
         aria-label={ariaLabel}
         autoComplete="off"
-        className="[&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
         disabled={disabled}
-        min={min}
+        inputMode="numeric"
+        pattern="\d{4}-\d{2}-\d{2}"
+        placeholder="YYYY-MM-DD"
         required={required}
-        type="date"
+        type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />

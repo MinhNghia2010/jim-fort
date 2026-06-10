@@ -7,5 +7,5 @@ interface ManagerStaffDetailPageProps {
 export function ManagerStaffDetailPage({
   staffId,
 }: ManagerStaffDetailPageProps) {
-  return <OwnerStaffDetailPage staffId={staffId} />
+  return <OwnerStaffDetailPage staffId={staffId} canDelete={false} />
 }

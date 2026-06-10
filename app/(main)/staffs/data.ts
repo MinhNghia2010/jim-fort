@@ -69,6 +69,11 @@ export interface StaffDetailData {
   facilities: StaffDetailFacility[]
 }
 
+export interface StaffFacilityOption {
+  id: string
+  name: string
+}
+
 function formatStaffUserRole(role: string) {
   if (role === "pt") {
     return "PT"
@@ -193,6 +198,25 @@ export async function getStaffPageData() {
   const staffRows = (data ?? []) as unknown as StaffRecord[]
 
   return staffRows.map(mapStaffRecord)
+}
+
+export async function getAddStaffPageData(): Promise<StaffFacilityOption[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("gym_facilities")
+    .select("id, name")
+    .order("created_at", { ascending: true })
+
+  if (error) {
+    throw new Error(`Unable to load facilities: ${error.message}`)
+  }
+
+  return ((data ?? []) as Pick<FacilityRecord, "id" | "name">[]).map(
+    (facility) => ({
+      id: facility.id,
+      name: facility.name?.trim() || "Facility",
+    })
+  )
 }
 
 export async function getOwnerStaffPageData() {

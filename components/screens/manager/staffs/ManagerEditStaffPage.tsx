@@ -5,5 +5,5 @@ interface ManagerEditStaffPageProps {
 }
 
 export function ManagerEditStaffPage({ staffId }: ManagerEditStaffPageProps) {
-  return <OwnerEditStaffPage staffId={staffId} />
+  return <OwnerEditStaffPage staffId={staffId} canEditLoginUsers={false} />
 }

@@ -17,11 +17,13 @@ import {
 interface OwnerStaffClientContentProps {
   staffs: StaffTableRow[]
   canAddStaff?: boolean
+  canDeleteStaff?: boolean
 }
 
 export function OwnerStaffClientContent({
   staffs,
   canAddStaff = false,
+  canDeleteStaff = false,
 }: OwnerStaffClientContentProps) {
   const [monthFilter, setMonthFilter] = useState(ALL_MONTHS_VALUE)
   const summaryStaffs =
@@ -67,6 +69,7 @@ export function OwnerStaffClientContent({
       <StaffTable
         staffs={staffs}
         canAddStaff={canAddStaff}
+        canDeleteStaff={canDeleteStaff}
         monthFilter={monthFilter}
         onMonthFilterChange={setMonthFilter}
       />

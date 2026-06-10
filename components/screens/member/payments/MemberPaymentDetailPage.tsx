@@ -23,6 +23,9 @@ import { Separator } from "@/components/ui/separator"
 
 interface MemberPaymentDetailPageProps {
   paymentId: string
+  backHref?: string
+  viewerLabel?: string
+  canOpenSubscription?: boolean
 }
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -49,10 +52,13 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-function PaymentNotFound({ paymentId }: MemberPaymentDetailPageProps) {
+function PaymentNotFound({
+  paymentId,
+  backHref = "/payments",
+}: MemberPaymentDetailPageProps) {
   return (
     <PageShell
-      backHref="/payments"
+      backHref={backHref}
       title="Payment not found"
       description="This payment is not available from your account."
     >
@@ -69,7 +75,7 @@ function PaymentNotFound({ paymentId }: MemberPaymentDetailPageProps) {
         </CardHeader>
         <CardContent>
           <Button asChild>
-            <Link href="/payments">Return to payments</Link>
+            <Link href={backHref}>Return</Link>
           </Button>
         </CardContent>
       </Card>
@@ -79,17 +85,20 @@ function PaymentNotFound({ paymentId }: MemberPaymentDetailPageProps) {
 
 export async function MemberPaymentDetailPage({
   paymentId,
+  backHref = "/payments",
+  viewerLabel = "Member",
+  canOpenSubscription = true,
 }: MemberPaymentDetailPageProps) {
   const payment = await getPaymentDetailData(paymentId)
 
   if (!payment) {
-    return <PaymentNotFound paymentId={paymentId} />
+    return <PaymentNotFound paymentId={paymentId} backHref={backHref} />
   }
 
   return (
     <PageShell
-      backHref="/payments"
-      eyebrow="Member"
+      backHref={backHref}
+      eyebrow={viewerLabel}
       title="Payment detail"
       description="Review the payment amount, method, and linked subscription."
     >
@@ -206,11 +215,13 @@ export async function MemberPaymentDetailPage({
                     {currencyFormatter.format(payment.subscription.finalPrice)}
                   </span>
                 </div>
-                <Button asChild className="mt-2">
-                  <Link href={`/subscriptions/${payment.subscription.id}`}>
-                    Open subscription
-                  </Link>
-                </Button>
+                {canOpenSubscription ? (
+                  <Button asChild className="mt-2">
+                    <Link href={`/subscriptions/${payment.subscription.id}`}>
+                      Open subscription
+                    </Link>
+                  </Button>
+                ) : null}
               </>
             ) : (
               <p className="text-muted-foreground">

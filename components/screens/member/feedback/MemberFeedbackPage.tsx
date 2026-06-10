@@ -1,6 +1,7 @@
 import { MessageCircle } from "lucide-react"
 
 import { createFacilityFeedback } from "@/app/(main)/member-actions"
+import { FormSelect } from "@/components/FormSelect"
 import { PageShell } from "@/components/PageShell"
 import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
 import { StatusBadge } from "@/components/StatusBadge"
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { NativeSelect } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/server"
 
@@ -90,20 +90,17 @@ export async function MemberFeedbackPage() {
             >
               <div className="grid gap-2">
                 <Label htmlFor="facilityId">Facility</Label>
-                <NativeSelect
+                <FormSelect
                   id="facilityId"
                   name="facilityId"
-                  className="w-full"
-                >
-                  {facilities.map((facility) => (
-                    <option
-                      key={facility.facility_id}
-                      value={facility.facility_id}
-                    >
-                      {facility.gym_facilities?.name ?? "Jim Fort"}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  options={facilities.map((facility) => ({
+                    value: facility.facility_id,
+                    label: facility.gym_facilities?.name ?? "Jim Fort",
+                  }))}
+                  defaultValue={facilities[0]?.facility_id}
+                  placeholder="Select a facility"
+                  required
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="subject">Subject</Label>

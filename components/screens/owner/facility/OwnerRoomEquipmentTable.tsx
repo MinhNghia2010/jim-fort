@@ -1,12 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import { Dumbbell } from "lucide-react"
 
 import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
-import { TableActionButton } from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import {
   ALL_MONTHS_VALUE,
   getTableMonthFilterOptions,
@@ -288,18 +287,7 @@ export function OwnerRoomEquipmentTable({
           label="Filter equipment by purchase month"
         />
       </div>
-      <Table className="min-w-[1120px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-        <colgroup>
-          <col className={canShowAction ? "w-[20%]" : "w-[22%]"} />
-          <col className={canShowAction ? "w-[11%]" : "w-[12%]"} />
-          <col className="w-[9%]" />
-          <col className="w-[11%]" />
-          <col className={canShowAction ? "w-[15%]" : "w-[17%]"} />
-          <col className="w-[10%]" />
-          <col className={canShowAction ? "w-[8%]" : "w-[9%]"} />
-          <col className={canShowAction ? "w-[6%]" : "w-[10%]"} />
-          {canShowAction ? <col className="w-[10%]" /> : null}
-        </colgroup>
+      <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
         <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="h-12 pl-6">
@@ -402,7 +390,7 @@ export function OwnerRoomEquipmentTable({
                 <TableCell className="font-mono text-xs whitespace-nowrap text-muted-foreground">
                   {equipment.purchasedAtLabel}
                 </TableCell>
-                <TableCell className="font-mono font-medium tabular-nums whitespace-nowrap">
+                <TableCell className="font-mono font-medium whitespace-nowrap tabular-nums">
                   {equipment.costLabel}
                 </TableCell>
                 <TableCell className="overflow-hidden pr-6">
@@ -412,17 +400,19 @@ export function OwnerRoomEquipmentTable({
                 </TableCell>
                 {canShowAction ? (
                   <TableCell className="pr-6 text-right">
-                    <TableActionButton asChild tone="view">
-                      <Link
-                        href={getEquipmentDetailHref(
-                          facilityName!,
-                          roomId!,
-                          equipment.id
-                        )}
-                      >
-                        Details
-                      </Link>
-                    </TableActionButton>
+                    <TableRowActions
+                      label={`Open actions for ${equipment.name}`}
+                      actions={[
+                        {
+                          href: getEquipmentDetailHref(
+                            facilityName!,
+                            roomId!,
+                            equipment.id
+                          ),
+                          label: "Details",
+                        },
+                      ]}
+                    />
                   </TableCell>
                 ) : null}
               </TableRow>

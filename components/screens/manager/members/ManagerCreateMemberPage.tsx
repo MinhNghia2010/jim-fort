@@ -3,6 +3,7 @@ import { ShieldCheck } from "lucide-react"
 
 import { createManagedMember } from "@/app/(main)/manager-actions"
 import type { ManagerCreateMemberPlanOption } from "@/app/(main)/members/data"
+import { FormSelect } from "@/components/FormSelect"
 import { PageShell } from "@/components/PageShell"
 import { ManagerActionForm } from "@/components/screens/manager/ManagerActionForm"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -22,7 +23,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { NativeSelect } from "@/components/ui/native-select"
 
 interface ManagerCreateMemberPageProps {
   planOptions: readonly ManagerCreateMemberPlanOption[]
@@ -108,18 +108,17 @@ export function ManagerCreateMemberPage({
                   </div>
                   <Field>
                     <FieldLabel htmlFor="packageId">Initial plan</FieldLabel>
-                    <NativeSelect
+                    <FormSelect
                       id="packageId"
                       name="packageId"
-                      className="w-full"
+                      options={planOptions.map((plan) => ({
+                        value: plan.id,
+                        label: plan.label,
+                      }))}
+                      defaultValue={planOptions[0]?.id}
+                      placeholder="Select a plan"
                       required
-                    >
-                      {planOptions.map((plan) => (
-                        <option key={plan.id} value={plan.id}>
-                          {plan.label}
-                        </option>
-                      ))}
-                    </NativeSelect>
+                    />
                     <FieldDescription>
                       The selected plan creates the member&apos;s first pending
                       subscription.

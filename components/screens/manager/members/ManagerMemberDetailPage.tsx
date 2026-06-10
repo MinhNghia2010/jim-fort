@@ -7,5 +7,12 @@ interface ManagerMemberDetailPageProps {
 export function ManagerMemberDetailPage({
   memberId,
 }: ManagerMemberDetailPageProps) {
-  return <OwnerMemberDetailPage memberId={memberId} viewerLabel="Manager" />
+  return (
+    <OwnerMemberDetailPage
+      memberId={memberId}
+      viewerLabel="Manager"
+      canEdit={false}
+      canDelete={false}
+    />
+  )
 }

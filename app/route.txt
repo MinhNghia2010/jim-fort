@@ -10,8 +10,10 @@ Owner:
 - /vouchers
 - /facility
 - /facility/[facilityName]
+- /facility/[facilityName]/rooms/create
 - /facility/[facilityName]/rooms/[roomId]
 - /facility/[facilityName]/rooms/[roomId]/equipments
+- /facility/[facilityName]/rooms/[roomId]/equipments/create
 - /facility/[facilityName]/rooms/[roomId]/equipments/[equipmentId]
 - /feedback
 - /profile/[username]

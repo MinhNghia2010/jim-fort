@@ -1,4 +1,3 @@
-import Link from "next/link"
 import {
   CalendarDays,
   CheckCircle2,
@@ -9,7 +8,7 @@ import {
 
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
-import { TableActionButton } from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -135,12 +134,7 @@ export async function PtOverviewPage() {
             <CardDescription>Open a session to review details.</CardDescription>
           </CardHeader>
           <CardContent className="px-0">
-            <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-              <colgroup>
-                <col className="w-[52%]" />
-                <col className="w-[30%]" />
-                <col className="w-[18%]" />
-              </colgroup>
+            <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
               <TableHeader className="bg-muted/40">
                 <TableRow>
                   <TableHead className="h-12 pl-6">Member</TableHead>
@@ -160,11 +154,17 @@ export async function PtOverviewPage() {
                       {date.format(new Date(session.starts_at))}
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <TableActionButton asChild tone="schedule">
-                        <Link href={`/schedule/sessions/${session.id}`}>
-                          Open
-                        </Link>
-                      </TableActionButton>
+                      <TableRowActions
+                        label={`Open actions for ${
+                          session.users?.full_name ?? "member"
+                        }`}
+                        actions={[
+                          {
+                            href: `/schedule/sessions/${session.id}`,
+                            label: "Open",
+                          },
+                        ]}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -191,12 +191,7 @@ export async function PtOverviewPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-0">
-            <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-              <colgroup>
-                <col className="w-[60%]" />
-                <col className="w-[20%]" />
-                <col className="w-[20%]" />
-              </colgroup>
+            <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
               <TableHeader className="bg-muted/40">
                 <TableRow>
                   <TableHead className="h-12 pl-6">Member</TableHead>
@@ -216,11 +211,17 @@ export async function PtOverviewPage() {
                       <Badge variant="outline">#{session.session_number}</Badge>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <TableActionButton asChild tone="feedback">
-                        <Link href={`/schedule/sessions/${session.id}`}>
-                          Feedback
-                        </Link>
-                      </TableActionButton>
+                      <TableRowActions
+                        label={`Open feedback actions for ${
+                          session.users?.full_name ?? "member"
+                        }`}
+                        actions={[
+                          {
+                            href: `/schedule/sessions/${session.id}`,
+                            label: "Feedback",
+                          },
+                        ]}
+                      />
                     </TableCell>
                   </TableRow>
                 ))}

@@ -35,6 +35,7 @@ import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -180,11 +181,13 @@ export function VoucherForm({
                         <SelectValue placeholder="Select facility" />
                       </SelectTrigger>
                       <SelectContent>
-                        {data.facilities.map((facility) => (
-                          <SelectItem key={facility.id} value={facility.id}>
-                            {facility.name}
-                          </SelectItem>
-                        ))}
+                        <SelectGroup>
+                          {data.facilities.map((facility) => (
+                            <SelectItem key={facility.id} value={facility.id}>
+                              {facility.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   </Field>
@@ -201,9 +204,11 @@ export function VoucherForm({
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="disabled">Disabled</SelectItem>
-                        <SelectItem value="expired">Expired</SelectItem>
+                        <SelectGroup>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="disabled">Disabled</SelectItem>
+                          <SelectItem value="expired">Expired</SelectItem>
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   </Field>
@@ -252,8 +257,10 @@ export function VoucherForm({
                         <SelectValue placeholder="Select discount type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="percentage">Percentage</SelectItem>
-                        <SelectItem value="amount">Fixed amount</SelectItem>
+                        <SelectGroup>
+                          <SelectItem value="percentage">Percentage</SelectItem>
+                          <SelectItem value="amount">Fixed amount</SelectItem>
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   </Field>

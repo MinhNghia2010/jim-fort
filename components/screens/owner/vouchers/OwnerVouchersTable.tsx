@@ -2,15 +2,13 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { BadgePercent, CirclePlus, MoreHorizontal, Tag } from "lucide-react"
+import { BadgePercent, CirclePlus, Tag } from "lucide-react"
 
 import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import type { VoucherView } from "@/components/screens/owner/vouchers/OwnerVouchersPage"
-import {
-  TableActionButton,
-  TableActionIconButton,
-} from "@/components/TableActionButton"
+import { TableActionButton } from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import {
   ALL_MONTHS_VALUE,
   getTableMonthFilterOptions,
@@ -29,13 +27,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   Empty,
   EmptyDescription,
@@ -257,16 +248,7 @@ export function OwnerVouchersTable({
             label="Filter vouchers by start month"
           />
         </div>
-        <Table className="min-w-[960px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-          <colgroup>
-            <col className="w-[23%]" />
-            <col className="w-[11%]" />
-            <col className="w-[15%]" />
-            <col className="w-[13%]" />
-            <col className="w-[13%]" />
-            <col className="w-[16%]" />
-            <col className="w-[9%]" />
-          </colgroup>
+        <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
           <TableHeader className="bg-muted/40">
             <TableRow>
               <TableHead className="h-12 pl-6">
@@ -365,35 +347,23 @@ export function OwnerVouchersTable({
                     <StatusBadge status={voucher.status} showDot />
                   </TableCell>
                   <TableCell className="pr-6 text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <TableActionIconButton
-                          aria-label={`Open actions for ${voucher.code}`}
-                        >
-                          <MoreHorizontal />
-                        </TableActionIconButton>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuGroup>
-                          <DropdownMenuItem asChild>
-                            <Link
-                              href={`/voucher/${encodeURIComponent(voucher.code)}`}
-                            >
-                              View details
-                            </Link>
-                          </DropdownMenuItem>
-                          {canManage ? (
-                            <DropdownMenuItem asChild>
-                              <Link
-                                href={`/vouchers/edit?voucher=${encodeURIComponent(voucher.code)}`}
-                              >
-                                Edit voucher
-                              </Link>
-                            </DropdownMenuItem>
-                          ) : null}
-                        </DropdownMenuGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <TableRowActions
+                      label={`Open actions for ${voucher.code}`}
+                      actions={[
+                        {
+                          href: `/voucher/${encodeURIComponent(voucher.code)}`,
+                          label: "View details",
+                        },
+                        ...(canManage
+                          ? [
+                              {
+                                href: `/vouchers/edit?voucher=${encodeURIComponent(voucher.code)}`,
+                                label: "Edit voucher",
+                              },
+                            ]
+                          : []),
+                      ]}
+                    />
                   </TableCell>
                 </TableRow>
               ))

@@ -2,12 +2,14 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Check, CirclePlus, PackageCheck, Pencil } from "lucide-react"
+import { Check, CirclePlus, PackageCheck } from "lucide-react"
 
+import { deleteMembershipPackage } from "@/app/(main)/memberships/actions"
 import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import type { MembershipPlanView } from "@/components/screens/owner/memberships/OwnerMembershipsPage"
 import { TableActionButton } from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import {
   ALL_MONTHS_VALUE,
   TableMonthFilter,
@@ -225,20 +227,10 @@ export function OwnerMembershipsTable({
         ) : null}
         <Table
           className={cn(
-            "table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal",
+            "table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal",
             canManage ? "min-w-[1080px]" : "w-full"
           )}
         >
-          <colgroup>
-            <col className={canManage ? "w-[25%]" : "w-[22%]"} />
-            <col className={canManage ? "w-[8%]" : "w-[8%]"} />
-            <col className={canManage ? "w-[8%]" : "w-[9%]"} />
-            <col className={canManage ? "w-[10%]" : "w-[12%]"} />
-            <col className={canManage ? "w-[16%]" : "w-[27%]"} />
-            <col className={canManage ? "w-[11%]" : "w-[10%]"} />
-            <col className={canManage ? "w-[11%]" : "w-[12%]"} />
-            {canManage ? <col className="w-[11%]" /> : null}
-          </colgroup>
           <TableHeader className="bg-muted/40">
             <TableRow>
               <TableHead className="h-12 pl-6">
@@ -356,12 +348,23 @@ export function OwnerMembershipsTable({
                   </TableCell>
                   {canManage ? (
                     <TableCell className="pr-6 text-right">
-                      <TableActionButton asChild tone="edit">
-                        <Link href={`/memberships/edit?planId=${plan.id}`}>
-                          <Pencil data-icon="inline-start" />
-                          Edit
-                        </Link>
-                      </TableActionButton>
+                      <TableRowActions
+                        label={`Open actions for ${plan.name}`}
+                        actions={[
+                          {
+                            href: `/memberships/edit?planId=${plan.id}`,
+                            label: "Edit",
+                          },
+                        ]}
+                        deleteAction={{
+                          action: deleteMembershipPackage,
+                          description: `Delete ${plan.name}? This permanently removes the plan and its room access. Plans with subscription history must be archived instead.`,
+                          inputName: "packageId",
+                          inputValue: plan.id,
+                          successMessage: "Membership plan deleted",
+                          title: "Delete membership plan?",
+                        }}
+                      />
                     </TableCell>
                   ) : null}
                 </TableRow>

@@ -2,20 +2,13 @@
 
 import { useActionState, useEffect, useId, useRef, useState } from "react"
 import Link from "next/link"
-import {
-  ClipboardList,
-  Eye,
-  Loader2,
-  MoreHorizontal,
-  Search,
-  X,
-} from "lucide-react"
+import { ClipboardList, Loader2, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cancelPendingSubscription } from "@/app/(main)/member-actions"
 import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
-import { TableActionIconButton } from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import {
   ALL_MONTHS_VALUE,
   getTableMonthFilterOptions,
@@ -35,12 +28,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
   Empty,
@@ -307,7 +296,11 @@ export function MemberSubscriptionsTable({
 
     return (
       (!normalizedSearch || searchableText.includes(normalizedSearch)) &&
-      matchesTableMonthFilter(subscription.createdAt, monthFilter, appTimeZone) &&
+      matchesTableMonthFilter(
+        subscription.createdAt,
+        monthFilter,
+        appTimeZone
+      ) &&
       matchesStatus(subscription.status, statusFilter)
     )
   })
@@ -388,16 +381,7 @@ export function MemberSubscriptionsTable({
           />
         </div>
 
-        <Table className="min-w-[980px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-          <colgroup>
-            <col className="w-[27%]" />
-            <col className="w-[21%]" />
-            <col className="w-[11%]" />
-            <col className="w-[13%]" />
-            <col className="w-[14%]" />
-            <col className="w-[8%]" />
-            <col className="w-[6%]" />
-          </colgroup>
+        <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
           <TableHeader className="bg-muted/40">
             <TableRow>
               <TableHead className="h-12 pl-6">
@@ -478,39 +462,27 @@ export function MemberSubscriptionsTable({
                       {statusLabels[subscription.status]}
                     </StatusBadge>
                   </TableCell>
-                  <TableCell className="font-medium tabular-nums whitespace-nowrap">
+                  <TableCell className="font-medium whitespace-nowrap tabular-nums">
                     {currencyFormatter.format(subscription.amount)}
                   </TableCell>
                   <TableCell className="pr-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <TableActionIconButton
-                            aria-label={`Open actions for ${subscription.plan}`}
-                          >
-                            <MoreHorizontal />
-                          </TableActionIconButton>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuGroup>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/subscriptions/${subscription.id}`}>
-                                <Eye aria-hidden="true" />
-                                View detail
-                              </Link>
-                            </DropdownMenuItem>
-                            {canCancelSubscription(subscription.status) ? (
-                              <>
-                                <DropdownMenuSeparator />
-                                <CancelSubscriptionMenuAction
-                                  subscriptionId={subscription.id}
-                                />
-                              </>
-                            ) : null}
-                          </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                    <TableRowActions
+                      label={`Open actions for ${subscription.plan}`}
+                    >
+                      <DropdownMenuItem asChild>
+                        <Link href={`/subscriptions/${subscription.id}`}>
+                          View detail
+                        </Link>
+                      </DropdownMenuItem>
+                      {canCancelSubscription(subscription.status) ? (
+                        <>
+                          <DropdownMenuSeparator />
+                          <CancelSubscriptionMenuAction
+                            subscriptionId={subscription.id}
+                          />
+                        </>
+                      ) : null}
+                    </TableRowActions>
                   </TableCell>
                 </TableRow>
               ))

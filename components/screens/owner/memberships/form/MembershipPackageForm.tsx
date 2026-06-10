@@ -4,7 +4,9 @@ import { useActionState, useMemo, useState } from "react"
 import Link from "next/link"
 import { Archive, CircleAlert, CirclePlus, Loader2, Save } from "lucide-react"
 
+import { deleteMembershipPackage } from "@/app/(main)/memberships/actions"
 import { DatePickerInput } from "@/components/DatePickerInput"
+import { DeleteConfirmationButton } from "@/components/DeleteConfirmationButton"
 import { PageShell } from "@/components/PageShell"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -26,6 +28,7 @@ import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -348,14 +351,16 @@ export function MembershipPackageForm({
                       <SelectValue placeholder="Select a plan" />
                     </SelectTrigger>
                     <SelectContent>
-                      {data.packages.map((membershipPackage) => (
-                        <SelectItem
-                          key={membershipPackage.id}
-                          value={membershipPackage.id}
-                        >
-                          {membershipPackage.name}
-                        </SelectItem>
-                      ))}
+                      <SelectGroup>
+                        {data.packages.map((membershipPackage) => (
+                          <SelectItem
+                            key={membershipPackage.id}
+                            value={membershipPackage.id}
+                          >
+                            {membershipPackage.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     </SelectContent>
                   </Select>
                 </Field>
@@ -396,11 +401,13 @@ export function MembershipPackageForm({
                         <SelectValue placeholder="Select facility" />
                       </SelectTrigger>
                       <SelectContent>
-                        {data.facilities.map((facility) => (
-                          <SelectItem key={facility.id} value={facility.id}>
-                            {facility.name}
-                          </SelectItem>
-                        ))}
+                        <SelectGroup>
+                          {data.facilities.map((facility) => (
+                            <SelectItem key={facility.id} value={facility.id}>
+                              {facility.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   </Field>
@@ -520,8 +527,12 @@ export function MembershipPackageForm({
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="access">Facility access</SelectItem>
-                        <SelectItem value="pt">Personal training</SelectItem>
+                        <SelectGroup>
+                          <SelectItem value="access">
+                            Facility access
+                          </SelectItem>
+                          <SelectItem value="pt">Personal training</SelectItem>
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   </Field>
@@ -619,17 +630,28 @@ export function MembershipPackageForm({
 
           <div className="flex flex-col gap-2 rounded-xl border bg-card p-3 sm:flex-row sm:justify-end">
             {mode === "edit" ? (
-              <Button
-                type="submit"
-                name="_intent"
-                value="archive"
-                variant="destructive"
-                disabled={pending}
-                formNoValidate
-              >
-                <Archive data-icon="inline-start" />
-                Archive plan
-              </Button>
+              <>
+                <DeleteConfirmationButton
+                  action={deleteMembershipPackage}
+                  description={`Delete ${name || "this membership plan"}? This permanently removes the plan and its room access. Plans with subscription history must be archived instead.`}
+                  inputName="packageId"
+                  inputValue={packageId}
+                  label="Delete"
+                  successMessage="Membership plan deleted"
+                  title="Delete membership plan?"
+                />
+                <Button
+                  type="submit"
+                  name="_intent"
+                  value="archive"
+                  variant="destructive"
+                  disabled={pending}
+                  formNoValidate
+                >
+                  <Archive data-icon="inline-start" />
+                  Archive plan
+                </Button>
+              </>
             ) : null}
             <Button variant="outline" asChild>
               <Link href="/memberships">Cancel</Link>

@@ -11,6 +11,21 @@ export default async function PaymentDetailPage({
   const { paymentId } = await params
 
   return renderRolePage(role, {
+    owner: (
+      <MemberPaymentDetailPage
+        paymentId={paymentId}
+        backHref="/revenue"
+        viewerLabel="Owner"
+        canOpenSubscription={false}
+      />
+    ),
+    manager: (
+      <MemberPaymentDetailPage
+        paymentId={paymentId}
+        backHref="/subscriptions"
+        viewerLabel="Manager"
+      />
+    ),
     member: <MemberPaymentDetailPage paymentId={paymentId} />,
   })
 }

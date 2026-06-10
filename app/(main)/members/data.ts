@@ -2,6 +2,7 @@ import type {
   MemberStatus,
   MemberTableRow,
 } from "@/components/screens/owner/members/MembersTable"
+import { getOwnerMemberAccess } from "@/app/(main)/members/owner-member-access"
 import { createClient } from "@/lib/supabase/server"
 
 interface MemberRecord {
@@ -141,6 +142,12 @@ export interface ManagerCreateMemberPlanOption {
   id: string
   label: string
   description: string
+}
+
+export interface OwnerMemberEditData {
+  id: string
+  name: string
+  phone: string | null
 }
 
 function getSingleRelation<T>(relation: T | T[] | null) {
@@ -488,5 +495,21 @@ export async function getMemberDetailData(
         Boolean(subscription)
       ),
     sessions: sessions.map(mapMemberDetailSession),
+  }
+}
+
+export async function getOwnerMemberEditData(
+  memberId: string
+): Promise<OwnerMemberEditData | null> {
+  const access = await getOwnerMemberAccess(memberId)
+
+  if ("error" in access) {
+    return null
+  }
+
+  return {
+    id: access.member.id,
+    name: access.member.full_name,
+    phone: access.member.phone,
   }
 }

@@ -169,13 +169,7 @@ export function OwnerVoucherRedemptionsTable({
           label="Filter redemptions by redeemed month"
         />
       </div>
-      <Table className="min-w-[780px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-        <colgroup>
-          <col className="w-[34%]" />
-          <col className="w-[36%]" />
-          <col className="w-[12%]" />
-          <col className="w-[18%]" />
-        </colgroup>
+      <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
         <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="h-12 pl-6">

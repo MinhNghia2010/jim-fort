@@ -1,8 +1,16 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { Activity, CircleAlert, Dumbbell, Wrench } from "lucide-react"
+import {
+  Activity,
+  CircleAlert,
+  CirclePlus,
+  Dumbbell,
+  Wrench,
+} from "lucide-react"
 
 import {
+  getCreateEquipmentHref,
+  getFacilityHref,
   getRoomEquipmentPageData,
   getRoomEquipmentHref,
   type RoomStatus,
@@ -39,6 +47,7 @@ export async function OwnerFacilityRoomPage({
   roomId,
 }: OwnerFacilityRoomPageProps) {
   const data = await getRoomEquipmentPageData(facilityName, roomId)
+  const facilityBackHref = getFacilityHref(data.facility?.name ?? facilityName)
 
   if (!data.room && !data.errorMessage) {
     notFound()
@@ -47,6 +56,7 @@ export async function OwnerFacilityRoomPage({
   if (!data.facility || !data.room) {
     return (
       <PageShell
+        backHref={facilityBackHref}
         eyebrow="Facility room"
         title="Room not available"
         description="The requested room could not be loaded."
@@ -77,6 +87,7 @@ export async function OwnerFacilityRoomPage({
 
   return (
     <PageShell
+      backHref={facilityBackHref}
       eyebrow={facility.name}
       title={room.name}
       description={room.description}
@@ -87,6 +98,15 @@ export async function OwnerFacilityRoomPage({
           <AlertDescription>{data.errorMessage}</AlertDescription>
         </Alert>
       ) : null}
+
+      <div className="flex justify-end">
+        <Button asChild>
+          <Link href={getCreateEquipmentHref(facility.name, room.id)}>
+            <CirclePlus data-icon="inline-start" />
+            Add equipment
+          </Link>
+        </Button>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <ManagementMetricCard

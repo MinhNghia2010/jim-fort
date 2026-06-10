@@ -2,13 +2,12 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { CirclePlus, MoreHorizontal, Search, UserCog } from "lucide-react"
+import { CirclePlus, Search, UserCog } from "lucide-react"
 
+import { deleteStaff } from "@/app/(main)/staffs/actions"
 import { StatusBadge } from "@/components/StatusBadge"
-import {
-  TableActionButton,
-  TableActionIconButton,
-} from "@/components/TableActionButton"
+import { TableActionButton } from "@/components/TableActionButton"
+import { TableRowActions } from "@/components/TableRowActions"
 import {
   ALL_MONTHS_VALUE,
   getTableMonthFilterOptions,
@@ -28,13 +27,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   Empty,
   EmptyDescription,
@@ -73,6 +65,7 @@ export interface StaffTableRow {
 interface StaffTableProps {
   staffs: StaffTableRow[]
   canAddStaff?: boolean
+  canDeleteStaff?: boolean
   monthFilter?: string
   onMonthFilterChange?: (value: string) => void
 }
@@ -199,6 +192,7 @@ function sortStaffs(staffs: StaffTableRow[], sort: StaffSort) {
 export function StaffTable({
   staffs,
   canAddStaff = false,
+  canDeleteStaff = false,
   monthFilter: controlledMonthFilter,
   onMonthFilterChange,
 }: StaffTableProps) {
@@ -319,16 +313,7 @@ export function StaffTable({
             />
           </div>
 
-          <Table className="min-w-[1040px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-            <colgroup>
-              <col className="w-[28%]" />
-              <col className="w-[12%]" />
-              <col className="w-[13%]" />
-              <col className="w-[12%]" />
-              <col className="w-[12%]" />
-              <col className="w-[17%]" />
-              <col className="w-[6%]" />
-            </colgroup>
+          <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">
@@ -435,31 +420,31 @@ export function StaffTable({
                       </p>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <TableActionIconButton
-                              aria-label={`Open actions for ${staff.name}`}
-                            >
-                              <MoreHorizontal />
-                            </TableActionIconButton>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuGroup>
-                              <DropdownMenuItem asChild>
-                                <Link href={`/staffs/${staff.id}`}>
-                                  View staff
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem asChild>
-                                <Link href={`/staffs/${staff.id}/edit`}>
-                                  Edit staff
-                                </Link>
-                              </DropdownMenuItem>
-                            </DropdownMenuGroup>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                      <TableRowActions
+                        label={`Open actions for ${staff.name}`}
+                        actions={[
+                          {
+                            href: `/staffs/${staff.id}`,
+                            label: "View staff",
+                          },
+                          {
+                            href: `/staffs/${staff.id}/edit`,
+                            label: "Edit staff",
+                          },
+                        ]}
+                        deleteAction={
+                          canDeleteStaff
+                            ? {
+                                action: deleteStaff,
+                                description: `Delete ${staff.name}? Directory records are removed permanently. Login accounts are deleted only when they have no protected operational history.`,
+                                inputName: "staffId",
+                                inputValue: staff.id,
+                                successMessage: "Staff deleted",
+                                title: "Delete staff record?",
+                              }
+                            : undefined
+                        }
+                      />
                     </TableCell>
                   </TableRow>
                 ))
