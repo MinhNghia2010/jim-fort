@@ -9,9 +9,9 @@ import {
 
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { TableActionButton } from "@/components/TableActionButton"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -136,6 +136,11 @@ export async function PtOverviewPage() {
           </CardHeader>
           <CardContent className="px-0">
             <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+              <colgroup>
+                <col className="w-[52%]" />
+                <col className="w-[30%]" />
+                <col className="w-[18%]" />
+              </colgroup>
               <TableHeader className="bg-muted/40">
                 <TableRow>
                   <TableHead className="h-12 pl-6">Member</TableHead>
@@ -151,15 +156,15 @@ export async function PtOverviewPage() {
                     <TableCell className="pl-6 font-medium">
                       {session.users?.full_name ?? "Member"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
                       {date.format(new Date(session.starts_at))}
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button asChild size="sm">
+                      <TableActionButton asChild tone="schedule">
                         <Link href={`/schedule/sessions/${session.id}`}>
                           Open
                         </Link>
-                      </Button>
+                      </TableActionButton>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -187,6 +192,11 @@ export async function PtOverviewPage() {
           </CardHeader>
           <CardContent className="px-0">
             <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+              <colgroup>
+                <col className="w-[60%]" />
+                <col className="w-[20%]" />
+                <col className="w-[20%]" />
+              </colgroup>
               <TableHeader className="bg-muted/40">
                 <TableRow>
                   <TableHead className="h-12 pl-6">Member</TableHead>
@@ -206,11 +216,11 @@ export async function PtOverviewPage() {
                       <Badge variant="outline">#{session.session_number}</Badge>
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button asChild size="sm" variant="outline">
+                      <TableActionButton asChild tone="feedback">
                         <Link href={`/schedule/sessions/${session.id}`}>
                           Feedback
                         </Link>
-                      </Button>
+                      </TableActionButton>
                     </TableCell>
                   </TableRow>
                 ))}

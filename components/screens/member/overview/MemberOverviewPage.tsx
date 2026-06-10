@@ -1,10 +1,15 @@
 import Link from "next/link"
-import { CalendarDays, CreditCard, MessageCircle, PackageCheck } from "lucide-react"
+import {
+  CalendarDays,
+  CreditCard,
+  MessageCircle,
+  PackageCheck,
+} from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { StatusBadge } from "@/components/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -63,7 +68,8 @@ export async function MemberOverviewPage() {
       supabase.from("facility_feedbacks").select("id").limit(100),
     ])
 
-  const subscriptions = (subscriptionsResult.data ?? []) as unknown as SubscriptionRow[]
+  const subscriptions = (subscriptionsResult.data ??
+    []) as unknown as SubscriptionRow[]
   const sessions = (sessionsResult.data ?? []) as unknown as SessionRow[]
   const paidTotal = (paymentsResult.data ?? []).reduce(
     (sum, payment) => sum + Number(payment.amount ?? 0),
@@ -102,7 +108,9 @@ export async function MemberOverviewPage() {
               (subscription) => subscription.status === "active"
             ).length
           }
-          detail={activeSubscription?.membership_packages?.name ?? "No active plan"}
+          detail={
+            activeSubscription?.membership_packages?.name ?? "No active plan"
+          }
           icon={PackageCheck}
         />
         <ManagementMetricCard
@@ -139,7 +147,9 @@ export async function MemberOverviewPage() {
         <Card>
           <CardHeader>
             <CardTitle>Next PT sessions</CardTitle>
-            <CardDescription>Upcoming scheduled training sessions.</CardDescription>
+            <CardDescription>
+              Upcoming scheduled training sessions.
+            </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
             {sessions.length ? (
@@ -186,9 +196,7 @@ export async function MemberOverviewPage() {
                   <p className="truncate font-medium">
                     {subscription.membership_packages?.name ?? "Membership"}
                   </p>
-                  <Badge variant="secondary">
-                    {subscription.status.replaceAll("_", " ")}
-                  </Badge>
+                  <StatusBadge status={subscription.status} showDot />
                 </div>
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/subscriptions/${subscription.id}`}>Open</Link>

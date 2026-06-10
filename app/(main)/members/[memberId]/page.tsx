@@ -4,12 +4,17 @@ import { PtMemberDetailPage } from "@/components/screens/pt/members/PtMemberDeta
 import { getAuthenticatedRole } from "@/lib/auth/current-role"
 import { renderRolePage } from "@/lib/role-page"
 
-export default async function MemberDetailPage() {
+export default async function MemberDetailPage({
+  params,
+}: {
+  params: Promise<{ memberId: string }>
+}) {
   const role = await getAuthenticatedRole()
+  const { memberId } = await params
 
   return renderRolePage(role, {
-    owner: <OwnerMemberDetailPage />,
-    manager: <ManagerMemberDetailPage />,
-    pt: <PtMemberDetailPage />,
+    owner: <OwnerMemberDetailPage memberId={memberId} />,
+    manager: <ManagerMemberDetailPage memberId={memberId} />,
+    pt: <PtMemberDetailPage memberId={memberId} />,
   })
 }

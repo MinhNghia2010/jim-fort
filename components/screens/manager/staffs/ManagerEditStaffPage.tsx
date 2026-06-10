@@ -1,5 +1,9 @@
-import { RoutePlaceholder } from "@/components/RoutePlaceholder"
+import { OwnerEditStaffPage } from "@/components/screens/owner/staffs/OwnerEditStaffPage"
 
-export function ManagerEditStaffPage() {
-  return <RoutePlaceholder title="Manager Edit Staff" />
+interface ManagerEditStaffPageProps {
+  staffId: string
+}
+
+export function ManagerEditStaffPage({ staffId }: ManagerEditStaffPageProps) {
+  return <OwnerEditStaffPage staffId={staffId} />
 }

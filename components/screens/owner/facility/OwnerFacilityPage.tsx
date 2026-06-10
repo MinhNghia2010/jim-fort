@@ -1,14 +1,9 @@
-import Link from "next/link"
 import { Building2, Dumbbell, MapPin, Users } from "lucide-react"
 
-import {
-  getFacilityHref,
-  getFacilityPageData,
-} from "@/app/(main)/facility/data"
+import { getFacilityPageData } from "@/app/(main)/facility/data"
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -83,7 +78,15 @@ export async function OwnerFacilityPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="px-0">
-          <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+          <Table className="min-w-[920px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+            <colgroup>
+              <col className="w-[30%]" />
+              <col className="w-[34%]" />
+              <col className="w-[9%]" />
+              <col className="w-[11%]" />
+              <col className="w-[8%]" />
+              <col className="w-[8%]" />
+            </colgroup>
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">Facility</TableHead>
@@ -92,9 +95,6 @@ export async function OwnerFacilityPage() {
                 <TableHead className="h-12">Equipment</TableHead>
                 <TableHead className="h-12">Staff</TableHead>
                 <TableHead className="h-12">Members</TableHead>
-                <TableHead className="h-12 pr-6 text-right">
-                  <span className="sr-only">Actions</span>
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -114,30 +114,23 @@ export async function OwnerFacilityPage() {
                     <TableCell className="text-muted-foreground">
                       {facility.address}
                     </TableCell>
-                    <TableCell className="font-mono font-medium tabular-nums">
+                    <TableCell className="font-mono font-medium whitespace-nowrap tabular-nums">
                       {facility.roomCount}
                     </TableCell>
-                    <TableCell className="font-mono font-medium tabular-nums">
+                    <TableCell className="font-mono font-medium whitespace-nowrap tabular-nums">
                       {facility.equipmentCount}
                     </TableCell>
-                    <TableCell className="font-mono font-medium tabular-nums">
+                    <TableCell className="font-mono font-medium whitespace-nowrap tabular-nums">
                       {facility.activeStaffCount}
                     </TableCell>
-                    <TableCell className="font-mono font-medium tabular-nums">
+                    <TableCell className="font-mono font-medium whitespace-nowrap tabular-nums">
                       {facility.activeMemberCount}
-                    </TableCell>
-                    <TableCell className="pr-6 text-right">
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={getFacilityHref(facility.name)}>
-                          Details
-                        </Link>
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-64">
+                  <TableCell colSpan={6} className="h-64">
                     <Empty>
                       <EmptyHeader>
                         <EmptyMedia variant="icon">

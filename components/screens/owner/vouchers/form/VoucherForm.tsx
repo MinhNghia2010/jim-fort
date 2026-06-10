@@ -14,8 +14,8 @@ import {
 
 import { DatePickerInput } from "@/components/DatePickerInput"
 import { PageShell } from "@/components/PageShell"
+import { StatusBadge } from "@/components/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -380,9 +380,7 @@ export function VoucherForm({
                 <CardTitle>Voucher preview</CardTitle>
                 <CardDescription>{facilityName}</CardDescription>
               </div>
-              <Badge variant="outline" className="capitalize">
-                {status}
-              </Badge>
+              <StatusBadge status={status} showDot />
             </div>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">

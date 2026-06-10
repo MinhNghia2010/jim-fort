@@ -10,10 +10,10 @@ import Link from "next/link"
 
 import { getVoucherDetailData } from "@/app/(main)/vouchers/data"
 import { PageShell } from "@/components/PageShell"
+import { StatusBadge } from "@/components/StatusBadge"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
 import { OwnerVoucherRedemptionsTable } from "@/components/screens/owner/vouchers/OwnerVoucherRedemptionsTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -24,10 +24,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import type {
-  VoucherView,
-  VoucherViewStatus,
-} from "@/components/screens/owner/vouchers/OwnerVouchersPage"
+import type { VoucherView } from "@/components/screens/owner/vouchers/OwnerVouchersPage"
 
 export interface VoucherDetailView extends VoucherView {
   createdAtLabel: string
@@ -86,22 +83,6 @@ function VoucherNotFoundContent({
       </Card>
     </PageShell>
   )
-}
-
-function voucherStatusVariant(status: VoucherViewStatus) {
-  if (status === "active") {
-    return "default" as const
-  }
-
-  if (status === "expired") {
-    return "destructive" as const
-  }
-
-  if (status === "disabled" || status === "scheduled") {
-    return "outline" as const
-  }
-
-  return "secondary" as const
 }
 
 function VoucherDetailContent({
@@ -173,12 +154,7 @@ function VoucherDetailContent({
                   <BadgePercent aria-hidden="true" className="size-4" />
                   Discount code
                 </div>
-                <Badge
-                  variant={voucherStatusVariant(voucher.status)}
-                  className="capitalize"
-                >
-                  {voucher.status}
-                </Badge>
+                <StatusBadge status={voucher.status} showDot />
               </div>
               <p className="mt-3 font-mono text-2xl font-semibold tracking-tight">
                 {voucher.code}

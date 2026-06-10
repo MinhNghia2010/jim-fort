@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import type { User } from "@supabase/supabase-js"
 
 import { AppSidebar, type AppSidebarUser } from "@/components/AppSidebar"
+import { NavigationHistoryTracker } from "@/components/NavigationHistoryTracker"
 import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
@@ -114,6 +115,7 @@ export default async function MainLayout({
       <SidebarProvider className="h-svh overflow-hidden">
         <AppSidebar user={sidebarUser} signOutAction={signOut} />
         <SidebarInset className="min-h-0 overflow-hidden">
+          <NavigationHistoryTracker />
           <header className="flex h-14 shrink-0 items-center gap-3 border-b bg-background px-4">
             <SidebarTrigger />
             <Separator orientation="vertical" className="h-5" />

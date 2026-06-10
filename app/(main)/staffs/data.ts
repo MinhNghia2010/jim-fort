@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 
 interface StaffRecord {
   id: string
+  facility_id?: string
   full_name: string
   phone: string | null
   avatar_url: string | null
@@ -13,6 +14,8 @@ interface StaffRecord {
   status: StaffStatus
   hired_at: string | null
   note: string | null
+  created_at?: string | null
+  updated_at?: string | null
 }
 
 interface FacilityManagerRecord {
@@ -29,6 +32,41 @@ interface StaffUserRecord {
   phone: string | null
   avatar_url: string | null
   role: "manager" | "pt" | string
+  created_at?: string | null
+  updated_at?: string | null
+}
+
+interface FacilityRecord {
+  id: string
+  name: string | null
+  address: string | null
+  phone: string | null
+}
+
+interface FacilityAssignmentRecord {
+  facility_id: string
+}
+
+export interface StaffDetailFacility {
+  id: string
+  name: string
+  address: string | null
+  phone: string | null
+}
+
+export interface StaffDetailData {
+  id: string
+  kind: "staff_row" | "login_user"
+  name: string
+  phone: string | null
+  avatarUrl: string | null
+  role: string | null
+  status: StaffStatus
+  hiredAt: string | null
+  note: string | null
+  createdAt: string | null
+  updatedAt: string | null
+  facilities: StaffDetailFacility[]
 }
 
 function formatStaffUserRole(role: string) {
@@ -67,6 +105,75 @@ function mapStaffUser(user: StaffUserRecord): StaffTableRow {
     hiredAt: null,
     note: "Login account assigned to this facility",
   }
+}
+
+function mapFacility(facility: FacilityRecord): StaffDetailFacility {
+  return {
+    id: facility.id,
+    name: facility.name?.trim() || "Facility",
+    address: facility.address,
+    phone: facility.phone,
+  }
+}
+
+async function getFacilitiesByIds(facilityIds: string[]) {
+  const uniqueFacilityIds = Array.from(new Set(facilityIds))
+
+  if (!uniqueFacilityIds.length) {
+    return []
+  }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("gym_facilities")
+    .select("id, name, address, phone")
+    .in("id", uniqueFacilityIds)
+
+  if (error) {
+    throw new Error(`Unable to load staff facilities: ${error.message}`)
+  }
+
+  return ((data ?? []) as unknown as FacilityRecord[]).map(mapFacility)
+}
+
+async function getLoginUserFacilities(userId: string, role: string | null) {
+  const supabase = await createClient()
+
+  if (role === "manager") {
+    const { data, error } = await supabase
+      .from("facility_managers")
+      .select("facility_id")
+      .eq("manager_id", userId)
+
+    if (error) {
+      throw new Error(`Unable to load manager facilities: ${error.message}`)
+    }
+
+    return getFacilitiesByIds(
+      ((data ?? []) as unknown as FacilityAssignmentRecord[]).map(
+        (assignment) => assignment.facility_id
+      )
+    )
+  }
+
+  if (role === "pt") {
+    const { data, error } = await supabase
+      .from("facility_pts")
+      .select("facility_id")
+      .eq("pt_id", userId)
+
+    if (error) {
+      throw new Error(`Unable to load PT facilities: ${error.message}`)
+    }
+
+    return getFacilitiesByIds(
+      ((data ?? []) as unknown as FacilityAssignmentRecord[]).map(
+        (assignment) => assignment.facility_id
+      )
+    )
+  }
+
+  return []
 }
 
 export async function getStaffPageData() {
@@ -193,4 +300,73 @@ export async function getManagerStaffPageData() {
   return [...ptUsers.map(mapStaffUser), ...staffRows.map(mapStaffRecord)].sort(
     (a, b) => a.name.localeCompare(b.name)
   )
+}
+
+export async function getStaffDetailData(
+  staffId: string
+): Promise<StaffDetailData | null> {
+  const supabase = await createClient()
+  const { data: staffData, error: staffError } = await supabase
+    .from("staffs")
+    .select(
+      "id, facility_id, full_name, phone, avatar_url, role, status, hired_at, note, created_at, updated_at"
+    )
+    .eq("id", staffId)
+    .maybeSingle()
+
+  if (staffError) {
+    throw new Error(`Unable to load staff: ${staffError.message}`)
+  }
+
+  const staff = staffData as unknown as StaffRecord | null
+
+  if (staff) {
+    return {
+      id: staff.id,
+      kind: "staff_row",
+      name: staff.full_name,
+      phone: staff.phone,
+      avatarUrl: staff.avatar_url,
+      role: staff.role,
+      status: staff.status,
+      hiredAt: staff.hired_at,
+      note: staff.note,
+      createdAt: staff.created_at ?? null,
+      updatedAt: staff.updated_at ?? null,
+      facilities: staff.facility_id
+        ? await getFacilitiesByIds([staff.facility_id])
+        : [],
+    }
+  }
+
+  const { data: userData, error: userError } = await supabase
+    .from("users")
+    .select("id, full_name, phone, avatar_url, role, created_at, updated_at")
+    .eq("id", staffId)
+    .maybeSingle()
+
+  if (userError) {
+    throw new Error(`Unable to load staff login user: ${userError.message}`)
+  }
+
+  const user = userData as unknown as StaffUserRecord | null
+
+  if (!user) {
+    return null
+  }
+
+  return {
+    id: user.id,
+    kind: "login_user",
+    name: user.full_name,
+    phone: user.phone,
+    avatarUrl: user.avatar_url,
+    role: formatStaffUserRole(user.role),
+    status: "active",
+    hiredAt: null,
+    note: "Login account assigned to this facility",
+    createdAt: user.created_at ?? null,
+    updatedAt: user.updated_at ?? null,
+    facilities: await getLoginUserFacilities(user.id, user.role),
+  }
 }

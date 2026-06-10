@@ -4,13 +4,19 @@ import { useState } from "react"
 import Link from "next/link"
 import { Dumbbell } from "lucide-react"
 
+import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
+import { TableActionButton } from "@/components/TableActionButton"
+import {
+  ALL_MONTHS_VALUE,
+  getTableMonthFilterOptions,
+  matchesTableMonthFilter,
+  TableMonthFilter,
+} from "@/components/TableMonthFilter"
 import {
   TablePagination,
   TABLE_ROWS_PER_PAGE,
 } from "@/components/TablePagination"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Empty,
   EmptyDescription,
@@ -26,7 +32,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
 
 export type RoomEquipmentStatus =
   | "active"
@@ -114,19 +119,6 @@ const statusLabels: Record<RoomEquipmentStatus, string> = {
   maintenance: "Maintenance",
   broken: "Broken",
   retired: "Retired",
-}
-
-function statusClassName(status: RoomEquipmentStatus) {
-  return cn(
-    "border font-medium",
-    status === "active" && "border-chart-2/30 bg-chart-2/10 text-chart-2",
-    status === "maintenance" &&
-      "border-chart-4/40 bg-chart-4/20 text-chart-5 dark:text-chart-4",
-    status === "broken" &&
-      "border-destructive/30 bg-destructive/10 text-destructive",
-    status === "retired" &&
-      "border-muted-foreground/30 bg-muted text-muted-foreground"
-  )
 }
 
 function compareText(first: string | null, second: string | null) {
@@ -224,9 +216,16 @@ export function OwnerRoomEquipmentTable({
 }: OwnerRoomEquipmentTableProps) {
   const [sort, setSort] = useState<EquipmentSort>("machine_asc")
   const [statusFilter, setStatusFilter] = useState<EquipmentStatusFilter>("all")
+  const [monthFilter, setMonthFilter] = useState(ALL_MONTHS_VALUE)
   const [currentPage, setCurrentPage] = useState(1)
+  const monthFilterOptions = getTableMonthFilterOptions(
+    equipments,
+    (equipment) => equipment.purchasedAt
+  )
   const filteredEquipments = equipments.filter(
-    (equipment) => statusFilter === "all" || equipment.status === statusFilter
+    (equipment) =>
+      (statusFilter === "all" || equipment.status === statusFilter) &&
+      matchesTableMonthFilter(equipment.purchasedAt, monthFilter)
   )
   const sortedEquipments = sortEquipments(filteredEquipments, sort)
   const totalPages = Math.max(
@@ -274,9 +273,33 @@ export function OwnerRoomEquipmentTable({
     setCurrentPage(1)
   }
 
+  function handleMonthFilterChange(value: string) {
+    setMonthFilter(value)
+    setCurrentPage(1)
+  }
+
   return (
     <>
-      <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+      <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-end">
+        <TableMonthFilter
+          value={monthFilter}
+          options={monthFilterOptions}
+          onValueChange={handleMonthFilterChange}
+          label="Filter equipment by purchase month"
+        />
+      </div>
+      <Table className="min-w-[1120px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+        <colgroup>
+          <col className={canShowAction ? "w-[20%]" : "w-[22%]"} />
+          <col className={canShowAction ? "w-[11%]" : "w-[12%]"} />
+          <col className="w-[9%]" />
+          <col className="w-[11%]" />
+          <col className={canShowAction ? "w-[15%]" : "w-[17%]"} />
+          <col className="w-[10%]" />
+          <col className={canShowAction ? "w-[8%]" : "w-[9%]"} />
+          <col className={canShowAction ? "w-[6%]" : "w-[10%]"} />
+          {canShowAction ? <col className="w-[10%]" /> : null}
+        </colgroup>
         <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="h-12 pl-6">
@@ -357,18 +380,15 @@ export function OwnerRoomEquipmentTable({
                 <TableCell className="pl-6 font-medium">
                   {equipment.name}
                 </TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={statusClassName(equipment.status)}
-                  >
+                <TableCell className="whitespace-nowrap">
+                  <StatusBadge status={equipment.status} showDot>
                     {statusLabels[equipment.status]}
-                  </Badge>
+                  </StatusBadge>
                 </TableCell>
-                <TableCell className="font-mono text-xs break-words text-muted-foreground">
+                <TableCell className="font-mono text-xs whitespace-nowrap text-muted-foreground">
                   {equipment.code}
                 </TableCell>
-                <TableCell className="font-mono text-xs break-words text-muted-foreground">
+                <TableCell className="font-mono text-xs whitespace-nowrap text-muted-foreground">
                   {equipment.serial}
                 </TableCell>
                 <TableCell>
@@ -379,10 +399,10 @@ export function OwnerRoomEquipmentTable({
                     </p>
                   </div>
                 </TableCell>
-                <TableCell className="font-mono text-xs break-words text-muted-foreground">
+                <TableCell className="font-mono text-xs whitespace-nowrap text-muted-foreground">
                   {equipment.purchasedAtLabel}
                 </TableCell>
-                <TableCell className="font-mono font-medium tabular-nums">
+                <TableCell className="font-mono font-medium tabular-nums whitespace-nowrap">
                   {equipment.costLabel}
                 </TableCell>
                 <TableCell className="overflow-hidden pr-6">
@@ -392,7 +412,7 @@ export function OwnerRoomEquipmentTable({
                 </TableCell>
                 {canShowAction ? (
                   <TableCell className="pr-6 text-right">
-                    <Button asChild variant="outline" size="sm">
+                    <TableActionButton asChild tone="view">
                       <Link
                         href={getEquipmentDetailHref(
                           facilityName!,
@@ -402,7 +422,7 @@ export function OwnerRoomEquipmentTable({
                       >
                         Details
                       </Link>
-                    </Button>
+                    </TableActionButton>
                   </TableCell>
                 ) : null}
               </TableRow>

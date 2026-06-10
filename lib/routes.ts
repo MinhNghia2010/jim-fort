@@ -113,7 +113,7 @@ export const appRoutes = [
   {
     label: "Subscription Detail",
     path: "/subscriptions/[subscriptionId]",
-    roles: ["member"],
+    roles: ["manager", "member"],
   },
   {
     label: "Requests",

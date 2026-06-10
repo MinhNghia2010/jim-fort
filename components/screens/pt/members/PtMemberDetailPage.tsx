@@ -1,5 +1,15 @@
-import { RoutePlaceholder } from "@/components/RoutePlaceholder"
+import { OwnerMemberDetailPage } from "@/components/screens/owner/members/OwnerMemberDetailPage"
 
-export function PtMemberDetailPage() {
-  return <RoutePlaceholder title="PT Member Detail" />
+interface PtMemberDetailPageProps {
+  memberId: string
+}
+
+export function PtMemberDetailPage({ memberId }: PtMemberDetailPageProps) {
+  return (
+    <OwnerMemberDetailPage
+      memberId={memberId}
+      viewerLabel="PT client"
+      showSessionsLink
+    />
+  )
 }

@@ -3,9 +3,16 @@ import { MessageCircle } from "lucide-react"
 import { createFacilityFeedback } from "@/app/(main)/member-actions"
 import { PageShell } from "@/components/PageShell"
 import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
+import { StatusBadge } from "@/components/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect } from "@/components/ui/native-select"
@@ -83,9 +90,16 @@ export async function MemberFeedbackPage() {
             >
               <div className="grid gap-2">
                 <Label htmlFor="facilityId">Facility</Label>
-                <NativeSelect id="facilityId" name="facilityId" className="w-full">
+                <NativeSelect
+                  id="facilityId"
+                  name="facilityId"
+                  className="w-full"
+                >
                   {facilities.map((facility) => (
-                    <option key={facility.facility_id} value={facility.facility_id}>
+                    <option
+                      key={facility.facility_id}
+                      value={facility.facility_id}
+                    >
                       {facility.gym_facilities?.name ?? "Jim Fort"}
                     </option>
                   ))}
@@ -97,7 +111,13 @@ export async function MemberFeedbackPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="rating">Rating</Label>
-                <Input id="rating" name="rating" type="number" min="1" max="5" />
+                <Input
+                  id="rating"
+                  name="rating"
+                  type="number"
+                  min="1"
+                  max="5"
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="message">Message</Label>
@@ -119,7 +139,7 @@ export async function MemberFeedbackPage() {
                 </CardHeader>
                 <CardContent className="grid gap-4">
                   <div className="flex flex-wrap gap-2">
-                    <Badge>{feedback.status}</Badge>
+                    <StatusBadge status={feedback.status} showDot />
                     {feedback.rating ? (
                       <Badge variant="secondary">{feedback.rating}/5</Badge>
                     ) : null}
@@ -128,7 +148,7 @@ export async function MemberFeedbackPage() {
                     <p className="text-xs font-medium text-muted-foreground">
                       Your message
                     </p>
-                    <p className="whitespace-pre-wrap text-sm leading-6">
+                    <p className="text-sm leading-6 whitespace-pre-wrap">
                       {feedback.message}
                     </p>
                   </div>
@@ -136,7 +156,7 @@ export async function MemberFeedbackPage() {
                     <p className="text-xs font-medium text-muted-foreground">
                       Manager response
                     </p>
-                    <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+                    <p className="text-sm leading-6 whitespace-pre-wrap text-muted-foreground">
                       {feedback.manager_response ?? "No manager response yet."}
                     </p>
                   </div>

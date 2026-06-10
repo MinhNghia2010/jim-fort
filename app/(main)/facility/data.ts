@@ -73,10 +73,21 @@ export interface EquipmentDetailView extends OwnerRoomEquipmentRow {
   updatedAtLabel: string
 }
 
+export interface EquipmentIssueReportView {
+  id: string
+  previousStatus: RoomEquipmentStatus
+  newStatus: RoomEquipmentStatus
+  issue: string
+  createdAt: string
+  createdAtLabel: string
+  reporterName: string
+}
+
 export interface EquipmentDetailPageData {
   facility: FacilityListItem | null
   room: FacilityRoomView | null
   equipment: EquipmentDetailView | null
+  issueReports: EquipmentIssueReportView[]
   errorMessage?: string
 }
 
@@ -119,6 +130,19 @@ type EquipmentRecord = {
   updated_at: string
 }
 
+type UserRelation = {
+  full_name: string | null
+}
+
+type EquipmentIssueReportRecord = {
+  id: string
+  previous_status: string
+  new_status: string
+  issue: string
+  created_at: string
+  reporter: UserRelation | UserRelation[] | null
+}
+
 type StaffRecord = {
   id: string
   facility_id: string
@@ -148,6 +172,12 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
   timeZone: "UTC",
+})
+
+const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "Asia/Ho_Chi_Minh",
 })
 
 export function decodeRouteSegment(value: string) {
@@ -212,6 +242,26 @@ function formatDate(value: string | null | undefined) {
   return Number.isNaN(date.valueOf())
     ? "Not recorded"
     : dateFormatter.format(date)
+}
+
+function formatDateTime(value: string | null | undefined) {
+  if (!value) {
+    return "Not recorded"
+  }
+
+  const date = new Date(value)
+
+  return Number.isNaN(date.valueOf())
+    ? "Not recorded"
+    : dateTimeFormatter.format(date)
+}
+
+function getSingleRelation<T>(relation: T | T[] | null | undefined) {
+  if (Array.isArray(relation)) {
+    return relation[0] ?? null
+  }
+
+  return relation ?? null
 }
 
 function groupByFacility<T extends { facility_id: string }>(
@@ -323,6 +373,22 @@ function mapEquipmentDetail(equipment: EquipmentRecord): EquipmentDetailView {
       equipment.description ?? "No equipment description has been added.",
     createdAtLabel: formatDate(equipment.created_at),
     updatedAtLabel: formatDate(equipment.updated_at),
+  }
+}
+
+function mapEquipmentIssueReport(
+  report: EquipmentIssueReportRecord
+): EquipmentIssueReportView {
+  const reporter = getSingleRelation(report.reporter)
+
+  return {
+    id: report.id,
+    previousStatus: normalizeEquipmentStatus(report.previous_status),
+    newStatus: normalizeEquipmentStatus(report.new_status),
+    issue: report.issue,
+    createdAt: report.created_at,
+    createdAtLabel: formatDateTime(report.created_at),
+    reporterName: reporter?.full_name?.trim() || "Manager",
   }
 }
 
@@ -594,6 +660,24 @@ export async function getEquipmentDetailPageData(
     .eq("room_id", roomId)
     .limit(1)
     .maybeSingle()
+  const issueReportsResult = equipmentResult.data
+    ? await supabase
+        .from("equipment_issue_reports")
+        .select(
+          `
+            id,
+            previous_status,
+            new_status,
+            issue,
+            created_at,
+            reporter:users!equipment_issue_reports_reported_by_manager_id_fkey(
+              full_name
+            )
+          `
+        )
+        .eq("equipment_id", equipmentId)
+        .order("created_at", { ascending: false })
+    : { data: [], error: null }
 
   return {
     facility: roomData.facility,
@@ -601,6 +685,12 @@ export async function getEquipmentDetailPageData(
     equipment: equipmentResult.data
       ? mapEquipmentDetail(equipmentResult.data as EquipmentRecord)
       : null,
-    errorMessage: roomData.errorMessage ?? equipmentResult.error?.message,
+    issueReports: (
+      (issueReportsResult.data ?? []) as unknown as EquipmentIssueReportRecord[]
+    ).map(mapEquipmentIssueReport),
+    errorMessage:
+      roomData.errorMessage ??
+      equipmentResult.error?.message ??
+      issueReportsResult.error?.message,
   }
 }

@@ -2,8 +2,8 @@ import Link from "next/link"
 import { Users } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
+import { TableActionButton } from "@/components/TableActionButton"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -145,7 +145,17 @@ export async function PtMembersPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-0">
-            <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+            <Table className="min-w-[980px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+              <colgroup>
+                <col className="w-[28%]" />
+                <col className="w-[8%]" />
+                <col className="w-[8%]" />
+                <col className="w-[8%]" />
+                <col className="w-[9%]" />
+                <col className="w-[16%]" />
+                <col className="w-[15%]" />
+                <col className="w-[8%]" />
+              </colgroup>
               <TableHeader className="bg-muted/40">
                 <TableRow>
                   <TableHead className="h-12 pl-6">Member</TableHead>
@@ -166,28 +176,38 @@ export async function PtMembersPage() {
                     <TableCell className="pl-6 font-medium">
                       {client.name}
                     </TableCell>
-                    <TableCell>{client.totalSessions}</TableCell>
-                    <TableCell>{client.upcomingSessions}</TableCell>
-                    <TableCell>{client.completedSessions}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-medium tabular-nums whitespace-nowrap">
+                      {client.totalSessions}
+                    </TableCell>
+                    <TableCell className="font-medium tabular-nums whitespace-nowrap">
+                      {client.upcomingSessions}
+                    </TableCell>
+                    <TableCell className="font-medium tabular-nums whitespace-nowrap">
+                      {client.completedSessions}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <Badge variant="secondary">{client.feedbackCount}</Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
                       {client.nextSessionAt
                         ? date.format(new Date(client.nextSessionAt))
                         : "None"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
                       {client.lastSessionAt
                         ? date.format(new Date(client.lastSessionAt))
                         : "None"}
                     </TableCell>
                     <TableCell className="pr-6 text-right">
-                      <Button asChild size="sm" variant="outline">
+                      <TableActionButton
+                        asChild
+                        tone="schedule"
+                        className="min-w-16"
+                      >
                         <Link href={`/members/${client.memberId}/sessions`}>
                           Sessions
                         </Link>
-                      </Button>
+                      </TableActionButton>
                     </TableCell>
                   </TableRow>
                 ))}

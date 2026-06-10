@@ -1,6 +1,7 @@
 import { assignSubscriptionPt } from "@/app/(main)/manager-actions"
 import { PageShell } from "@/components/PageShell"
 import { ManagerActionForm } from "@/components/screens/manager/ManagerActionForm"
+import { StatusBadge } from "@/components/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -149,19 +150,33 @@ export async function ManagerRequestResponsePage({ requestId }: Props) {
             <CardContent>
               {pendingAssignment ? (
                 <div className="grid gap-3 rounded-lg border bg-muted/30 p-4">
-                  <Badge className="w-fit" variant="secondary">
+                  <StatusBadge
+                    status="pending_member_decision"
+                    className="w-fit"
+                    showDot
+                  >
                     Waiting for member decision
-                  </Badge>
+                  </StatusBadge>
                   <p className="text-sm text-muted-foreground">
                     A pending proposal already exists for{" "}
                     {pendingAssignment.users?.full_name ?? "Trainer"}.
                   </p>
                 </div>
+              ) : !preference ? (
+                <div className="grid gap-3 rounded-lg border bg-muted/30 p-4">
+                  <StatusBadge status="pending" className="w-fit" showDot>
+                    Waiting for member preferences
+                  </StatusBadge>
+                  <p className="text-sm text-muted-foreground">
+                    The member needs to send their PT preferences before you can
+                    propose a trainer and schedule.
+                  </p>
+                </div>
               ) : request.status !== "pending_pt_setup" ? (
                 <div className="grid gap-3 rounded-lg border bg-muted/30 p-4">
-                  <Badge className="w-fit" variant="secondary">
+                  <StatusBadge status="closed" className="w-fit" showDot>
                     Assignment closed
-                  </Badge>
+                  </StatusBadge>
                   <p className="text-sm text-muted-foreground">
                     This subscription is no longer waiting for PT setup.
                   </p>
@@ -271,9 +286,11 @@ export async function ManagerRequestResponsePage({ requestId }: Props) {
                     {request.membership_packages?.name ?? "Membership"}
                   </CardDescription>
                 </div>
-                <Badge className="shrink-0">
-                  {request.status.replaceAll("_", " ")}
-                </Badge>
+                <StatusBadge
+                  status={request.status}
+                  className="shrink-0"
+                  showDot
+                />
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 text-sm">

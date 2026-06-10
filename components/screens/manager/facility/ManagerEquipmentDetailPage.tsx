@@ -16,6 +16,7 @@ export function ManagerEquipmentDetailPage({
       facilityName={facilityName}
       roomId={roomId}
       equipmentId={equipmentId}
+      canManageEquipment
     />
   )
 }

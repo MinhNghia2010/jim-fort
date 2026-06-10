@@ -6,7 +6,16 @@ import { CirclePlus, MoreHorizontal, Search, Users } from "lucide-react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import {
+  TableActionButton,
+  TableActionIconButton,
+} from "@/components/TableActionButton"
+import {
+  ALL_MONTHS_VALUE,
+  getTableMonthFilterOptions,
+  matchesTableMonthFilter,
+  TableMonthFilter,
+} from "@/components/TableMonthFilter"
 import {
   TablePagination,
   TABLE_ROWS_PER_PAGE,
@@ -71,6 +80,8 @@ export interface MemberTableRow {
 interface MembersTableProps {
   members: MemberTableRow[]
   canAddMember?: boolean
+  monthFilter?: string
+  onMonthFilterChange?: (value: string) => void
 }
 
 const statusFilters = [
@@ -224,13 +235,22 @@ function getStatusClassName(status: MemberStatus) {
 export function MembersTable({
   members,
   canAddMember = false,
+  monthFilter: controlledMonthFilter,
+  onMonthFilterChange,
 }: MembersTableProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<MemberStatusFilter>("all")
+  const [internalMonthFilter, setInternalMonthFilter] =
+    useState(ALL_MONTHS_VALUE)
   const [sort, setSort] = useState<MemberSort>("joined_desc")
   const [currentPage, setCurrentPage] = useState(1)
 
+  const monthFilter = controlledMonthFilter ?? internalMonthFilter
   const normalizedSearch = search.trim().toLowerCase()
+  const monthFilterOptions = getTableMonthFilterOptions(
+    members,
+    (member) => member.joinedAt
+  )
   const filteredMembers = members.filter((member) => {
     const searchableText = [member.name, member.phone, member.plan]
       .filter(Boolean)
@@ -239,6 +259,7 @@ export function MembersTable({
 
     return (
       (!normalizedSearch || searchableText.includes(normalizedSearch)) &&
+      matchesTableMonthFilter(member.joinedAt, monthFilter) &&
       matchesStatus(member.status, statusFilter)
     )
   })
@@ -284,6 +305,16 @@ export function MembersTable({
     setCurrentPage(1)
   }
 
+  function handleMonthFilterChange(value: string) {
+    if (onMonthFilterChange) {
+      onMonthFilterChange(value)
+    } else {
+      setInternalMonthFilter(value)
+    }
+
+    setCurrentPage(1)
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <Card className="gap-0 overflow-hidden py-0">
@@ -294,12 +325,12 @@ export function MembersTable({
           </CardDescription>
           {canAddMember ? (
             <CardAction>
-              <Button asChild size="sm">
+              <TableActionButton asChild tone="create">
                 <Link href="/members/create">
                   <CirclePlus data-icon="inline-start" />
                   Add Member
                 </Link>
-              </Button>
+              </TableActionButton>
             </CardAction>
           ) : null}
         </CardHeader>
@@ -316,9 +347,24 @@ export function MembersTable({
                 aria-label="Search members"
               />
             </InputGroup>
+            <TableMonthFilter
+              value={monthFilter}
+              options={monthFilterOptions}
+              onValueChange={handleMonthFilterChange}
+              label="Filter members by joined month"
+            />
           </div>
 
-          <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+          <Table className="min-w-[1020px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+            <colgroup>
+              <col className="w-[28%]" />
+              <col className="w-[20%]" />
+              <col className="w-[13%]" />
+              <col className="w-[15%]" />
+              <col className="w-[8%]" />
+              <col className="w-[9%]" />
+              <col className="w-[7%]" />
+            </colgroup>
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">
@@ -402,10 +448,10 @@ export function MembersTable({
                       </div>
                     </TableCell>
                     <TableCell>{member.plan}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
                       {dateFormatter.format(new Date(member.joinedAt))}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       <Badge
                         variant="outline"
                         className={getStatusClassName(member.status)}
@@ -413,22 +459,20 @@ export function MembersTable({
                         {statusLabels[member.status]}
                       </Badge>
                     </TableCell>
-                    <TableCell className="font-medium tabular-nums">
+                    <TableCell className="font-medium tabular-nums whitespace-nowrap">
                       {member.sessions}
                     </TableCell>
-                    <TableCell className="font-medium tabular-nums">
+                    <TableCell className="font-medium tabular-nums whitespace-nowrap">
                       {currencyFormatter.format(member.revenue)}
                     </TableCell>
                     <TableCell className="pr-6 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
+                          <TableActionIconButton
                             aria-label={`Open actions for ${member.name}`}
                           >
                             <MoreHorizontal />
-                          </Button>
+                          </TableActionIconButton>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuGroup>

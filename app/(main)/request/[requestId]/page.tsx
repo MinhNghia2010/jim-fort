@@ -13,6 +13,6 @@ export default async function RequestDetailPage({
 
   return renderRolePage(role, {
     manager: <ManagerRequestDetailPage requestId={requestId} />,
-    pt: <PtRequestDetailPage />,
+    pt: <PtRequestDetailPage requestId={requestId} />,
   })
 }

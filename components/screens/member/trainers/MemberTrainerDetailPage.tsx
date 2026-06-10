@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { CalendarDays, Dumbbell, Phone, UserRound } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
+import { StatusBadge } from "@/components/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -53,18 +54,6 @@ const timeFormatter = new Intl.DateTimeFormat("en-US", {
   hour: "2-digit",
   minute: "2-digit",
 })
-
-function statusVariant(status: string) {
-  if (status === "accepted" || status === "scheduled" || status === "completed") {
-    return "default" as const
-  }
-
-  if (status === "rejected" || status === "cancelled" || status === "missed") {
-    return "outline" as const
-  }
-
-  return "secondary" as const
-}
 
 export async function MemberTrainerDetailPage({
   trainerId,
@@ -167,9 +156,7 @@ export async function MemberTrainerDetailPage({
                       className="rounded-lg border p-3 text-sm"
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <Badge variant={statusVariant(assignment.status)}>
-                          {assignment.status.replaceAll("_", " ")}
-                        </Badge>
+                        <StatusBadge status={assignment.status} showDot />
                         <span className="text-muted-foreground">
                           {assignment.schedule_starts_on
                             ? dateFormatter.format(
@@ -224,9 +211,7 @@ export async function MemberTrainerDetailPage({
                             {timeFormatter.format(endsAt)}
                           </p>
                         </div>
-                        <Badge variant={statusVariant(session.status)}>
-                          {session.status}
-                        </Badge>
+                        <StatusBadge status={session.status} showDot />
                       </div>
                     )
                   })

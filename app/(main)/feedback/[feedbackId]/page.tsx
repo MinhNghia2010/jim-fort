@@ -17,6 +17,6 @@ export default async function FeedbackDetailPage({
 
   return renderRolePage(role, {
     owner: <OwnerFeedbackDetailPage feedbackId={feedbackId} />,
-    manager: <ManagerFeedbackDetailPage />,
+    manager: <ManagerFeedbackDetailPage feedbackId={feedbackId} />,
   })
 }

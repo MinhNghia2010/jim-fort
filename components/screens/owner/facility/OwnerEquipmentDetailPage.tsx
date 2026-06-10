@@ -1,18 +1,23 @@
 import { notFound } from "next/navigation"
 import {
+  ArrowRight,
   BadgeDollarSign,
   Barcode,
   CalendarDays,
   Dumbbell,
   Hash,
+  History,
+  Send,
 } from "lucide-react"
 
+import { reportEquipmentIssue } from "@/app/(main)/manager-actions"
 import { getEquipmentDetailPageData } from "@/app/(main)/facility/data"
 import { PageShell } from "@/components/PageShell"
+import { StatusBadge } from "@/components/StatusBadge"
+import { ManagerActionForm } from "@/components/screens/manager/ManagerActionForm"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
 import type { RoomEquipmentStatus } from "@/components/screens/owner/facility/OwnerRoomEquipmentTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -20,12 +25,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+import { Label } from "@/components/ui/label"
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select"
+import { Textarea } from "@/components/ui/textarea"
 
 interface OwnerEquipmentDetailPageProps {
   facilityName: string
   roomId: string
   equipmentId: string
+  canManageEquipment?: boolean
 }
 
 const statusLabels: Record<RoomEquipmentStatus, string> = {
@@ -35,23 +46,11 @@ const statusLabels: Record<RoomEquipmentStatus, string> = {
   retired: "Retired",
 }
 
-function statusClassName(status: RoomEquipmentStatus) {
-  return cn(
-    "border font-medium",
-    status === "active" && "border-chart-2/30 bg-chart-2/10 text-chart-2",
-    status === "maintenance" &&
-      "border-chart-4/40 bg-chart-4/20 text-chart-5 dark:text-chart-4",
-    status === "broken" &&
-      "border-destructive/30 bg-destructive/10 text-destructive",
-    status === "retired" &&
-      "border-muted-foreground/30 bg-muted text-muted-foreground"
-  )
-}
-
 export async function OwnerEquipmentDetailPage({
   facilityName,
   roomId,
   equipmentId,
+  canManageEquipment = false,
 }: OwnerEquipmentDetailPageProps) {
   const data = await getEquipmentDetailPageData(
     facilityName,
@@ -133,12 +132,9 @@ export async function OwnerEquipmentDetailPage({
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div>
               <p className="text-xs text-muted-foreground">Status</p>
-              <Badge
-                variant="outline"
-                className={statusClassName(equipment.status)}
-              >
+              <StatusBadge status={equipment.status} showDot>
                 {statusLabels[equipment.status]}
-              </Badge>
+              </StatusBadge>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Category</p>
@@ -195,6 +191,119 @@ export async function OwnerEquipmentDetailPage({
                 </p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        {canManageEquipment ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Send
+                  aria-hidden="true"
+                  className="size-4 text-muted-foreground"
+                />
+                Update status
+              </CardTitle>
+              <CardDescription>Record the current issue.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ManagerActionForm
+                action={reportEquipmentIssue}
+                submitLabel="Send to owner"
+                pendingLabel="Sending"
+                successMessage="Equipment issue sent"
+              >
+                <input type="hidden" name="equipmentId" value={equipment.id} />
+                <input type="hidden" name="roomId" value={room.id} />
+                <input
+                  type="hidden"
+                  name="facilityName"
+                  value={facility.name}
+                />
+
+                <div className="grid gap-2">
+                  <Label htmlFor="status">Status</Label>
+                  <NativeSelect
+                    id="status"
+                    name="status"
+                    defaultValue={equipment.status}
+                    className="w-full"
+                    required
+                  >
+                    {Object.entries(statusLabels).map(([value, label]) => (
+                      <NativeSelectOption key={value} value={value}>
+                        {label}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="issue">Issue</Label>
+                  <Textarea
+                    id="issue"
+                    name="issue"
+                    className="min-h-28"
+                    placeholder="What changed with this equipment?"
+                    required
+                  />
+                </div>
+              </ManagerActionForm>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        <Card className={canManageEquipment ? undefined : "xl:col-span-2"}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History
+                aria-hidden="true"
+                className="size-4 text-muted-foreground"
+              />
+              Issue reports
+            </CardTitle>
+            <CardDescription>Manager status updates for this equipment.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3">
+            {data.issueReports.length ? (
+              data.issueReports.map((report) => (
+                <div key={report.id} className="rounded-xl border p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">
+                        {report.reporterName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {report.createdAtLabel}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusBadge status={report.previousStatus} showDot>
+                        {statusLabels[report.previousStatus]}
+                      </StatusBadge>
+                      <ArrowRight
+                        aria-hidden="true"
+                        className="size-4 text-muted-foreground"
+                      />
+                      <StatusBadge status={report.newStatus} showDot>
+                        {statusLabels[report.newStatus]}
+                      </StatusBadge>
+                    </div>
+                  </div>
+                  <p className="mt-3 whitespace-pre-wrap text-sm">
+                    {report.issue}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-xl bg-muted/40 p-4">
+                <p className="text-sm text-muted-foreground">
+                  No issue reports recorded.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

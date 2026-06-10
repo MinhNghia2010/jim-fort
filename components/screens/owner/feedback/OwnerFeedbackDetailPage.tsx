@@ -12,7 +12,10 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
+import { respondFacilityFeedback } from "@/app/(main)/manager-actions"
 import { PageShell } from "@/components/PageShell"
+import { StatusBadge } from "@/components/StatusBadge"
+import { ManagerActionForm } from "@/components/screens/manager/ManagerActionForm"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
 import type { FacilityFeedbackStatus } from "@/components/screens/owner/feedback/OwnerFeedbackTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -27,8 +30,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
+import { Textarea } from "@/components/ui/textarea"
 import { createClient } from "@/lib/supabase/server"
 
 type UserRelation = {
@@ -60,6 +64,7 @@ type FeedbackRecord = {
 
 interface OwnerFeedbackDetailPageProps {
   feedbackId: string
+  canRespond?: boolean
 }
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -91,18 +96,6 @@ function getSingleRelation<T>(relation: T | T[] | null | undefined) {
   }
 
   return relation ?? null
-}
-
-function statusClassName(status: FacilityFeedbackStatus) {
-  return cn(
-    "border font-medium",
-    status === "open" &&
-      "border-chart-4/40 bg-chart-4/20 text-chart-5 dark:text-chart-4",
-    status === "in_review" && "border-primary/30 bg-primary/10 text-primary",
-    status === "responded" && "border-chart-2/30 bg-chart-2/10 text-chart-2",
-    status === "closed" &&
-      "border-muted-foreground/30 bg-muted text-muted-foreground"
-  )
 }
 
 function formatDateTime(value: string | null | undefined) {
@@ -198,6 +191,7 @@ function FeedbackNotFoundContent({ feedbackId }: OwnerFeedbackDetailPageProps) {
 
 export async function OwnerFeedbackDetailPage({
   feedbackId,
+  canRespond = false,
 }: OwnerFeedbackDetailPageProps) {
   const supabase = await createClient()
   const { data, error } = await supabase
@@ -302,12 +296,9 @@ export async function OwnerFeedbackDetailPage({
                     Submitted {formatDateTime(feedback.created_at)}
                   </CardDescription>
                   <CardAction>
-                    <Badge
-                      variant="outline"
-                      className={statusClassName(feedback.status)}
-                    >
+                    <StatusBadge status={feedback.status} showDot>
                       {statusLabels[feedback.status]}
-                    </Badge>
+                    </StatusBadge>
                   </CardAction>
                 </CardHeader>
                 <CardContent className="grid gap-5">
@@ -343,7 +334,7 @@ export async function OwnerFeedbackDetailPage({
                     Response visible to the feedback member.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="grid gap-5">
                   {feedback.manager_response ? (
                     <div className="grid gap-4">
                       <p className="text-sm leading-6 whitespace-pre-wrap text-muted-foreground">
@@ -376,6 +367,38 @@ export async function OwnerFeedbackDetailPage({
                       </p>
                     </div>
                   )}
+                  {canRespond ? (
+                    <>
+                      <Separator />
+                      <ManagerActionForm
+                        action={respondFacilityFeedback}
+                        submitLabel={
+                          feedback.manager_response
+                            ? "Update response"
+                            : "Send response"
+                        }
+                        pendingLabel="Sending"
+                        successMessage="Feedback response saved"
+                        actionsClassName="items-start"
+                      >
+                        <input
+                          type="hidden"
+                          name="feedbackId"
+                          value={feedback.id}
+                        />
+                        <div className="grid gap-2">
+                          <Label htmlFor="managerResponse">Response</Label>
+                          <Textarea
+                            id="managerResponse"
+                            name="managerResponse"
+                            className="min-h-32"
+                            defaultValue={feedback.manager_response ?? ""}
+                            required
+                          />
+                        </div>
+                      </ManagerActionForm>
+                    </>
+                  ) : null}
                 </CardContent>
               </Card>
             </div>

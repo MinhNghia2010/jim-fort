@@ -1,10 +1,17 @@
 import Link from "next/link"
 
 import { PageShell } from "@/components/PageShell"
+import { StatusBadge } from "@/components/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
 
 type Props = {
@@ -38,31 +45,41 @@ type AssignmentRow = {
   users: { full_name: string | null } | null
 }
 
-const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+const days = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+]
 
 export async function ManagerRequestDetailPage({ requestId }: Props) {
   const supabase = await createClient()
-  const [requestResult, preferenceResult, assignmentResult] = await Promise.all([
-    supabase
-      .from("membership_subscriptions")
-      .select(
-        "id,status,facility_id,users:member_id(full_name),membership_packages(name)"
-      )
-      .eq("id", requestId)
-      .single(),
-    supabase
-      .from("membership_pt_preferences")
-      .select(
-        "sessions_per_week,preferred_pt_id,preferred_pt:preferred_pt_id(full_name),preferred_pt_gender,experience_level,training_goal,notes,membership_pt_preference_time_slots(day_of_week,start_time,end_time)"
-      )
-      .eq("subscription_id", requestId)
-      .maybeSingle(),
-    supabase
-      .from("membership_pt_assignments")
-      .select("id,status,users:pt_id(full_name)")
-      .eq("subscription_id", requestId)
-      .order("created_at", { ascending: false }),
-  ])
+  const [requestResult, preferenceResult, assignmentResult] = await Promise.all(
+    [
+      supabase
+        .from("membership_subscriptions")
+        .select(
+          "id,status,facility_id,users:member_id(full_name),membership_packages(name)"
+        )
+        .eq("id", requestId)
+        .single(),
+      supabase
+        .from("membership_pt_preferences")
+        .select(
+          "sessions_per_week,preferred_pt_id,preferred_pt:preferred_pt_id(full_name),preferred_pt_gender,experience_level,training_goal,notes,membership_pt_preference_time_slots(day_of_week,start_time,end_time)"
+        )
+        .eq("subscription_id", requestId)
+        .maybeSingle(),
+      supabase
+        .from("membership_pt_assignments")
+        .select("id,status,users:pt_id(full_name)")
+        .eq("subscription_id", requestId)
+        .order("created_at", { ascending: false }),
+    ]
+  )
 
   const request = requestResult.data as unknown as RequestRow | null
   const preference = preferenceResult.data as unknown as PreferenceRow | null
@@ -72,14 +89,13 @@ export async function ManagerRequestDetailPage({ requestId }: Props) {
         first.day_of_week - second.day_of_week ||
         first.start_time.localeCompare(second.start_time)
     ) ?? []
-  const assignments = (assignmentResult.data ?? []) as unknown as AssignmentRow[]
+  const assignments = (assignmentResult.data ??
+    []) as unknown as AssignmentRow[]
   const pendingAssignment = assignments.find(
     (assignment) => assignment.status === "pending_member_decision"
   )
   const error =
-    requestResult.error ??
-    preferenceResult.error ??
-    assignmentResult.error
+    requestResult.error ?? preferenceResult.error ?? assignmentResult.error
 
   return (
     <PageShell
@@ -100,25 +116,29 @@ export async function ManagerRequestDetailPage({ requestId }: Props) {
           <div className="grid gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>
-                  {request.users?.full_name ?? "Member"}
-                </CardTitle>
+                <CardTitle>{request.users?.full_name ?? "Member"}</CardTitle>
                 <CardDescription>
                   {request.membership_packages?.name ?? "Membership"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-3">
-                <Badge className="w-fit">
-                  {request.status.replaceAll("_", " ")}
-                </Badge>
+                <StatusBadge
+                  status={request.status}
+                  className="w-fit"
+                  showDot
+                />
                 {preference ? (
                   <div className="grid gap-3 rounded-lg border p-3 sm:grid-cols-2">
                     <p>
-                      <span className="text-muted-foreground">Weekly sessions:</span>{" "}
+                      <span className="text-muted-foreground">
+                        Weekly sessions:
+                      </span>{" "}
                       {preference.sessions_per_week}
                     </p>
                     <p>
-                      <span className="text-muted-foreground">Preferred PT:</span>{" "}
+                      <span className="text-muted-foreground">
+                        Preferred PT:
+                      </span>{" "}
                       {preference.preferred_pt?.full_name ?? "No preference"}
                     </p>
                     <p>
@@ -172,7 +192,9 @@ export async function ManagerRequestDetailPage({ requestId }: Props) {
             <Card>
               <CardHeader>
                 <CardTitle>Assignment history</CardTitle>
-                <CardDescription>Previous and current PT decisions.</CardDescription>
+                <CardDescription>
+                  Previous and current PT decisions.
+                </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-2">
                 {assignments.length ? (
@@ -181,13 +203,8 @@ export async function ManagerRequestDetailPage({ requestId }: Props) {
                       key={assignment.id}
                       className="flex items-center justify-between rounded-lg border p-3"
                     >
-                      <span>
-                        {assignment.users?.full_name ??
-                          "Trainer"}
-                      </span>
-                      <Badge variant="secondary">
-                        {assignment.status.replaceAll("_", " ")}
-                      </Badge>
+                      <span>{assignment.users?.full_name ?? "Trainer"}</span>
+                      <StatusBadge status={assignment.status} showDot />
                     </div>
                   ))
                 ) : (
@@ -210,9 +227,13 @@ export async function ManagerRequestDetailPage({ requestId }: Props) {
             <CardContent>
               {pendingAssignment ? (
                 <div className="grid gap-3 rounded-lg border bg-muted/30 p-4">
-                  <Badge className="w-fit" variant="secondary">
+                  <StatusBadge
+                    status="pending_member_decision"
+                    className="w-fit"
+                    showDot
+                  >
                     Waiting for member decision
-                  </Badge>
+                  </StatusBadge>
                   <p className="text-sm text-muted-foreground">
                     A pending proposal already exists for{" "}
                     {pendingAssignment.users?.full_name ?? "Trainer"}. The
@@ -220,20 +241,30 @@ export async function ManagerRequestDetailPage({ requestId }: Props) {
                     subscription.
                   </p>
                 </div>
+              ) : !preference ? (
+                <div className="grid gap-3 rounded-lg border bg-muted/30 p-4">
+                  <StatusBadge status="pending" className="w-fit" showDot>
+                    Waiting for member preferences
+                  </StatusBadge>
+                  <p className="text-sm text-muted-foreground">
+                    The member needs to send their PT preferences before you can
+                    propose a trainer and schedule.
+                  </p>
+                </div>
               ) : request.status !== "pending_pt_setup" ? (
                 <div className="grid gap-3 rounded-lg border bg-muted/30 p-4">
-                  <Badge className="w-fit" variant="secondary">
+                  <StatusBadge status="closed" className="w-fit" showDot>
                     Assignment closed
-                  </Badge>
+                  </StatusBadge>
                   <p className="text-sm text-muted-foreground">
                     This subscription is no longer waiting for PT setup.
                   </p>
                 </div>
               ) : (
                 <div className="grid gap-3 rounded-lg border bg-muted/30 p-4">
-                  <Badge className="w-fit" variant="secondary">
+                  <StatusBadge status="pending" className="w-fit" showDot>
                     Response not created
-                  </Badge>
+                  </StatusBadge>
                   <p className="text-sm text-muted-foreground">
                     Open the response form to choose a trainer and proposed
                     schedule. This keeps the member request detail read-only.

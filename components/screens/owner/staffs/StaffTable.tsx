@@ -4,9 +4,18 @@ import { useState } from "react"
 import Link from "next/link"
 import { CirclePlus, MoreHorizontal, Search, UserCog } from "lucide-react"
 
+import { StatusBadge } from "@/components/StatusBadge"
+import {
+  TableActionButton,
+  TableActionIconButton,
+} from "@/components/TableActionButton"
+import {
+  ALL_MONTHS_VALUE,
+  getTableMonthFilterOptions,
+  matchesTableMonthFilter,
+  TableMonthFilter,
+} from "@/components/TableMonthFilter"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   TablePagination,
   TABLE_ROWS_PER_PAGE,
@@ -47,7 +56,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
-import { cn } from "@/lib/utils"
 
 export type StaffStatus = "active" | "inactive" | "on_leave" | "terminated"
 
@@ -65,6 +73,8 @@ export interface StaffTableRow {
 interface StaffTableProps {
   staffs: StaffTableRow[]
   canAddStaff?: boolean
+  monthFilter?: string
+  onMonthFilterChange?: (value: string) => void
 }
 
 const statusFilters = [
@@ -186,37 +196,25 @@ function sortStaffs(staffs: StaffTableRow[], sort: StaffSort) {
   })
 }
 
-function getStatusClassName(status: StaffStatus) {
-  return cn(
-    "gap-1.5 rounded-md border px-2.5 py-1 font-medium",
-    status === "active" &&
-      "border-chart-2/30 bg-chart-2/10 text-chart-2 dark:border-chart-2/40 dark:bg-chart-2/20",
-    status === "on_leave" &&
-      "border-chart-4/40 bg-chart-4/20 text-chart-5 dark:border-chart-4/40 dark:bg-chart-4/20 dark:text-chart-4",
-    status === "inactive" &&
-      "border-muted-foreground/30 bg-muted text-muted-foreground",
-    status === "terminated" &&
-      "border-destructive/30 bg-destructive/10 text-destructive dark:border-destructive/40 dark:bg-destructive/20"
-  )
-}
-
-function getStatusDotClassName(status: StaffStatus) {
-  return cn(
-    "size-1.5 rounded-full",
-    status === "active" && "bg-chart-2",
-    status === "on_leave" && "bg-chart-4",
-    status === "inactive" && "bg-muted-foreground",
-    status === "terminated" && "bg-destructive"
-  )
-}
-
-export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
+export function StaffTable({
+  staffs,
+  canAddStaff = false,
+  monthFilter: controlledMonthFilter,
+  onMonthFilterChange,
+}: StaffTableProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StaffStatusFilter>("all")
+  const [internalMonthFilter, setInternalMonthFilter] =
+    useState(ALL_MONTHS_VALUE)
   const [sort, setSort] = useState<StaffSort>("staff_asc")
   const [currentPage, setCurrentPage] = useState(1)
 
+  const monthFilter = controlledMonthFilter ?? internalMonthFilter
   const normalizedSearch = search.trim().toLowerCase()
+  const monthFilterOptions = getTableMonthFilterOptions(
+    staffs,
+    (staff) => staff.hiredAt
+  )
   const filteredStaffs = staffs.filter((staff) => {
     const searchableText = [staff.name, staff.phone, staff.role, staff.note]
       .filter(Boolean)
@@ -225,6 +223,7 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
 
     return (
       (!normalizedSearch || searchableText.includes(normalizedSearch)) &&
+      matchesTableMonthFilter(staff.hiredAt, monthFilter) &&
       (statusFilter === "all" || staff.status === statusFilter)
     )
   })
@@ -270,6 +269,16 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
     setCurrentPage(1)
   }
 
+  function handleMonthFilterChange(value: string) {
+    if (onMonthFilterChange) {
+      onMonthFilterChange(value)
+    } else {
+      setInternalMonthFilter(value)
+    }
+
+    setCurrentPage(1)
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <Card className="gap-0 overflow-hidden py-0">
@@ -280,12 +289,12 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
           </CardDescription>
           {canAddStaff ? (
             <CardAction>
-              <Button asChild size="sm">
+              <TableActionButton asChild tone="create">
                 <Link href="/staffs/add">
                   <CirclePlus data-icon="inline-start" />
                   Add Staff
                 </Link>
-              </Button>
+              </TableActionButton>
             </CardAction>
           ) : null}
         </CardHeader>
@@ -302,9 +311,24 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                 aria-label="Search staffs"
               />
             </InputGroup>
+            <TableMonthFilter
+              value={monthFilter}
+              options={monthFilterOptions}
+              onValueChange={handleMonthFilterChange}
+              label="Filter staffs by hired month"
+            />
           </div>
 
-          <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+          <Table className="min-w-[1040px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+            <colgroup>
+              <col className="w-[28%]" />
+              <col className="w-[12%]" />
+              <col className="w-[13%]" />
+              <col className="w-[12%]" />
+              <col className="w-[12%]" />
+              <col className="w-[17%]" />
+              <col className="w-[6%]" />
+            </colgroup>
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">
@@ -385,32 +409,25 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="whitespace-nowrap">
                       {staff.role ? (
                         <span className="font-medium">{staff.role}</span>
                       ) : (
                         <span className="text-muted-foreground">No role</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
                       {staff.phone ?? "No phone number"}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
                       {staff.hiredAt
                         ? dateFormatter.format(new Date(staff.hiredAt))
                         : "Not recorded"}
                     </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={getStatusClassName(staff.status)}
-                      >
-                        <span
-                          className={getStatusDotClassName(staff.status)}
-                          aria-hidden="true"
-                        />
+                    <TableCell className="whitespace-nowrap">
+                      <StatusBadge status={staff.status} showDot>
                         {statusLabels[staff.status]}
-                      </Badge>
+                      </StatusBadge>
                     </TableCell>
                     <TableCell className="overflow-hidden">
                       <p className="truncate text-muted-foreground">
@@ -421,13 +438,11 @@ export function StaffTable({ staffs, canAddStaff = false }: StaffTableProps) {
                       <div className="flex items-center justify-end gap-2">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
+                            <TableActionIconButton
                               aria-label={`Open actions for ${staff.name}`}
                             >
                               <MoreHorizontal />
-                            </Button>
+                            </TableActionIconButton>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuGroup>

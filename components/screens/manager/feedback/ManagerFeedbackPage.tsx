@@ -1,5 +1,5 @@
-import { RoutePlaceholder } from "@/components/RoutePlaceholder"
+import { OwnerFeedbackPage } from "@/components/screens/owner/feedback/OwnerFeedbackPage"
 
 export function ManagerFeedbackPage() {
-  return <RoutePlaceholder title="Manager Feedback" />
+  return <OwnerFeedbackPage managerActions />
 }

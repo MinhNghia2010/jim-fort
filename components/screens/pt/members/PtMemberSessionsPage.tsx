@@ -2,9 +2,9 @@ import Link from "next/link"
 import { CalendarDays } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
+import { StatusBadge } from "@/components/StatusBadge"
+import { TableActionButton } from "@/components/TableActionButton"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -147,7 +147,15 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
               </CardDescription>
             </CardHeader>
             <CardContent className="px-0">
-              <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+              <Table className="min-w-[860px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+                <colgroup>
+                  <col className="w-[10%]" />
+                  <col className="w-[22%]" />
+                  <col className="w-[22%]" />
+                  <col className="w-[16%]" />
+                  <col className="w-[18%]" />
+                  <col className="w-[12%]" />
+                </colgroup>
                 <TableHeader className="bg-muted/40">
                   <TableRow>
                     <TableHead className="h-12 pl-6">Session</TableHead>
@@ -169,26 +177,33 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
                         <TableCell className="pl-6 font-medium">
                           #{session.session_number}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">
                           {date.format(new Date(session.starts_at))}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">
                           {date.format(new Date(session.ends_at))}
                         </TableCell>
-                        <TableCell>
-                          <Badge>{session.status}</Badge>
+                        <TableCell className="whitespace-nowrap">
+                          <StatusBadge status={session.status} showDot />
                         </TableCell>
-                        <TableCell>
-                          <Badge variant={feedback ? "secondary" : "outline"}>
+                        <TableCell className="whitespace-nowrap">
+                          <StatusBadge
+                            status={feedback?.status ?? "not sent"}
+                            showDot
+                          >
                             {feedback?.status ?? "not sent"}
-                          </Badge>
+                          </StatusBadge>
                         </TableCell>
                         <TableCell className="pr-6 text-right">
-                          <Button asChild size="sm">
+                          <TableActionButton
+                            asChild
+                            tone="schedule"
+                            className="min-w-16"
+                          >
                             <Link href={`/schedule/sessions/${session.id}`}>
                               Open
                             </Link>
-                          </Button>
+                          </TableActionButton>
                         </TableCell>
                       </TableRow>
                     )

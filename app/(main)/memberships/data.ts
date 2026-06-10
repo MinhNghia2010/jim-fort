@@ -1,4 +1,3 @@
-import type { MembershipDistributionItem } from "@/components/screens/owner/memberships/MembershipDistributionChart"
 import type {
   MembershipPlanView,
   OwnerMembershipsPageProps,
@@ -310,18 +309,9 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
     }
   })
 
-  const distribution: MembershipDistributionItem[] = plans
-    .filter((plan) => plan.activeMembers > 0)
-    .map((plan) => ({
-      name: plan.name,
-      value: plan.activeMembers,
-      color: plan.color,
-    }))
-
   return {
     facilityLabel: getFacilityLabel(facilities),
     plans,
-    distribution,
     activeMembers: activeMemberIds.size,
     activeMembersDetail: `${activationsThisMonth} activations this month`,
     revenueThisMonth: currencyFormatter.format(revenueThisMonth),

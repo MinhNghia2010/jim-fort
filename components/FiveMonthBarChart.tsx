@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -35,6 +35,26 @@ export interface FiveMonthBarChartProps {
 
 const CHART_MARGIN = { top: 8, right: 8, left: 8, bottom: 0 } as const
 
+function formatCompactValue(
+  value: number,
+  valueFormat: "number" | "currency",
+  currency: string
+) {
+  const formatter = new Intl.NumberFormat("en-US", {
+    compactDisplay: "short",
+    maximumFractionDigits: 1,
+    notation: "compact",
+    ...(valueFormat === "currency"
+      ? {
+          currency,
+          style: "currency",
+        }
+      : {}),
+  })
+
+  return formatter.format(value)
+}
+
 export function FiveMonthBarChart({
   title,
   data,
@@ -52,7 +72,9 @@ export function FiveMonthBarChart({
     },
   } satisfies ChartConfig
 
-  const chartData = data.slice(-5)
+  const chartData = [...data]
+    .sort((first, second) => first.monthKey.localeCompare(second.monthKey))
+    .slice(-5)
   const formatValue = (value: number) =>
     valueFormat === "currency"
       ? new Intl.NumberFormat("en-US", {
@@ -90,6 +112,15 @@ export function FiveMonthBarChart({
             barSize={24}
           >
             <CartesianGrid vertical={false} />
+            <YAxis
+              width={52}
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) =>
+                formatCompactValue(Number(value), valueFormat, currency)
+              }
+            />
             <XAxis
               dataKey="month"
               tickLine={false}

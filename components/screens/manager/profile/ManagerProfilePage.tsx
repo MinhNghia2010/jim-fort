@@ -1,5 +1,5 @@
-import { RoutePlaceholder } from "@/components/RoutePlaceholder"
+import { ProfilePageContent } from "@/components/screens/shared/profile/ProfilePageContent"
 
 export function ManagerProfilePage() {
-  return <RoutePlaceholder title="Manager Profile" />
+  return <ProfilePageContent roleLabel="Manager" />
 }

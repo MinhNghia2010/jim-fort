@@ -1,13 +1,20 @@
 "use client"
 
 import type { ComponentProps } from "react"
-import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 
+import {
+  getPreviousAppPath,
+  NAVIGATION_HISTORY_CHANGE_EVENT,
+} from "@/components/NavigationHistoryTracker"
 import { Button } from "@/components/ui/button"
 
-interface HistoryBackButtonProps
-  extends Pick<ComponentProps<typeof Button>, "className" | "variant"> {
+interface HistoryBackButtonProps extends Pick<
+  ComponentProps<typeof Button>,
+  "className" | "variant"
+> {
   fallbackHref: string
   label?: string
 }
@@ -19,6 +26,61 @@ export function HistoryBackButton({
   variant,
 }: HistoryBackButtonProps) {
   const router = useRouter()
+  const pathname = usePathname()
+
+  const resolvePreviousPath = useCallback(() => {
+    if (typeof window === "undefined") {
+      return null
+    }
+
+    const currentPath = `${window.location.pathname}${window.location.search}`
+    const trackedPreviousPath = getPreviousAppPath(currentPath)
+
+    if (trackedPreviousPath) {
+      return trackedPreviousPath
+    }
+
+    if (!document.referrer) {
+      return null
+    }
+
+    try {
+      const referrer = new URL(document.referrer)
+      const referrerPath = `${referrer.pathname}${referrer.search}`
+
+      if (
+        referrer.origin === window.location.origin &&
+        referrerPath !== currentPath
+      ) {
+        return referrerPath
+      }
+    } catch {
+      return null
+    }
+
+    return null
+  }, [])
+  const [previousPath, setPreviousPath] = useState<string | null>(() =>
+    resolvePreviousPath()
+  )
+
+  useEffect(() => {
+    function handleHistoryChange() {
+      setPreviousPath(resolvePreviousPath())
+    }
+
+    window.addEventListener(
+      NAVIGATION_HISTORY_CHANGE_EVENT,
+      handleHistoryChange
+    )
+
+    return () => {
+      window.removeEventListener(
+        NAVIGATION_HISTORY_CHANGE_EVENT,
+        handleHistoryChange
+      )
+    }
+  }, [pathname, resolvePreviousPath])
 
   function handleBack() {
     if (window.history.length > 1) {
@@ -26,7 +88,11 @@ export function HistoryBackButton({
       return
     }
 
-    router.push(fallbackHref)
+    router.push(previousPath ?? fallbackHref)
+  }
+
+  if (!previousPath) {
+    return null
   }
 
   return (

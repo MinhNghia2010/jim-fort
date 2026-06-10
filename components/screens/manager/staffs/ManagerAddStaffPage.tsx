@@ -1,5 +1,5 @@
-import { RoutePlaceholder } from "@/components/RoutePlaceholder"
+import { OwnerAddStaffPage } from "@/components/screens/owner/staffs/OwnerAddStaffPage"
 
 export function ManagerAddStaffPage() {
-  return <RoutePlaceholder title="Manager Add Staff" />
+  return <OwnerAddStaffPage />
 }

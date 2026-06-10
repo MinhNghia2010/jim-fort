@@ -3,9 +3,9 @@ import { CheckCheck, MessageSquareText } from "lucide-react"
 
 import { markSessionFeedbackRead } from "@/app/(main)/member-actions"
 import { PageShell } from "@/components/PageShell"
+import { StatusBadge } from "@/components/StatusBadge"
 import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -38,18 +38,6 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
   timeStyle: "short",
 })
-
-function statusVariant(status: string) {
-  if (status === "read") {
-    return "default" as const
-  }
-
-  if (status === "archived") {
-    return "outline" as const
-  }
-
-  return "secondary" as const
-}
 
 export async function MemberSessionFeedbackPage({
   sessionId,
@@ -100,9 +88,7 @@ export async function MemberSessionFeedbackPage({
                   Sent {dateFormatter.format(new Date(feedback.sent_at))}
                 </CardDescription>
               </div>
-              <Badge variant={statusVariant(feedback.status)}>
-                {feedback.status}
-              </Badge>
+              <StatusBadge status={feedback.status} showDot />
             </div>
           </CardHeader>
           <CardContent className="grid gap-5">

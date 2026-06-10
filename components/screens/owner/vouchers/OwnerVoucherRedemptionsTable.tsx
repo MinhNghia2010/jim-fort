@@ -6,6 +6,12 @@ import { TicketCheck } from "lucide-react"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import type { VoucherRedemptionView } from "@/components/screens/owner/vouchers/OwnerVoucherDetailPage"
 import {
+  ALL_MONTHS_VALUE,
+  getTableMonthFilterOptions,
+  matchesTableMonthFilter,
+  TableMonthFilter,
+} from "@/components/TableMonthFilter"
+import {
   TablePagination,
   TABLE_ROWS_PER_PAGE,
 } from "@/components/TablePagination"
@@ -109,8 +115,16 @@ export function OwnerVoucherRedemptionsTable({
   redemptions,
 }: OwnerVoucherRedemptionsTableProps) {
   const [sort, setSort] = useState<RedemptionSort>("redeemed_desc")
+  const [monthFilter, setMonthFilter] = useState(ALL_MONTHS_VALUE)
   const [currentPage, setCurrentPage] = useState(1)
-  const sortedRedemptions = sortRedemptions([...redemptions], sort)
+  const monthFilterOptions = getTableMonthFilterOptions(
+    redemptions,
+    (redemption) => redemption.redeemedAt
+  )
+  const filteredRedemptions = redemptions.filter((redemption) =>
+    matchesTableMonthFilter(redemption.redeemedAt, monthFilter)
+  )
+  const sortedRedemptions = sortRedemptions([...filteredRedemptions], sort)
   const totalPages = Math.max(
     1,
     Math.ceil(sortedRedemptions.length / TABLE_ROWS_PER_PAGE)
@@ -140,9 +154,28 @@ export function OwnerVoucherRedemptionsTable({
     setCurrentPage(1)
   }
 
+  function handleMonthFilterChange(value: string) {
+    setMonthFilter(value)
+    setCurrentPage(1)
+  }
+
   return (
     <>
-      <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+      <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-end">
+        <TableMonthFilter
+          value={monthFilter}
+          options={monthFilterOptions}
+          onValueChange={handleMonthFilterChange}
+          label="Filter redemptions by redeemed month"
+        />
+      </div>
+      <Table className="min-w-[780px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+        <colgroup>
+          <col className="w-[34%]" />
+          <col className="w-[36%]" />
+          <col className="w-[12%]" />
+          <col className="w-[18%]" />
+        </colgroup>
         <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="h-12 pl-6">
@@ -189,10 +222,10 @@ export function OwnerVoucherRedemptionsTable({
                 <TableCell className="text-muted-foreground">
                   {redemption.membershipPlanName}
                 </TableCell>
-                <TableCell className="font-medium">
+                <TableCell className="font-medium whitespace-nowrap">
                   {redemption.discountAmountLabel}
                 </TableCell>
-                <TableCell className="pr-6 font-mono text-xs break-words text-muted-foreground">
+                <TableCell className="pr-6 font-mono text-xs whitespace-nowrap text-muted-foreground">
                   {redemption.redeemedAtLabel}
                 </TableCell>
               </TableRow>

@@ -7,6 +7,7 @@ export interface EquipmentStatusCount {
 
 export interface MonthlyMetric {
   month: string
+  monthKey: string
   value: number
 }
 
@@ -71,6 +72,7 @@ export interface RoomRecord {
 
 export interface MonthBucket {
   month: string
+  monthKey: string
   start: Date
   end: Date
 }
@@ -143,6 +145,13 @@ export const monthFormatter = new Intl.DateTimeFormat("en-US", {
   month: "long",
   timeZone: "UTC",
 })
+
+export function formatUtcMonthKey(date: Date) {
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(
+    2,
+    "0"
+  )}`
+}
 
 export const dateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",

@@ -3,6 +3,7 @@ import { Check, Dumbbell, PackageCheck } from "lucide-react"
 
 import { createMemberSubscription } from "@/app/(main)/member-actions"
 import { PageShell } from "@/components/PageShell"
+import { StatusBadge } from "@/components/StatusBadge"
 import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -114,7 +115,11 @@ function MemberPlanCard({
         <CardTitle>{plan.name}</CardTitle>
         <CardDescription>{description}</CardDescription>
         <CardAction className="flex items-center gap-2">
-          {isActive ? <Badge>Active plan</Badge> : null}
+          {isActive ? (
+            <StatusBadge status="active" showDot>
+              Active plan
+            </StatusBadge>
+          ) : null}
           <Badge variant={plan.has_pt ? "secondary" : "outline"}>
             {plan.has_pt ? "PT" : "Access"}
           </Badge>

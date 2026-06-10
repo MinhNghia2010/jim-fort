@@ -4,10 +4,11 @@ import { useState } from "react"
 import Link from "next/link"
 import { Check, CirclePlus, PackageCheck, Pencil } from "lucide-react"
 
+import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import type { MembershipPlanView } from "@/components/screens/owner/memberships/OwnerMembershipsPage"
+import { TableActionButton } from "@/components/TableActionButton"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
@@ -31,6 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { cn } from "@/lib/utils"
 
 interface OwnerMembershipsTableProps {
   plans: readonly MembershipPlanView[]
@@ -77,18 +79,6 @@ type MembershipSort =
   | (typeof revenueSortOptions)[number]["value"]
 
 type MembershipStatusFilter = (typeof statusFilterOptions)[number]["value"]
-
-function statusVariant(status: MembershipPlanView["status"]) {
-  if (status === "active") {
-    return "default" as const
-  }
-
-  if (status === "archived") {
-    return "outline" as const
-  }
-
-  return "secondary" as const
-}
 
 function compareText(first: string, second: string) {
   return first.localeCompare(second, undefined, { sensitivity: "base" })
@@ -190,6 +180,7 @@ export function OwnerMembershipsTable({
     sort === "members_desc" || sort === "members_asc" ? sort : "members_desc"
   const revenueSortValue =
     sort === "revenue_desc" || sort === "revenue_asc" ? sort : "revenue_desc"
+  const membersHeaderLabel = canManage ? "Active members" : "Members"
 
   return (
     <Card className="gap-0 overflow-hidden py-0">
@@ -201,17 +192,32 @@ export function OwnerMembershipsTable({
         <CardAction className="flex items-center gap-2">
           <Badge variant="secondary">{plans.length} plans</Badge>
           {canManage ? (
-            <Button asChild size="sm">
+            <TableActionButton asChild tone="create">
               <Link href="/memberships/create">
                 <CirclePlus data-icon="inline-start" />
                 Create membership
               </Link>
-            </Button>
+            </TableActionButton>
           ) : null}
         </CardAction>
       </CardHeader>
       <CardContent className="px-0">
-        <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+        <Table
+          className={cn(
+            "table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal",
+            canManage ? "min-w-[1080px]" : "w-full"
+          )}
+        >
+          <colgroup>
+            <col className={canManage ? "w-[25%]" : "w-[22%]"} />
+            <col className={canManage ? "w-[8%]" : "w-[8%]"} />
+            <col className={canManage ? "w-[8%]" : "w-[9%]"} />
+            <col className={canManage ? "w-[10%]" : "w-[12%]"} />
+            <col className={canManage ? "w-[16%]" : "w-[27%]"} />
+            <col className={canManage ? "w-[11%]" : "w-[10%]"} />
+            <col className={canManage ? "w-[11%]" : "w-[12%]"} />
+            {canManage ? <col className="w-[11%]" /> : null}
+          </colgroup>
           <TableHeader className="bg-muted/40">
             <TableRow>
               <TableHead className="h-12 pl-6">
@@ -247,15 +253,15 @@ export function OwnerMembershipsTable({
                 />
               </TableHead>
               <TableHead className="h-12">Features</TableHead>
-              <TableHead className="h-12">
+              <TableHead className="h-12 px-4">
                 <OwnerTableHeaderSelect
-                  label="Active members"
+                  label={membersHeaderLabel}
                   value={membersSortValue}
                   options={membersSortOptions}
                   onValueChange={setSort}
                 />
               </TableHead>
-              <TableHead className="h-12">
+              <TableHead className="h-12 px-4">
                 <OwnerTableHeaderSelect
                   label="Revenue"
                   value={revenueSortValue}
@@ -291,19 +297,14 @@ export function OwnerMembershipsTable({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="font-heading text-lg font-semibold tabular-nums">
+                  <TableCell className="font-heading text-lg font-semibold whitespace-nowrap tabular-nums">
                     {plan.priceLabel}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="whitespace-nowrap text-muted-foreground">
                     {plan.termLabel}
                   </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={statusVariant(plan.status)}
-                      className="capitalize"
-                    >
-                      {plan.status}
-                    </Badge>
+                  <TableCell className="whitespace-nowrap">
+                    <StatusBadge status={plan.status} showDot />
                   </TableCell>
                   <TableCell>
                     {plan.features.length ? (
@@ -326,20 +327,20 @@ export function OwnerMembershipsTable({
                       </span>
                     )}
                   </TableCell>
-                  <TableCell className="font-mono font-medium tabular-nums">
+                  <TableCell className="px-4 font-mono font-medium whitespace-nowrap tabular-nums">
                     {plan.activeMembers.toLocaleString("en-US")}
                   </TableCell>
-                  <TableCell className="font-mono font-medium tabular-nums">
+                  <TableCell className="px-4 font-mono font-medium whitespace-nowrap tabular-nums">
                     {plan.revenueLabel}
                   </TableCell>
                   {canManage ? (
                     <TableCell className="pr-6 text-right">
-                      <Button asChild variant="outline" size="sm">
+                      <TableActionButton asChild tone="edit">
                         <Link href={`/memberships/edit?planId=${plan.id}`}>
                           <Pencil data-icon="inline-start" />
                           Edit
                         </Link>
-                      </Button>
+                      </TableActionButton>
                     </TableCell>
                   ) : null}
                 </TableRow>

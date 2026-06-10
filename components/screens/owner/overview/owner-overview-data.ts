@@ -2,6 +2,7 @@ import {
   currencyFormatter,
   dateFormatter,
   equipmentStatuses,
+  formatUtcMonthKey,
   membershipColorClasses,
   monthFormatter,
   roomColorClasses,
@@ -46,6 +47,7 @@ function getMonthBuckets(count: number, anchor = new Date()): MonthBucket[] {
 
     return {
       month: monthFormatter.format(start),
+      monthKey: formatUtcMonthKey(start),
       start,
       end: addUtcMonths(start, 1),
     }
@@ -145,6 +147,7 @@ function getNewMembersByMonth(
 
     return {
       month: bucket.month,
+      monthKey: bucket.monthKey,
       value: memberIds.size,
     }
   })
@@ -156,6 +159,7 @@ function getRevenueByMonth(
 ): MonthlyMetric[] {
   return monthBuckets.map((bucket) => ({
     month: bucket.month,
+    monthKey: bucket.monthKey,
     value: sumPaymentsInRange(payments, bucket.start, bucket.end),
   }))
 }

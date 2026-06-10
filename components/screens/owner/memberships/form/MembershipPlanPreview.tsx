@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react"
 import { Check, CreditCard, Users } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/StatusBadge"
 import {
   Card,
   CardAction,
@@ -33,18 +33,6 @@ function getPreviewAccentStyle(color: string): PreviewAccentStyle {
   return {
     "--plan-color": color,
   }
-}
-
-function statusVariant(status: MembershipStatus) {
-  if (status === "active") {
-    return "default" as const
-  }
-
-  if (status === "archived") {
-    return "outline" as const
-  }
-
-  return "secondary" as const
 }
 
 export function MembershipPlanPreview({
@@ -88,12 +76,7 @@ export function MembershipPlanPreview({
           {description || "Describe what members get from this plan."}
         </CardDescription>
         <CardAction>
-          <Badge
-            variant={statusVariant(status)}
-            className="border-[color:var(--plan-color)] bg-[color-mix(in_srgb,var(--plan-color)_12%,transparent)] text-[color:var(--plan-color)] capitalize"
-          >
-            {status}
-          </Badge>
+          <StatusBadge status={status} showDot />
         </CardAction>
       </CardHeader>
 

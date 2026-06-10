@@ -254,11 +254,17 @@ export async function getVouchersPageData(): Promise<OwnerVouchersPageProps> {
   const redemptionRows = (redemptionsResult.data ??
     []) as VoucherRedemptionRow[]
   const redemptionCountByVoucher = new Map<string, number>()
+  const discountImpactByVoucher = new Map<string, number>()
 
   for (const redemption of redemptionRows) {
     redemptionCountByVoucher.set(
       redemption.voucher_id,
       (redemptionCountByVoucher.get(redemption.voucher_id) ?? 0) + 1
+    )
+    discountImpactByVoucher.set(
+      redemption.voucher_id,
+      (discountImpactByVoucher.get(redemption.voucher_id) ?? 0) +
+        toNumber(redemption.discount_amount)
     )
   }
 
@@ -271,6 +277,7 @@ export async function getVouchersPageData(): Promise<OwnerVouchersPageProps> {
       discountLabel: formatDiscount(voucher),
       usage,
       quantity,
+      discountImpact: discountImpactByVoucher.get(voucher.id) ?? 0,
       startsAt: voucher.starts_at,
       startsAtLabel: formatDate(voucher.starts_at, "Immediately"),
       expiresAt: voucher.expires_at,

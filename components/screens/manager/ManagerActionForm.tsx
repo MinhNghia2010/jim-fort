@@ -6,6 +6,7 @@ import { toast } from "sonner"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 type ActionState = {
   error?: string
@@ -22,12 +23,16 @@ export function ManagerActionForm({
   submitLabel,
   pendingLabel = "Saving",
   successMessage = "Action completed",
+  secondaryAction,
+  actionsClassName,
 }: {
   action: ServerAction
   children: React.ReactNode
   submitLabel: string
   pendingLabel?: string
   successMessage?: string
+  secondaryAction?: React.ReactNode
+  actionsClassName?: string
 }) {
   const [state, formAction, pending] = useActionState(action, {})
   const wasPending = useRef(false)
@@ -61,16 +66,19 @@ export function ManagerActionForm({
           <AlertDescription>{state.error}</AlertDescription>
         </Alert>
       ) : null}
-      <Button type="submit" disabled={pending}>
-        {pending ? (
-          <>
-            <Loader2 data-icon="inline-start" className="animate-spin" />
-            {pendingLabel}
-          </>
-        ) : (
-          submitLabel
-        )}
-      </Button>
+      <div className={cn("flex flex-col gap-2", actionsClassName)}>
+        <Button type="submit" disabled={pending}>
+          {pending ? (
+            <>
+              <Loader2 data-icon="inline-start" className="animate-spin" />
+              {pendingLabel}
+            </>
+          ) : (
+            submitLabel
+          )}
+        </Button>
+        {secondaryAction}
+      </div>
     </form>
   )
 }

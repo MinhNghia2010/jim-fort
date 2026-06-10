@@ -1,5 +1,11 @@
-import { RoutePlaceholder } from "@/components/RoutePlaceholder"
+import { OwnerFeedbackDetailPage } from "@/components/screens/owner/feedback/OwnerFeedbackDetailPage"
 
-export function ManagerFeedbackDetailPage() {
-  return <RoutePlaceholder title="Manager Feedback Detail" />
+interface ManagerFeedbackDetailPageProps {
+  feedbackId: string
+}
+
+export function ManagerFeedbackDetailPage({
+  feedbackId,
+}: ManagerFeedbackDetailPageProps) {
+  return <OwnerFeedbackDetailPage feedbackId={feedbackId} canRespond />
 }

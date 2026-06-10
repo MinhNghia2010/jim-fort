@@ -8,9 +8,9 @@ import {
 
 import { markSessionFeedbackRead } from "@/app/(main)/member-actions"
 import { PageShell } from "@/components/PageShell"
+import { StatusBadge } from "@/components/StatusBadge"
 import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import {
   Card,
   CardContent,
@@ -63,18 +63,6 @@ const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
   timeStyle: "short",
 })
 
-function statusVariant(status: string) {
-  if (status === "scheduled" || status === "completed" || status === "read") {
-    return "default" as const
-  }
-
-  if (status === "cancelled" || status === "missed" || status === "archived") {
-    return "outline" as const
-  }
-
-  return "secondary" as const
-}
-
 function FeedbackCard({
   feedback,
   sessionId,
@@ -105,12 +93,7 @@ function FeedbackCard({
                   Sent {dateTimeFormatter.format(new Date(feedback.sent_at))}
                 </p>
               </div>
-              <Badge
-                variant={statusVariant(feedback.status)}
-                className="w-fit"
-              >
-                {feedback.status}
-              </Badge>
+              <StatusBadge status={feedback.status} showDot />
             </div>
 
             {feedback.rating ? (
@@ -228,9 +211,7 @@ export async function MemberScheduleSessionPage({
                       "Facility"}
                   </CardDescription>
                 </div>
-                <Badge variant={statusVariant(session.status)}>
-                  {session.status}
-                </Badge>
+                <StatusBadge status={session.status} showDot />
               </div>
             </CardHeader>
             <CardContent className="grid gap-4">

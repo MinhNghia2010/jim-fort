@@ -4,11 +4,22 @@ import { useState } from "react"
 import { MessageSquare, Search, Star } from "lucide-react"
 import Link from "next/link"
 
+import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import {
   TablePagination,
   TABLE_ROWS_PER_PAGE,
 } from "@/components/TablePagination"
+import {
+  ALL_MONTHS_VALUE,
+  getTableMonthFilterOptions,
+  matchesTableMonthFilter,
+  TableMonthFilter,
+} from "@/components/TableMonthFilter"
+import {
+  TableActionButton,
+  type TableActionTone,
+} from "@/components/TableActionButton"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -37,7 +48,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
 
 export type FacilityFeedbackStatus =
   | "open"
@@ -62,6 +72,9 @@ export interface OwnerFeedbackRow {
 
 interface OwnerFeedbackTableProps {
   feedbacks: readonly OwnerFeedbackRow[]
+  managerActions?: boolean
+  monthFilter?: string
+  onMonthFilterChange?: (value: string) => void
 }
 
 const feedbackSortOptions = [
@@ -105,24 +118,13 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   timeStyle: "short",
   timeZone: "Asia/Ho_Chi_Minh",
 })
+const appTimeZone = "Asia/Ho_Chi_Minh"
 
 const statusLabels: Record<FacilityFeedbackStatus, string> = {
   open: "Open",
   in_review: "In review",
   responded: "Responded",
   closed: "Closed",
-}
-
-function statusClassName(status: FacilityFeedbackStatus) {
-  return cn(
-    "border font-medium",
-    status === "open" &&
-      "border-chart-4/40 bg-chart-4/20 text-chart-5 dark:text-chart-4",
-    status === "in_review" && "border-primary/30 bg-primary/10 text-primary",
-    status === "responded" && "border-chart-2/30 bg-chart-2/10 text-chart-2",
-    status === "closed" &&
-      "border-muted-foreground/30 bg-muted text-muted-foreground"
-  )
 }
 
 function compareText(first: string | null, second: string | null) {
@@ -202,16 +204,45 @@ function feedbackSearchText(feedback: OwnerFeedbackRow) {
     .toLowerCase()
 }
 
-export function OwnerFeedbackTable({ feedbacks }: OwnerFeedbackTableProps) {
+function getManagerAction(feedback: OwnerFeedbackRow): {
+  label: string
+  tone: TableActionTone
+} {
+  if (feedback.status === "responded") {
+    return { label: "Update", tone: "edit" }
+  }
+
+  if (feedback.status === "closed") {
+    return { label: "View", tone: "view" }
+  }
+
+  return { label: "Respond", tone: "feedback" }
+}
+
+export function OwnerFeedbackTable({
+  feedbacks,
+  managerActions = false,
+  monthFilter: controlledMonthFilter,
+  onMonthFilterChange,
+}: OwnerFeedbackTableProps) {
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<FeedbackSort>("feedback_desc")
   const [statusFilter, setStatusFilter] = useState<FeedbackStatusFilter>("all")
+  const [internalMonthFilter, setInternalMonthFilter] =
+    useState(ALL_MONTHS_VALUE)
   const [currentPage, setCurrentPage] = useState(1)
+  const monthFilter = controlledMonthFilter ?? internalMonthFilter
   const normalizedSearch = search.trim().toLowerCase()
+  const monthFilterOptions = getTableMonthFilterOptions(
+    feedbacks,
+    (feedback) => feedback.createdAt,
+    appTimeZone
+  )
   const filteredFeedbacks = feedbacks.filter((feedback) => {
     return (
       (!normalizedSearch ||
         feedbackSearchText(feedback).includes(normalizedSearch)) &&
+      matchesTableMonthFilter(feedback.createdAt, monthFilter, appTimeZone) &&
       (statusFilter === "all" || feedback.status === statusFilter)
     )
   })
@@ -255,6 +286,16 @@ export function OwnerFeedbackTable({ feedbacks }: OwnerFeedbackTableProps) {
     setCurrentPage(1)
   }
 
+  function handleMonthFilterChange(value: string) {
+    if (onMonthFilterChange) {
+      onMonthFilterChange(value)
+    } else {
+      setInternalMonthFilter(value)
+    }
+
+    setCurrentPage(1)
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <Card className="gap-0 overflow-hidden py-0">
@@ -278,9 +319,23 @@ export function OwnerFeedbackTable({ feedbacks }: OwnerFeedbackTableProps) {
                 aria-label="Search feedback"
               />
             </InputGroup>
+            <TableMonthFilter
+              value={monthFilter}
+              options={monthFilterOptions}
+              onValueChange={handleMonthFilterChange}
+              label="Filter feedback by created month"
+            />
           </div>
 
-          <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+          <Table className="min-w-[980px] table-fixed text-[0.925rem] [&_td]:overflow-hidden [&_td]:whitespace-normal [&_th]:whitespace-normal">
+            <colgroup>
+              <col className="w-[29%]" />
+              <col className="w-[17%]" />
+              <col className="w-[8%]" />
+              <col className="w-[12%]" />
+              <col className="w-[24%]" />
+              <col className="w-[10%]" />
+            </colgroup>
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">
@@ -323,83 +378,134 @@ export function OwnerFeedbackTable({ feedbacks }: OwnerFeedbackTableProps) {
                     onValueChange={handleSortChange}
                   />
                 </TableHead>
+                <TableHead className="h-12 pr-6 text-right">
+                  <span className="sr-only">Actions</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedFeedbacks.length ? (
-                paginatedFeedbacks.map((feedback) => (
-                  <TableRow key={feedback.id} className="h-[4.5rem]">
-                    <TableCell className="pl-6">
-                      <div className="flex flex-col gap-1">
-                        <Link
-                          href={`/feedback/${feedback.id}`}
-                          className="font-medium break-words text-foreground underline-offset-4 hover:underline"
-                        >
-                          {feedback.subject}
-                        </Link>
-                        <p className="break-words text-muted-foreground">
-                          {feedback.message}
-                        </p>
-                        <p className="font-mono text-xs break-words text-muted-foreground">
-                          {dateFormatter.format(new Date(feedback.createdAt))}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium break-words">
-                          {feedback.memberName}
-                        </p>
-                        <p className="text-xs break-words text-muted-foreground">
-                          {feedback.memberPhone}
-                        </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="gap-1">
-                        <Star aria-hidden="true" />
-                        {ratingText(feedback.rating)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={statusClassName(feedback.status)}
-                      >
-                        {statusLabels[feedback.status]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="pr-6">
-                      {feedback.managerResponse ? (
-                        <div className="flex flex-col gap-1">
-                          <p className="break-words">
-                            {feedback.managerResponse}
+                paginatedFeedbacks.map((feedback) => {
+                  const tableAction = managerActions
+                    ? getManagerAction(feedback)
+                    : ({ label: "View", tone: "view" } satisfies {
+                        label: string
+                        tone: TableActionTone
+                      })
+
+                  return (
+                    <TableRow key={feedback.id} className="h-[4.5rem]">
+                      <TableCell className="pl-6">
+                        <div className="flex min-w-0 flex-col gap-1">
+                          <p
+                            title={feedback.subject}
+                            className="truncate font-medium text-foreground"
+                          >
+                            {feedback.subject}
                           </p>
-                          <p className="text-xs break-words text-muted-foreground">
-                            {feedback.responderName ?? "Unknown responder"}
-                            {feedback.responderRole
-                              ? ` (${feedback.responderRole})`
-                              : ""}
+                          <p
+                            title={feedback.message}
+                            className="line-clamp-2 text-muted-foreground"
+                          >
+                            {feedback.message}
                           </p>
-                          {feedback.respondedAt ? (
-                            <p className="font-mono text-xs break-words text-muted-foreground">
-                              {dateFormatter.format(
-                                new Date(feedback.respondedAt)
-                              )}
-                            </p>
-                          ) : null}
+                          <p className="truncate font-mono text-xs text-muted-foreground">
+                            {dateFormatter.format(new Date(feedback.createdAt))}
+                          </p>
                         </div>
-                      ) : (
-                        <span className="text-muted-foreground">
-                          No response yet
-                        </span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                      <TableCell>
+                        <div className="min-w-0">
+                          <p
+                            title={feedback.memberName}
+                            className="truncate font-medium"
+                          >
+                            {feedback.memberName}
+                          </p>
+                          <p
+                            className="truncate text-xs text-muted-foreground"
+                            title={feedback.memberPhone}
+                          >
+                            {feedback.memberPhone}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="secondary"
+                          className="max-w-full gap-1 truncate"
+                        >
+                          <Star aria-hidden="true" />
+                          {ratingText(feedback.rating)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="min-w-0">
+                          <StatusBadge
+                            status={feedback.status}
+                            showDot
+                            className="max-w-full truncate"
+                          >
+                            {statusLabels[feedback.status]}
+                          </StatusBadge>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {feedback.managerResponse ? (
+                          <div className="flex min-w-0 flex-col gap-1">
+                            <p
+                              title={feedback.managerResponse}
+                              className="line-clamp-2"
+                            >
+                              {feedback.managerResponse}
+                            </p>
+                            <p
+                              title={[
+                                feedback.responderName ?? "Unknown responder",
+                                feedback.responderRole
+                                  ? `(${feedback.responderRole})`
+                                  : null,
+                              ]
+                                .filter(Boolean)
+                                .join(" ")}
+                              className="truncate text-xs text-muted-foreground"
+                            >
+                              {feedback.responderName ?? "Unknown responder"}
+                              {feedback.responderRole
+                                ? ` (${feedback.responderRole})`
+                                : ""}
+                            </p>
+                            {feedback.respondedAt ? (
+                              <p className="truncate font-mono text-xs text-muted-foreground">
+                                {dateFormatter.format(
+                                  new Date(feedback.respondedAt)
+                                )}
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : (
+                          <span className="block truncate text-muted-foreground">
+                            No response yet
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="pr-6 text-right">
+                        <TableActionButton
+                          asChild
+                          tone={tableAction.tone}
+                          aria-label={`${tableAction.label} ${feedback.subject}`}
+                        >
+                          <Link href={`/feedback/${feedback.id}`}>
+                            {tableAction.label}
+                          </Link>
+                        </TableActionButton>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-64">
+                  <TableCell colSpan={6} className="h-64">
                     <Empty>
                       <EmptyHeader>
                         <EmptyMedia variant="icon">

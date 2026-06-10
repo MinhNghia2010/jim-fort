@@ -1,4 +1,5 @@
 import { MemberOverviewPage } from "@/components/screens/member/overview/MemberOverviewPage"
+import { ManagerOverviewPage } from "@/components/screens/manager/overview/ManagerOverviewPage"
 import { OwnerOverview } from "@/components/screens/owner/overview/OwnerOverview"
 import { PtOverviewPage } from "@/components/screens/pt/overview/PtOverviewPage"
 import { getAuthenticatedRole } from "@/lib/auth/current-role"
@@ -9,7 +10,7 @@ export default async function OverviewPage() {
 
   return renderRolePage(role, {
     owner: <OwnerOverview />,
-    manager: <OwnerOverview />,
+    manager: <ManagerOverviewPage />,
     pt: <PtOverviewPage />,
     member: <MemberOverviewPage />,
   })

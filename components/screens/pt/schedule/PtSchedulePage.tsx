@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
+import { StatusBadge } from "@/components/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -486,21 +487,23 @@ export async function PtSchedulePage({ month }: PtSchedulePageProps) {
                                             <span className="text-muted-foreground">
                                               Status
                                             </span>
-                                            <Badge>{session.status}</Badge>
+                                            <StatusBadge
+                                              status={session.status}
+                                              showDot
+                                            />
                                           </div>
                                           <div className="flex items-center justify-between gap-3">
                                             <span className="text-muted-foreground">
                                               Feedback
                                             </span>
-                                            <Badge
-                                              variant={
-                                                feedback
-                                                  ? "secondary"
-                                                  : "outline"
+                                            <StatusBadge
+                                              status={
+                                                feedback?.status ?? "not sent"
                                               }
+                                              showDot
                                             >
                                               {feedback?.status ?? "not sent"}
-                                            </Badge>
+                                            </StatusBadge>
                                           </div>
                                         </div>
                                         <Button asChild className="mt-2 w-full">

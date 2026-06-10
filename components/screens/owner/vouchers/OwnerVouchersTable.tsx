@@ -4,17 +4,23 @@ import { useState } from "react"
 import Link from "next/link"
 import { BadgePercent, CirclePlus, MoreHorizontal, Tag } from "lucide-react"
 
+import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
-import type {
-  VoucherView,
-  VoucherViewStatus,
-} from "@/components/screens/owner/vouchers/OwnerVouchersPage"
+import type { VoucherView } from "@/components/screens/owner/vouchers/OwnerVouchersPage"
+import {
+  TableActionButton,
+  TableActionIconButton,
+} from "@/components/TableActionButton"
+import {
+  ALL_MONTHS_VALUE,
+  getTableMonthFilterOptions,
+  matchesTableMonthFilter,
+  TableMonthFilter,
+} from "@/components/TableMonthFilter"
 import {
   TablePagination,
   TABLE_ROWS_PER_PAGE,
 } from "@/components/TablePagination"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardAction,
@@ -50,6 +56,8 @@ import {
 interface OwnerVouchersTableProps {
   vouchers: readonly VoucherView[]
   canManage: boolean
+  monthFilter?: string
+  onMonthFilterChange?: (value: string) => void
 }
 
 const codeSortOptions = [
@@ -94,22 +102,6 @@ type VoucherSort =
   | (typeof expiresSortOptions)[number]["value"]
 
 type VoucherStatusFilter = (typeof statusFilterOptions)[number]["value"]
-
-function voucherStatusVariant(status: VoucherViewStatus) {
-  if (status === "active") {
-    return "default" as const
-  }
-
-  if (status === "expired") {
-    return "destructive" as const
-  }
-
-  if (status === "disabled" || status === "scheduled") {
-    return "outline" as const
-  }
-
-  return "secondary" as const
-}
 
 function compareText(first: string, second: string) {
   return first.localeCompare(second, undefined, { sensitivity: "base" })
@@ -172,12 +164,23 @@ function sortVouchers(vouchers: VoucherView[], sort: VoucherSort) {
 export function OwnerVouchersTable({
   vouchers,
   canManage,
+  monthFilter: controlledMonthFilter,
+  onMonthFilterChange,
 }: OwnerVouchersTableProps) {
   const [sort, setSort] = useState<VoucherSort>("code_asc")
   const [statusFilter, setStatusFilter] = useState<VoucherStatusFilter>("all")
+  const [internalMonthFilter, setInternalMonthFilter] =
+    useState(ALL_MONTHS_VALUE)
   const [currentPage, setCurrentPage] = useState(1)
+  const monthFilter = controlledMonthFilter ?? internalMonthFilter
+  const monthFilterOptions = getTableMonthFilterOptions(
+    vouchers,
+    (voucher) => voucher.startsAt
+  )
   const filteredVouchers = vouchers.filter(
-    (voucher) => statusFilter === "all" || voucher.status === statusFilter
+    (voucher) =>
+      (statusFilter === "all" || voucher.status === statusFilter) &&
+      matchesTableMonthFilter(voucher.startsAt, monthFilter)
   )
   const sortedVouchers = sortVouchers(filteredVouchers, sort)
   const totalPages = Math.max(
@@ -216,6 +219,16 @@ export function OwnerVouchersTable({
     setCurrentPage(1)
   }
 
+  function handleMonthFilterChange(value: string) {
+    if (onMonthFilterChange) {
+      onMonthFilterChange(value)
+    } else {
+      setInternalMonthFilter(value)
+    }
+
+    setCurrentPage(1)
+  }
+
   return (
     <Card className="gap-0 overflow-hidden py-0">
       <CardHeader className="border-b py-4">
@@ -226,17 +239,34 @@ export function OwnerVouchersTable({
         </CardDescription>
         {canManage ? (
           <CardAction>
-            <Button asChild size="sm">
+            <TableActionButton asChild tone="create">
               <Link href="/vouchers/create">
                 <CirclePlus data-icon="inline-start" />
                 Create voucher
               </Link>
-            </Button>
+            </TableActionButton>
           </CardAction>
         ) : null}
       </CardHeader>
       <CardContent className="px-0">
-        <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+        <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-end">
+          <TableMonthFilter
+            value={monthFilter}
+            options={monthFilterOptions}
+            onValueChange={handleMonthFilterChange}
+            label="Filter vouchers by start month"
+          />
+        </div>
+        <Table className="min-w-[960px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+          <colgroup>
+            <col className="w-[23%]" />
+            <col className="w-[11%]" />
+            <col className="w-[15%]" />
+            <col className="w-[13%]" />
+            <col className="w-[13%]" />
+            <col className="w-[16%]" />
+            <col className="w-[9%]" />
+          </colgroup>
           <TableHeader className="bg-muted/40">
             <TableRow>
               <TableHead className="h-12 pl-6">
@@ -325,30 +355,23 @@ export function OwnerVouchersTable({
                       />
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-xs break-words text-muted-foreground">
+                  <TableCell className="font-mono text-xs whitespace-nowrap text-muted-foreground">
                     {voucher.startsAtLabel}
                   </TableCell>
-                  <TableCell className="font-mono text-xs break-words text-muted-foreground">
+                  <TableCell className="font-mono text-xs whitespace-nowrap text-muted-foreground">
                     {voucher.expiresAtLabel}
                   </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={voucherStatusVariant(voucher.status)}
-                      className="capitalize"
-                    >
-                      {voucher.status}
-                    </Badge>
+                  <TableCell className="whitespace-nowrap">
+                    <StatusBadge status={voucher.status} showDot />
                   </TableCell>
                   <TableCell className="pr-6 text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
+                        <TableActionIconButton
                           aria-label={`Open actions for ${voucher.code}`}
                         >
                           <MoreHorizontal />
-                        </Button>
+                        </TableActionIconButton>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuGroup>

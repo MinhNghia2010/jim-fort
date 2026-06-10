@@ -1,0 +1,73 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - img [ref=e9]
+          - generic [ref=e15]:
+            - generic [ref=e16]: Jim Fort
+            - generic [ref=e17]: Gym management
+        - generic [ref=e18]:
+          - generic [ref=e19]:
+            - img
+            - text: Secure access
+          - generic [ref=e20]:
+            - generic [ref=e21]: Sign in to your gym workspace.
+            - generic [ref=e22]: Use the Jim Fort account assigned to you. Your workspace opens from the role stored with your authenticated account.
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - generic [ref=e27]: Sign in
+          - generic [ref=e28]: Enter the email and password created for your account.
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - group [ref=e33]:
+                - generic [ref=e34]: Email address
+                - group [ref=e35]:
+                  - textbox "Email address" [ref=e36]:
+                    - /placeholder: name@example.com
+                  - group [ref=e37]:
+                    - img [ref=e38]
+              - group [ref=e41]:
+                - generic [ref=e42]: Password
+                - group [ref=e43]:
+                  - textbox "Password" [ref=e44]:
+                    - /placeholder: Enter your password
+                  - group [ref=e45]:
+                    - img [ref=e46]
+                  - group [ref=e49]:
+                    - button "Show password" [ref=e50] [cursor=pointer]:
+                      - img
+              - group [ref=e51]:
+                - checkbox "Keep me signed in" [checked] [ref=e52] [cursor=pointer]:
+                  - generic:
+                    - img
+                - checkbox [checked]
+                - generic [ref=e53]: Keep me signed in
+            - button "Sign in" [ref=e54] [cursor=pointer]
+          - generic [ref=e55]:
+            - paragraph [ref=e58]: Demo accounts
+            - generic [ref=e60]:
+              - button "Sign in as Owner" [ref=e62] [cursor=pointer]:
+                - img
+                - generic [ref=e63]:
+                  - generic [ref=e64]: Owner
+                  - generic [ref=e65]: owner@gmail.com
+              - button "Sign in as Manager" [ref=e67] [cursor=pointer]:
+                - img
+                - generic [ref=e68]:
+                  - generic [ref=e69]: Manager
+                  - generic [ref=e70]: manager@gmail.com
+              - button "Sign in as PT" [ref=e72] [cursor=pointer]:
+                - img
+                - generic [ref=e73]:
+                  - generic [ref=e74]: PT
+                  - generic [ref=e75]: pt01@gmail.com
+              - button "Sign in as Member" [ref=e77] [cursor=pointer]:
+                - img
+                - generic [ref=e78]:
+                  - generic [ref=e79]: Member
+                  - generic [ref=e80]: member@gmail.com
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e86] [cursor=pointer]:
+    - img [ref=e87]

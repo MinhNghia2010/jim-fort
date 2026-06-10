@@ -8,6 +8,7 @@ import {
   type RoomStatus,
 } from "@/app/(main)/facility/data"
 import { PageShell } from "@/components/PageShell"
+import { StatusBadge } from "@/components/StatusBadge"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
 import { OwnerRoomEquipmentTable } from "@/components/screens/owner/facility/OwnerRoomEquipmentTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -21,7 +22,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
 
 interface OwnerFacilityRoomPageProps {
   facilityName: string
@@ -32,17 +32,6 @@ const roomStatusLabels: Record<RoomStatus, string> = {
   active: "Active",
   maintenance: "Maintenance",
   closed: "Closed",
-}
-
-function roomStatusClassName(status: RoomStatus) {
-  return cn(
-    "border font-medium",
-    status === "active" && "border-chart-2/30 bg-chart-2/10 text-chart-2",
-    status === "maintenance" &&
-      "border-chart-4/40 bg-chart-4/20 text-chart-5 dark:text-chart-4",
-    status === "closed" &&
-      "border-muted-foreground/30 bg-muted text-muted-foreground"
-  )
 }
 
 export async function OwnerFacilityRoomPage({
@@ -132,12 +121,9 @@ export async function OwnerFacilityRoomPage({
             <CardTitle>Room details</CardTitle>
             <CardDescription>Status and equipment health.</CardDescription>
             <CardAction>
-              <Badge
-                variant="outline"
-                className={roomStatusClassName(room.status)}
-              >
+              <StatusBadge status={room.status} showDot>
                 {roomStatusLabels[room.status]}
-              </Badge>
+              </StatusBadge>
             </CardAction>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">

@@ -1,10 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { ReceiptText } from "lucide-react"
+import { ReceiptText, Search } from "lucide-react"
 
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import type { RevenueHistoryRow } from "@/components/screens/owner/revenue/OwnerRevenuePage"
+import {
+  ALL_MONTHS_VALUE,
+  getTableMonthFilterOptions,
+  matchesTableMonthFilter,
+  TableMonthFilter,
+} from "@/components/TableMonthFilter"
 import {
   TablePagination,
   TABLE_ROWS_PER_PAGE,
@@ -18,6 +24,11 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
+import {
   Table,
   TableBody,
   TableCell,
@@ -28,6 +39,8 @@ import {
 
 interface OwnerRevenueTableProps {
   rows: readonly RevenueHistoryRow[]
+  monthFilter?: string
+  onMonthFilterChange?: (value: string) => void
 }
 
 const paidAtSortOptions = [
@@ -129,10 +142,43 @@ function sortRevenueRows(rows: RevenueHistoryRow[], sort: RevenueSort) {
   })
 }
 
-export function OwnerRevenueTable({ rows }: OwnerRevenueTableProps) {
+export function OwnerRevenueTable({
+  rows,
+  monthFilter: controlledMonthFilter,
+  onMonthFilterChange,
+}: OwnerRevenueTableProps) {
+  const [search, setSearch] = useState("")
   const [sort, setSort] = useState<RevenueSort>("paid_desc")
+  const [internalMonthFilter, setInternalMonthFilter] =
+    useState(ALL_MONTHS_VALUE)
   const [currentPage, setCurrentPage] = useState(1)
-  const sortedRows = sortRevenueRows([...rows], sort)
+  const monthFilter = controlledMonthFilter ?? internalMonthFilter
+  const normalizedSearch = search.trim().toLowerCase()
+  const monthFilterOptions = getTableMonthFilterOptions(
+    rows,
+    (row) => row.paidAt
+  )
+  const filteredRows = rows.filter((row) => {
+    const searchableText = [
+      row.paidAtLabel,
+      row.memberName,
+      row.memberPhone,
+      row.packageName,
+      row.type,
+      row.methodLabel,
+      row.amountLabel,
+      row.subscriptionStatus,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+
+    return (
+      (!normalizedSearch || searchableText.includes(normalizedSearch)) &&
+      matchesTableMonthFilter(row.paidAt, monthFilter)
+    )
+  })
+  const sortedRows = sortRevenueRows([...filteredRows], sort)
   const totalPages = Math.max(
     1,
     Math.ceil(sortedRows.length / TABLE_ROWS_PER_PAGE)
@@ -161,14 +207,56 @@ export function OwnerRevenueTable({ rows }: OwnerRevenueTableProps) {
   const amountSortValue =
     sort === "amount_asc" || sort === "amount_desc" ? sort : "amount_desc"
 
+  function handleSearchChange(value: string) {
+    setSearch(value)
+    setCurrentPage(1)
+  }
+
   function handleSortChange(value: RevenueSort) {
     setSort(value)
     setCurrentPage(1)
   }
 
+  function handleMonthFilterChange(value: string) {
+    if (onMonthFilterChange) {
+      onMonthFilterChange(value)
+    } else {
+      setInternalMonthFilter(value)
+    }
+
+    setCurrentPage(1)
+  }
+
   return (
     <>
-      <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+      <div className="flex flex-col gap-3 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+        <InputGroup className="w-full lg:w-96">
+          <InputGroupAddon>
+            <Search aria-hidden="true" />
+          </InputGroupAddon>
+          <InputGroupInput
+            value={search}
+            onChange={(event) => handleSearchChange(event.target.value)}
+            placeholder="Search revenue..."
+            aria-label="Search revenue"
+          />
+        </InputGroup>
+        <TableMonthFilter
+          value={monthFilter}
+          options={monthFilterOptions}
+          onValueChange={handleMonthFilterChange}
+          label="Filter revenue by paid month"
+        />
+      </div>
+      <Table className="min-w-[920px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+        <colgroup>
+          <col className="w-[14%]" />
+          <col className="w-[27%]" />
+          <col className="w-[17%]" />
+          <col className="w-[15%]" />
+          <col className="w-[10%]" />
+          <col className="w-[17%]" />
+        </colgroup>
         <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="h-12 pl-6">
@@ -226,7 +314,7 @@ export function OwnerRevenueTable({ rows }: OwnerRevenueTableProps) {
           {sortedRows.length ? (
             paginatedRows.map((row) => (
               <TableRow key={row.id} className="h-[4.5rem]">
-                <TableCell className="pl-6 font-mono text-xs break-words text-muted-foreground">
+                <TableCell className="pl-6 font-mono text-xs whitespace-nowrap text-muted-foreground">
                   {row.paidAtLabel}
                 </TableCell>
                 <TableCell>
@@ -237,14 +325,19 @@ export function OwnerRevenueTable({ rows }: OwnerRevenueTableProps) {
                     </p>
                   </div>
                 </TableCell>
-                <TableCell>{row.packageName}</TableCell>
+                <TableCell className="break-words">{row.packageName}</TableCell>
                 <TableCell>
-                  <Badge variant="secondary">{row.type}</Badge>
+                  <Badge
+                    variant="secondary"
+                    className="h-auto min-h-5 max-w-full text-center leading-tight whitespace-normal"
+                  >
+                    {row.type}
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {row.methodLabel}
                 </TableCell>
-                <TableCell className="pr-6 text-right font-mono font-medium tabular-nums">
+                <TableCell className="pr-6 text-right font-mono font-medium tabular-nums whitespace-nowrap">
                   {row.amountLabel}
                 </TableCell>
               </TableRow>
@@ -262,7 +355,7 @@ export function OwnerRevenueTable({ rows }: OwnerRevenueTableProps) {
                     </EmptyTitle>
                     <EmptyDescription>
                       Paid subscription payments will appear here once members
-                      complete checkout.
+                      complete checkout or when the filters match a payment.
                     </EmptyDescription>
                   </EmptyHeader>
                 </Empty>

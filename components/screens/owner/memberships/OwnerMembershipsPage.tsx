@@ -1,21 +1,10 @@
-import { CircleDollarSign, PackageCheck, Users } from "lucide-react"
+import { CircleDollarSign, Users } from "lucide-react"
 
 import { getMembershipsPageData } from "@/app/(main)/memberships/data"
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
-import {
-  MembershipDistributionChart,
-  type MembershipDistributionItem,
-} from "@/components/screens/owner/memberships/MembershipDistributionChart"
 import { OwnerMembershipsTable } from "@/components/screens/owner/memberships/OwnerMembershipsTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 
 export interface MembershipPlanView {
   id: string
@@ -33,7 +22,6 @@ export interface MembershipPlanView {
 export interface OwnerMembershipsPageProps {
   facilityLabel: string
   plans: readonly MembershipPlanView[]
-  distribution: readonly MembershipDistributionItem[]
   activeMembers: number
   activeMembersDetail: string
   revenueThisMonth: string
@@ -45,7 +33,6 @@ export interface OwnerMembershipsPageProps {
 export function OwnerMembershipsContent({
   facilityLabel,
   plans,
-  distribution,
   activeMembers,
   activeMembersDetail,
   revenueThisMonth,
@@ -57,7 +44,11 @@ export function OwnerMembershipsContent({
     <PageShell
       eyebrow={facilityLabel}
       title="Memberships"
-      description="Plans, pricing, member distribution, and paid package revenue."
+      description={
+        canManage
+          ? "Plans, pricing, active members, and paid package revenue."
+          : "Plans, pricing, and paid package revenue."
+      }
     >
       {errorMessage ? (
         <Alert variant="destructive">
@@ -66,7 +57,7 @@ export function OwnerMembershipsContent({
         </Alert>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <ManagementMetricCard
           title="Active members"
           value={activeMembers}
@@ -79,47 +70,6 @@ export function OwnerMembershipsContent({
           detail={revenueDetail}
           icon={CircleDollarSign}
         />
-        <Card size="sm" className="md:col-span-2 xl:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-xs font-normal text-muted-foreground">
-              Active member distribution
-            </CardTitle>
-            <CardAction className="text-muted-foreground">
-              <PackageCheck aria-hidden="true" className="size-4" />
-            </CardAction>
-          </CardHeader>
-          <CardContent className="flex min-h-32 items-center gap-4">
-            {distribution.length ? (
-              <>
-                <MembershipDistributionChart data={distribution} />
-                <div className="flex min-w-0 flex-1 flex-col gap-2">
-                  {distribution.map((item) => (
-                    <div
-                      key={item.name}
-                      className="flex min-w-0 items-center gap-2 text-xs"
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="size-2 shrink-0 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <span className="truncate text-muted-foreground">
-                        {item.name}
-                      </span>
-                      <span className="ml-auto font-mono font-medium tabular-nums">
-                        {item.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No active member distribution is available yet.
-              </p>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       <OwnerMembershipsTable plans={plans} canManage={canManage} />

@@ -1,9 +1,15 @@
 import { sendPtSessionFeedback } from "@/app/(main)/pt-actions"
 import { PageShell } from "@/components/PageShell"
 import { PtActionForm } from "@/components/screens/pt/PtActionForm"
+import { StatusBadge } from "@/components/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -39,7 +45,9 @@ export async function PtScheduleSessionPage({ sessionId }: Props) {
   const [sessionResult, feedbackResult] = await Promise.all([
     supabase
       .from("membership_pt_sessions")
-      .select("id,session_number,starts_at,ends_at,status,users:member_id(full_name)")
+      .select(
+        "id,session_number,starts_at,ends_at,status,users:member_id(full_name)"
+      )
       .eq("id", sessionId)
       .single(),
     supabase
@@ -72,9 +80,7 @@ export async function PtScheduleSessionPage({ sessionId }: Props) {
           <div className="grid gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>
-                  {session.users?.full_name ?? "Member"}
-                </CardTitle>
+                <CardTitle>{session.users?.full_name ?? "Member"}</CardTitle>
                 <CardDescription>
                   {date.format(new Date(session.starts_at))} -{" "}
                   {date.format(new Date(session.ends_at))}
@@ -87,13 +93,16 @@ export async function PtScheduleSessionPage({ sessionId }: Props) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge>{session.status}</Badge>
+                  <StatusBadge status={session.status} showDot />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Feedback</p>
-                  <Badge variant={feedback ? "secondary" : "outline"}>
+                  <StatusBadge
+                    status={feedback ? feedback.status : "not sent"}
+                    showDot
+                  >
                     {feedback ? feedback.status : "not sent"}
-                  </Badge>
+                  </StatusBadge>
                 </div>
               </CardContent>
             </Card>

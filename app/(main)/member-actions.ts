@@ -640,6 +640,9 @@ export async function savePtPreference(
 
   revalidatePath(`/subscriptions/${subscriptionId}`)
   revalidatePath("/subscriptions")
+  revalidatePath("/request")
+  revalidatePath(`/request/${subscriptionId}`)
+  revalidatePath(`/request/${subscriptionId}/response`)
 
   return {}
 }
@@ -681,6 +684,9 @@ export async function decidePtAssignment(
 
   revalidatePath(`/subscriptions/${subscriptionId}`)
   revalidatePath("/subscriptions")
+  revalidatePath("/request")
+  revalidatePath(`/request/${subscriptionId}`)
+  revalidatePath(`/request/${subscriptionId}/response`)
 
   return {}
 }

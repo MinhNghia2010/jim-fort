@@ -1,10 +1,11 @@
-import Link from "next/link"
 import { ClipboardList } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
+import {
+  ManagerRequestsTable,
+  type ManagerRequestTableRow,
+} from "@/components/screens/manager/requests/ManagerRequestsTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -19,29 +20,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { createClient } from "@/lib/supabase/server"
-
-type RequestRow = {
-  id: string
-  status: string
-  has_pt_snapshot: boolean
-  created_at: string
-  users: { full_name: string | null } | null
-  membership_packages: { name: string | null } | null
-}
-
-const date = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-  timeStyle: "short",
-})
 
 export async function ManagerRequestsPage() {
   const supabase = await createClient()
@@ -53,7 +32,7 @@ export async function ManagerRequestsPage() {
     .in("status", ["pending_pt_setup", "pending_payment"])
     .order("created_at", { ascending: false })
 
-  const requests = (data ?? []) as unknown as RequestRow[]
+  const requests = (data ?? []) as unknown as ManagerRequestTableRow[]
 
   return (
     <PageShell
@@ -77,42 +56,7 @@ export async function ManagerRequestsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-0">
-            <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-              <TableHeader className="bg-muted/40">
-                <TableRow>
-                  <TableHead className="h-12 pl-6">Member</TableHead>
-                  <TableHead className="h-12">Package</TableHead>
-                  <TableHead className="h-12">Status</TableHead>
-                  <TableHead className="h-12">Created</TableHead>
-                  <TableHead className="h-12 pr-6 text-right">
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {requests.map((request) => (
-                  <TableRow key={request.id} className="h-[4.5rem]">
-                    <TableCell className="pl-6 font-medium">
-                      {request.users?.full_name ?? "Member"}
-                    </TableCell>
-                    <TableCell>
-                      {request.membership_packages?.name ?? "Membership"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge>{request.status.replaceAll("_", " ")}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      {date.format(new Date(request.created_at))}
-                    </TableCell>
-                    <TableCell className="pr-6 text-right">
-                      <Button asChild size="sm">
-                        <Link href={`/request/${request.id}`}>Open</Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <ManagerRequestsTable requests={requests} />
           </CardContent>
         </Card>
       ) : (

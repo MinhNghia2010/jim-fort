@@ -2,10 +2,15 @@ import { MemberPaymentDetailPage } from "@/components/screens/member/payments/Me
 import { getAuthenticatedRole } from "@/lib/auth/current-role"
 import { renderRolePage } from "@/lib/role-page"
 
-export default async function PaymentDetailPage() {
+export default async function PaymentDetailPage({
+  params,
+}: {
+  params: Promise<{ paymentId: string }>
+}) {
   const role = await getAuthenticatedRole()
+  const { paymentId } = await params
 
   return renderRolePage(role, {
-    member: <MemberPaymentDetailPage />,
+    member: <MemberPaymentDetailPage paymentId={paymentId} />,
   })
 }

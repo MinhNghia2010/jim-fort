@@ -13,13 +13,20 @@ import {
 import { toast } from "sonner"
 
 import { cancelPendingSubscription } from "@/app/(main)/member-actions"
+import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
+import { TableActionIconButton } from "@/components/TableActionButton"
+import {
+  ALL_MONTHS_VALUE,
+  getTableMonthFilterOptions,
+  matchesTableMonthFilter,
+  TableMonthFilter,
+} from "@/components/TableMonthFilter"
 import {
   TablePagination,
   TABLE_ROWS_PER_PAGE,
 } from "@/components/TablePagination"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -55,7 +62,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
 
 export type MemberSubscriptionStatus =
   | "pending_pt_setup"
@@ -144,6 +150,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
   timeZone: "Asia/Ho_Chi_Minh",
 })
+const appTimeZone = "Asia/Ho_Chi_Minh"
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -216,34 +223,6 @@ function sortSubscriptions(
   })
 }
 
-function statusClassName(status: MemberSubscriptionStatus) {
-  return cn(
-    "gap-1.5 rounded-md border px-2.5 py-1 font-medium",
-    status === "active" &&
-      "border-chart-2/30 bg-chart-2/10 text-chart-2 dark:border-chart-2/40 dark:bg-chart-2/20",
-    (status === "pending_payment" || status === "pending_pt_setup") &&
-      "border-chart-4/40 bg-chart-4/20 text-chart-5 dark:border-chart-4/40 dark:bg-chart-4/20 dark:text-chart-4",
-    status === "expired" &&
-      "border-muted-foreground/30 bg-muted text-muted-foreground",
-    status === "cancelled" &&
-      "border-destructive/30 bg-destructive/10 text-destructive dark:border-destructive/40 dark:bg-destructive/20",
-    status === "unknown" &&
-      "border-muted-foreground/30 bg-muted text-muted-foreground"
-  )
-}
-
-function statusDotClassName(status: MemberSubscriptionStatus) {
-  return cn(
-    "size-1.5 rounded-full",
-    status === "active" && "bg-chart-2",
-    (status === "pending_payment" || status === "pending_pt_setup") &&
-      "bg-chart-4",
-    status === "expired" && "bg-muted-foreground",
-    status === "cancelled" && "bg-destructive",
-    status === "unknown" && "bg-muted-foreground"
-  )
-}
-
 function canCancelSubscription(status: MemberSubscriptionStatus) {
   return status === "pending_payment" || status === "pending_pt_setup"
 }
@@ -306,10 +285,16 @@ export function MemberSubscriptionsTable({
 }: MemberSubscriptionsTableProps) {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
+  const [monthFilter, setMonthFilter] = useState(ALL_MONTHS_VALUE)
   const [sort, setSort] = useState<SubscriptionSort>("created_desc")
   const [currentPage, setCurrentPage] = useState(1)
 
   const normalizedSearch = search.trim().toLowerCase()
+  const monthFilterOptions = getTableMonthFilterOptions(
+    subscriptions,
+    (subscription) => subscription.createdAt,
+    appTimeZone
+  )
   const filteredSubscriptions = subscriptions.filter((subscription) => {
     const searchableText = [
       subscription.plan,
@@ -322,6 +307,7 @@ export function MemberSubscriptionsTable({
 
     return (
       (!normalizedSearch || searchableText.includes(normalizedSearch)) &&
+      matchesTableMonthFilter(subscription.createdAt, monthFilter, appTimeZone) &&
       matchesStatus(subscription.status, statusFilter)
     )
   })
@@ -362,6 +348,11 @@ export function MemberSubscriptionsTable({
     setCurrentPage(1)
   }
 
+  function handleMonthFilterChange(value: string) {
+    setMonthFilter(value)
+    setCurrentPage(1)
+  }
+
   function handleSortChange(value: SubscriptionSort) {
     setSort(value)
     setCurrentPage(1)
@@ -389,9 +380,24 @@ export function MemberSubscriptionsTable({
               aria-label="Search subscriptions"
             />
           </InputGroup>
+          <TableMonthFilter
+            value={monthFilter}
+            options={monthFilterOptions}
+            onValueChange={handleMonthFilterChange}
+            label="Filter subscriptions by created month"
+          />
         </div>
 
-        <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+        <Table className="min-w-[980px] table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+          <colgroup>
+            <col className="w-[27%]" />
+            <col className="w-[21%]" />
+            <col className="w-[11%]" />
+            <col className="w-[13%]" />
+            <col className="w-[14%]" />
+            <col className="w-[8%]" />
+            <col className="w-[6%]" />
+          </colgroup>
           <TableHeader className="bg-muted/40">
             <TableRow>
               <TableHead className="h-12 pl-6">
@@ -464,35 +470,26 @@ export function MemberSubscriptionsTable({
                       {typeLabels[subscription.type]}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="whitespace-nowrap text-muted-foreground">
                     {dateFormatter.format(new Date(subscription.createdAt))}
                   </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={statusClassName(subscription.status)}
-                    >
-                      <span
-                        className={statusDotClassName(subscription.status)}
-                        aria-hidden="true"
-                      />
+                  <TableCell className="whitespace-nowrap">
+                    <StatusBadge status={subscription.status} showDot>
                       {statusLabels[subscription.status]}
-                    </Badge>
+                    </StatusBadge>
                   </TableCell>
-                  <TableCell className="font-medium tabular-nums">
+                  <TableCell className="font-medium tabular-nums whitespace-nowrap">
                     {currencyFormatter.format(subscription.amount)}
                   </TableCell>
                   <TableCell className="pr-6 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
+                          <TableActionIconButton
                             aria-label={`Open actions for ${subscription.plan}`}
                           >
                             <MoreHorizontal />
-                          </Button>
+                          </TableActionIconButton>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuGroup>

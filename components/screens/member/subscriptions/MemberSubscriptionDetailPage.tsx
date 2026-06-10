@@ -8,6 +8,7 @@ import {
 import { PageShell } from "@/components/PageShell"
 import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
 import { MemberPaymentForm } from "@/components/screens/member/subscriptions/MemberPaymentForm"
+import { StatusBadge } from "@/components/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -110,7 +111,7 @@ function PaymentSummaryCard({
         </div>
         <div className="flex items-center justify-between gap-4">
           <span className="text-muted-foreground">Status</span>
-          <Badge>{subscription.status.replaceAll("_", " ")}</Badge>
+          <StatusBadge status={subscription.status} showDot />
         </div>
         <div className="flex items-center justify-between gap-4">
           <span className="text-muted-foreground">Base</span>
@@ -188,8 +189,26 @@ export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
     preferenceResult.error ??
     assignmentResult.error
   const isPendingPayment = subscription?.status === "pending_payment"
-  const showSetupColumn = Boolean(
-    subscription && (!isPendingPayment || subscription.has_pt_snapshot)
+  const isPtSubscription = Boolean(subscription?.has_pt_snapshot)
+  const isPtSetupPending = subscription?.status === "pending_pt_setup"
+  const showCheckout = Boolean(
+    subscription &&
+    isPendingPayment &&
+    (!isPtSubscription || acceptedAssignment)
+  )
+  const showPtWorkflow = Boolean(
+    subscription && isPtSubscription && isPtSetupPending
+  )
+  const showPreferenceForm = Boolean(showPtWorkflow && !pendingAssignment)
+  const showAcceptedSummary = Boolean(
+    subscription && acceptedAssignment && !showCheckout
+  )
+  const showStatusCard = Boolean(subscription && !showCheckout)
+  const showMainColumn = Boolean(
+    showStatusCard ||
+    showPreferenceForm ||
+    pendingAssignment ||
+    showAcceptedSummary
   )
 
   return (
@@ -210,16 +229,16 @@ export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
         <div
           className={cn(
             "grid gap-4",
-            isPendingPayment && !showSetupColumn
+            showCheckout
               ? "lg:grid-cols-[minmax(0,1fr)_360px]"
-              : isPendingPayment
-                ? "xl:grid-cols-[minmax(0,0.9fr)_minmax(360px,0.95fr)_360px]"
-                : "xl:grid-cols-[1fr_420px]"
+              : showMainColumn
+                ? "xl:grid-cols-[1fr_420px]"
+                : "lg:grid-cols-[minmax(0,1fr)_360px]"
           )}
         >
-          {showSetupColumn ? (
+          {showMainColumn ? (
             <div className="grid gap-4">
-              {subscription.status === "pending_payment" ? null : (
+              {showStatusCard ? (
                 <Card>
                   <CardHeader>
                     <CardTitle>Current status</CardTitle>
@@ -230,7 +249,7 @@ export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
                   <CardContent className="grid gap-3 sm:grid-cols-4">
                     <div>
                       <p className="text-xs text-muted-foreground">Status</p>
-                      <Badge>{subscription.status.replaceAll("_", " ")}</Badge>
+                      <StatusBadge status={subscription.status} showDot />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Facility</p>
@@ -256,20 +275,25 @@ export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
                     </div>
                   </CardContent>
                 </Card>
-              )}
+              ) : null}
 
-              {subscription.has_pt_snapshot ? (
+              {showPreferenceForm ? (
                 <Card>
                   <CardHeader>
                     <CardTitle>PT preferences</CardTitle>
                     <CardDescription>
-                      Save preferences before the manager assigns a trainer.
+                      {preference
+                        ? "Your request is waiting for the manager response. You can update it until a trainer is proposed."
+                        : "Send your preferences first so the manager can propose a trainer and schedule."}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <MemberActionForm
                       action={savePtPreference}
-                      submitLabel="Save preferences"
+                      submitLabel={
+                        preference ? "Update request" : "Send request"
+                      }
+                      successMessage="PT preference request sent"
                     >
                       <input
                         type="hidden"
@@ -392,7 +416,7 @@ export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
                 </Card>
               ) : null}
 
-              {pendingAssignment ? (
+              {showPtWorkflow && pendingAssignment ? (
                 <Card>
                   <CardHeader>
                     <CardTitle>PT assignment decision</CardTitle>
@@ -467,7 +491,7 @@ export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
                     </div>
                   </CardContent>
                 </Card>
-              ) : acceptedAssignment ? (
+              ) : showAcceptedSummary && acceptedAssignment ? (
                 <Card>
                   <CardHeader>
                     <CardTitle>Accepted PT</CardTitle>
@@ -476,17 +500,17 @@ export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Badge variant="secondary">
+                    <StatusBadge status={acceptedAssignment.status} showDot>
                       <UserCheck data-icon="inline-start" />
                       Ready for payment
-                    </Badge>
+                    </StatusBadge>
                   </CardContent>
                 </Card>
               ) : null}
             </div>
           ) : null}
 
-          {subscription.status === "pending_payment" ? (
+          {showCheckout ? (
             <div className="grid content-start gap-4">
               <Card>
                 <CardHeader>
