@@ -46,6 +46,7 @@ export interface OwnerMembershipsPageProps {
 export function OwnerMembershipsContent({
   facilityLabel,
   plans,
+  monthlySummaries,
   activeMembers,
   activeMembersDetail,
   revenueThisMonth,
