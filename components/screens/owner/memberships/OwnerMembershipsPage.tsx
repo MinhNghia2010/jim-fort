@@ -1,10 +1,12 @@
-import { CircleDollarSign, Users } from "lucide-react"
-
 import { getMembershipsPageData } from "@/app/(main)/memberships/data"
-import { PageShell } from "@/components/PageShell"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
-import { OwnerMembershipsTable } from "@/components/screens/owner/memberships/OwnerMembershipsTable"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { OwnerMembershipsClientContent } from "@/components/screens/owner/memberships/OwnerMembershipsClientContent"
+
+export interface MembershipPlanMonthStats {
+  monthKey: string
+  activeMembers: number
+  revenue: number
+  paymentCount: number
+}
 
 export interface MembershipPlanView {
   id: string
@@ -17,11 +19,22 @@ export interface MembershipPlanView {
   activeMembers: number
   revenueLabel: string
   color: string
+  monthlyStats: readonly MembershipPlanMonthStats[]
+}
+
+export interface MembershipMonthSummary {
+  monthKey: string
+  monthLabel: string
+  activeMembers: number
+  activations: number
+  revenue: number
+  paymentCount: number
 }
 
 export interface OwnerMembershipsPageProps {
   facilityLabel: string
   plans: readonly MembershipPlanView[]
+  monthlySummaries: readonly MembershipMonthSummary[]
   activeMembers: number
   activeMembersDetail: string
   revenueThisMonth: string
@@ -41,39 +54,17 @@ export function OwnerMembershipsContent({
   canManage = true,
 }: OwnerMembershipsPageProps) {
   return (
-    <PageShell
-      eyebrow={facilityLabel}
-      title="Memberships"
-      description={
-        canManage
-          ? "Plans, pricing, active members, and paid package revenue."
-          : "Plans, pricing, and paid package revenue."
-      }
-    >
-      {errorMessage ? (
-        <Alert variant="destructive">
-          <AlertTitle>Membership data could not be loaded</AlertTitle>
-          <AlertDescription>{errorMessage}</AlertDescription>
-        </Alert>
-      ) : null}
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <ManagementMetricCard
-          title="Active members"
-          value={activeMembers}
-          detail={activeMembersDetail}
-          icon={Users}
-        />
-        <ManagementMetricCard
-          title="Paid revenue this month"
-          value={revenueThisMonth}
-          detail={revenueDetail}
-          icon={CircleDollarSign}
-        />
-      </div>
-
-      <OwnerMembershipsTable plans={plans} canManage={canManage} />
-    </PageShell>
+    <OwnerMembershipsClientContent
+      facilityLabel={facilityLabel}
+      plans={plans}
+      monthlySummaries={monthlySummaries}
+      activeMembers={activeMembers}
+      activeMembersDetail={activeMembersDetail}
+      revenueThisMonth={revenueThisMonth}
+      revenueDetail={revenueDetail}
+      errorMessage={errorMessage}
+      canManage={canManage}
+    />
   )
 }
 

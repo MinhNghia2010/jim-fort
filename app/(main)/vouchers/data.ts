@@ -481,6 +481,7 @@ export async function getVoucherDetailData(
       status: getVoucherStatus(voucher, usage, quantity, new Date()),
       createdAtLabel: formatDateTime(voucher.created_at, "Not recorded"),
       updatedAtLabel: formatDateTime(voucher.updated_at, "Not recorded"),
+      discountImpact: discountImpact,
       discountImpactLabel: currencyFormatter.format(discountImpact),
     },
     redemptions: redemptionRows,

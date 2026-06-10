@@ -8,6 +8,11 @@ import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import type { MembershipPlanView } from "@/components/screens/owner/memberships/OwnerMembershipsPage"
 import { TableActionButton } from "@/components/TableActionButton"
+import {
+  ALL_MONTHS_VALUE,
+  TableMonthFilter,
+  type TableMonthFilterOption,
+} from "@/components/TableMonthFilter"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -37,6 +42,9 @@ import { cn } from "@/lib/utils"
 interface OwnerMembershipsTableProps {
   plans: readonly MembershipPlanView[]
   canManage: boolean
+  monthFilter?: string
+  monthFilterOptions?: readonly TableMonthFilterOption[]
+  onMonthFilterChange?: (value: string) => void
 }
 
 const planSortOptions = [
@@ -162,6 +170,9 @@ function sortPlans(plans: MembershipPlanView[], sort: MembershipSort) {
 export function OwnerMembershipsTable({
   plans,
   canManage,
+  monthFilter = ALL_MONTHS_VALUE,
+  monthFilterOptions = [{ value: ALL_MONTHS_VALUE, label: "All months" }],
+  onMonthFilterChange,
 }: OwnerMembershipsTableProps) {
   const [sort, setSort] = useState<MembershipSort>("plan_asc")
   const [statusFilter, setStatusFilter] =
@@ -202,6 +213,16 @@ export function OwnerMembershipsTable({
         </CardAction>
       </CardHeader>
       <CardContent className="px-0">
+        {onMonthFilterChange ? (
+          <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-end">
+            <TableMonthFilter
+              value={monthFilter}
+              options={monthFilterOptions}
+              onValueChange={onMonthFilterChange}
+              label="Filter membership stats by month"
+            />
+          </div>
+        ) : null}
         <Table
           className={cn(
             "table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal",

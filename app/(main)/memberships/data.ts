@@ -73,9 +73,71 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 })
 
+const monthKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+  month: "2-digit",
+  timeZone: "Asia/Ho_Chi_Minh",
+  year: "numeric",
+})
+
+const monthLabelFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  timeZone: "Asia/Ho_Chi_Minh",
+  year: "numeric",
+})
+
 function toNumber(value: string | number | null | undefined) {
   const number = Number(value ?? 0)
   return Number.isFinite(number) ? number : 0
+}
+
+function getMonthKey(value: string | Date | null | undefined) {
+  if (!value) {
+    return null
+  }
+
+  const date = value instanceof Date ? value : new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return null
+  }
+
+  return monthKeyFormatter.format(date)
+}
+
+function getMonthLabel(monthKey: string) {
+  const [year, month] = monthKey.split("-").map(Number)
+  const date = new Date(Date.UTC(year, month - 1, 1))
+
+  return monthLabelFormatter.format(date)
+}
+
+function addToNumberMap(map: Map<string, number>, key: string, value: number) {
+  map.set(key, (map.get(key) ?? 0) + value)
+}
+
+function addToNestedNumberMap(
+  map: Map<string, Map<string, number>>,
+  outerKey: string,
+  innerKey: string,
+  value: number
+) {
+  const innerMap = map.get(outerKey) ?? new Map<string, number>()
+  innerMap.set(innerKey, (innerMap.get(innerKey) ?? 0) + value)
+  map.set(outerKey, innerMap)
+}
+
+function getNestedSet(
+  map: Map<string, Map<string, Set<string>>>,
+  outerKey: string,
+  innerKey: string
+) {
+  const innerMap = map.get(outerKey) ?? new Map<string, Set<string>>()
+  const set = innerMap.get(innerKey) ?? new Set<string>()
+
+  innerMap.set(innerKey, set)
+  map.set(outerKey, innerMap)
+
+  return set
 }
 
 function formatTerm(packageRow: MembershipPackageRow) {
@@ -175,12 +237,7 @@ function getFacilityLabel(facilities: readonly FacilityRow[]) {
 export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProps> {
   const supabase = await createClient()
   const now = new Date()
-  const monthStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)
-  )
-  const nextMonthStart = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
-  )
+  const currentMonthKey = getMonthKey(now) ?? ""
 
   const [
     facilitiesResult,
@@ -209,8 +266,7 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
       .from("membership_payments")
       .select("subscription_id, amount, paid_at")
       .eq("status", "paid")
-      .gte("paid_at", monthStart.toISOString())
-      .lt("paid_at", nextMonthStart.toISOString()),
+      .not("paid_at", "is", null),
   ])
 
   const queryError = [
@@ -246,8 +302,13 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
 
   const activeMemberIds = new Set<string>()
   const activeMembersByPackage = new Map<string, Set<string>>()
+  const activeMemberIdsByMonth = new Map<string, Set<string>>()
+  const activeMemberIdsByPackageAndMonth = new Map<
+    string,
+    Map<string, Set<string>>
+  >()
+  const activationCountByMonth = new Map<string, number>()
   const packageIdBySubscription = new Map<string, string>()
-  let activationsThisMonth = 0
 
   for (const subscription of subscriptions) {
     packageIdBySubscription.set(subscription.id, subscription.package_id)
@@ -262,22 +323,52 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
     packageMembers.add(subscription.member_id)
     activeMembersByPackage.set(subscription.package_id, packageMembers)
 
-    if (
-      subscription.activated_at &&
-      subscription.activated_at >= monthStart.toISOString() &&
-      subscription.activated_at < nextMonthStart.toISOString()
-    ) {
-      activationsThisMonth += 1
+    const activationMonthKey = getMonthKey(subscription.activated_at)
+
+    if (activationMonthKey) {
+      const monthMembers =
+        activeMemberIdsByMonth.get(activationMonthKey) ?? new Set<string>()
+      monthMembers.add(subscription.member_id)
+      activeMemberIdsByMonth.set(activationMonthKey, monthMembers)
+      getNestedSet(
+        activeMemberIdsByPackageAndMonth,
+        subscription.package_id,
+        activationMonthKey
+      ).add(subscription.member_id)
+      addToNumberMap(activationCountByMonth, activationMonthKey, 1)
     }
   }
 
   const revenueByPackage = new Map<string, number>()
-  let revenueThisMonth = 0
+  const revenueByMonth = new Map<string, number>()
+  const paymentCountByMonth = new Map<string, number>()
+  const revenueByPackageAndMonth = new Map<string, Map<string, number>>()
+  const paymentCountByPackageAndMonth = new Map<string, Map<string, number>>()
 
   for (const payment of payments) {
     const amount = toNumber(payment.amount)
     const packageId = packageIdBySubscription.get(payment.subscription_id)
-    revenueThisMonth += amount
+    const paymentMonthKey = getMonthKey(payment.paid_at)
+
+    if (paymentMonthKey) {
+      addToNumberMap(revenueByMonth, paymentMonthKey, amount)
+      addToNumberMap(paymentCountByMonth, paymentMonthKey, 1)
+
+      if (packageId) {
+        addToNestedNumberMap(
+          revenueByPackageAndMonth,
+          packageId,
+          paymentMonthKey,
+          amount
+        )
+        addToNestedNumberMap(
+          paymentCountByPackageAndMonth,
+          packageId,
+          paymentMonthKey,
+          1
+        )
+      }
+    }
 
     if (!packageId) {
       continue
@@ -291,6 +382,19 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
 
   const plans: MembershipPlanView[] = packageRows.map((packageRow, index) => {
     const roomNames = (roomNamesByPackage.get(packageRow.id) ?? []).sort()
+    const activeMembersByMonth =
+      activeMemberIdsByPackageAndMonth.get(packageRow.id) ?? new Map()
+    const packageRevenueByMonth =
+      revenueByPackageAndMonth.get(packageRow.id) ?? new Map()
+    const packagePaymentCountByMonth =
+      paymentCountByPackageAndMonth.get(packageRow.id) ?? new Map()
+    const planMonthKeys = Array.from(
+      new Set([
+        ...activeMembersByMonth.keys(),
+        ...packageRevenueByMonth.keys(),
+        ...packagePaymentCountByMonth.keys(),
+      ])
+    ).sort((firstKey, secondKey) => secondKey.localeCompare(firstKey))
 
     return {
       id: packageRow.id,
@@ -306,16 +410,45 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
         revenueByPackage.get(packageRow.id) ?? 0
       ),
       color: planColors[index % planColors.length],
+      monthlyStats: planMonthKeys.map((monthKey) => ({
+        monthKey,
+        activeMembers: activeMembersByMonth.get(monthKey)?.size ?? 0,
+        revenue: packageRevenueByMonth.get(monthKey) ?? 0,
+        paymentCount: packagePaymentCountByMonth.get(monthKey) ?? 0,
+      })),
     }
   })
+  const summaryMonthKeys = Array.from(
+    new Set([
+      ...activeMemberIdsByMonth.keys(),
+      ...activationCountByMonth.keys(),
+      ...revenueByMonth.keys(),
+      ...paymentCountByMonth.keys(),
+    ])
+  ).sort((firstKey, secondKey) => secondKey.localeCompare(firstKey))
+  const monthlySummaries = summaryMonthKeys.map((monthKey) => ({
+    monthKey,
+    monthLabel: getMonthLabel(monthKey),
+    activeMembers: activeMemberIdsByMonth.get(monthKey)?.size ?? 0,
+    activations: activationCountByMonth.get(monthKey) ?? 0,
+    revenue: revenueByMonth.get(monthKey) ?? 0,
+    paymentCount: paymentCountByMonth.get(monthKey) ?? 0,
+  }))
 
   return {
     facilityLabel: getFacilityLabel(facilities),
     plans,
+    monthlySummaries,
     activeMembers: activeMemberIds.size,
-    activeMembersDetail: `${activationsThisMonth} activations this month`,
-    revenueThisMonth: currencyFormatter.format(revenueThisMonth),
-    revenueDetail: `${payments.length} paid payments this month`,
+    activeMembersDetail: `${
+      activationCountByMonth.get(currentMonthKey) ?? 0
+    } activations this month`,
+    revenueThisMonth: currencyFormatter.format(
+      revenueByMonth.get(currentMonthKey) ?? 0
+    ),
+    revenueDetail: `${
+      paymentCountByMonth.get(currentMonthKey) ?? 0
+    } paid payments this month`,
     errorMessage: queryError?.message,
   }
 }
