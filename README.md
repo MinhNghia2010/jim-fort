@@ -56,9 +56,11 @@ Open `http://localhost:3000`.
 ```bash
 npm run dev        # Start the local Next.js dev server
 npm run lint       # Run ESLint
+npm run test       # Run focused Node tests
 npm run typecheck  # Run TypeScript checks
 npm run build      # Create a production build
 npm run start      # Start the production server after build
+npm run db:snapshot # Dump a Supabase schema snapshot when Docker is running
 ```
 
 ## Project Layout
@@ -84,7 +86,7 @@ Route access is defined in `lib/routes.ts` for four roles:
 
 The app is currently wired to a Supabase project through environment variables. Historical migration files have intentionally been reset from `supabase/migrations`, so this repository does not currently provide a full database rebuild path from migrations alone.
 
-If you want the repo to become self-contained again, create a fresh baseline migration from the current database schema before relying on local resets or new environments.
+Use `npm run db:snapshot` to generate `supabase/schema.sql` from the linked project once Docker is running. See `supabase/README.md` for the migration-history details.
 
 Useful Supabase CLI commands:
 
@@ -100,6 +102,7 @@ Run the same checks used for the current main branch:
 
 ```bash
 npm run lint
+npm run test
 npm run typecheck
 npm run build
 ```

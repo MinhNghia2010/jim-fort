@@ -62,53 +62,51 @@ export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
       ) : null}
 
       {subscription ? (
-        <div
-          className={cn(
-            "grid gap-4",
-            showCheckout
-              ? "lg:grid-cols-[minmax(0,1fr)_360px]"
-              : showMainColumn
+        showCheckout ? (
+          <MemberSubscriptionCheckoutCard subscription={subscription} />
+        ) : (
+          <div
+            className={cn(
+              "grid gap-4",
+              showMainColumn
                 ? "xl:grid-cols-[1fr_420px]"
                 : "lg:grid-cols-[minmax(0,1fr)_360px]"
-          )}
-        >
-          {showMainColumn ? (
-            <div className="grid gap-4">
-              {showStatusCard ? (
-                <MemberSubscriptionStatusCard subscription={subscription} />
-              ) : null}
+            )}
+          >
+            {showMainColumn ? (
+              <div className="grid gap-4">
+                {showStatusCard ? (
+                  <MemberSubscriptionStatusCard subscription={subscription} />
+                ) : null}
 
-              {showPreferenceForm ? (
-                <MemberPtPreferenceCard
-                  preference={preference}
-                  pts={pts}
-                  subscription={subscription}
-                />
-              ) : null}
+                {showPreferenceForm ? (
+                  <MemberPtPreferenceCard
+                    preference={preference}
+                    pts={pts}
+                    subscription={subscription}
+                  />
+                ) : null}
 
-              {showPtWorkflow && pendingAssignment ? (
-                <MemberPtAssignmentDecisionCard
-                  assignment={pendingAssignment}
-                  subscription={subscription}
-                />
-              ) : showAcceptedSummary && acceptedAssignment ? (
-                <MemberAcceptedPtCard assignment={acceptedAssignment} />
+                {showPtWorkflow && pendingAssignment ? (
+                  <MemberPtAssignmentDecisionCard
+                    assignment={pendingAssignment}
+                    subscription={subscription}
+                  />
+                ) : showAcceptedSummary && acceptedAssignment ? (
+                  <MemberAcceptedPtCard assignment={acceptedAssignment} />
+                ) : null}
+              </div>
+            ) : null}
+
+            <div className="grid content-start gap-4">
+              <MemberPaymentSummaryCard subscription={subscription} />
+
+              {subscription.status === "pending_pt_setup" ? (
+                <MemberCancelSubscriptionCard subscription={subscription} />
               ) : null}
             </div>
-          ) : null}
-
-          {showCheckout ? (
-            <MemberSubscriptionCheckoutCard subscription={subscription} />
-          ) : null}
-
-          <div className="grid content-start gap-4">
-            <MemberPaymentSummaryCard subscription={subscription} />
-
-            {subscription.status === "pending_pt_setup" ? (
-              <MemberCancelSubscriptionCard subscription={subscription} />
-            ) : null}
           </div>
-        </div>
+        )
       ) : null}
     </PageShell>
   )

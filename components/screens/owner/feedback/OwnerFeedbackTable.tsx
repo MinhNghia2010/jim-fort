@@ -3,6 +3,10 @@
 import { useState } from "react"
 import { MessageSquare, Search, Star } from "lucide-react"
 
+import {
+  CsvExportButton,
+  type CsvColumn,
+} from "@/components/CsvExportButton"
 import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import {
@@ -122,6 +126,22 @@ const statusLabels: Record<FacilityFeedbackStatus, string> = {
   responded: "Responded",
   closed: "Closed",
 }
+
+const feedbackExportColumns = [
+  { header: "Created at", value: (feedback) => feedback.createdAt },
+  { header: "Subject", value: (feedback) => feedback.subject },
+  { header: "Message", value: (feedback) => feedback.message },
+  { header: "Rating", value: (feedback) => feedback.rating },
+  { header: "Status", value: (feedback) => statusLabels[feedback.status] },
+  { header: "Member", value: (feedback) => feedback.memberName },
+  { header: "Phone", value: (feedback) => feedback.memberPhone },
+  {
+    header: "Manager response",
+    value: (feedback) => feedback.managerResponse,
+  },
+  { header: "Responder", value: (feedback) => feedback.responderName },
+  { header: "Responded at", value: (feedback) => feedback.respondedAt },
+] satisfies readonly CsvColumn<OwnerFeedbackRow>[]
 
 function compareText(first: string | null, second: string | null) {
   return (first ?? "").localeCompare(second ?? "", undefined, {
@@ -312,12 +332,19 @@ export function OwnerFeedbackTable({
                 aria-label="Search feedback"
               />
             </InputGroup>
-            <TableMonthFilter
-              value={monthFilter}
-              options={monthFilterOptions}
-              onValueChange={handleMonthFilterChange}
-              label="Filter feedback by created month"
-            />
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+              <CsvExportButton
+                filename="jim-fort-feedback.csv"
+                rows={sortedFeedbacks}
+                columns={feedbackExportColumns}
+              />
+              <TableMonthFilter
+                value={monthFilter}
+                options={monthFilterOptions}
+                onValueChange={handleMonthFilterChange}
+                label="Filter feedback by created month"
+              />
+            </div>
           </div>
 
           <Table className="table-auto text-[0.925rem] [&_td]:overflow-hidden [&_td]:whitespace-normal [&_th]:whitespace-normal">

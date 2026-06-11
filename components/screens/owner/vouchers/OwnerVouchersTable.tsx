@@ -5,6 +5,10 @@ import Link from "next/link"
 import { BadgePercent, CirclePlus, Search, Tag } from "lucide-react"
 
 import { deleteVoucher } from "@/app/(main)/vouchers/actions"
+import {
+  CsvExportButton,
+  type CsvColumn,
+} from "@/components/CsvExportButton"
 import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import type { VoucherView } from "@/components/screens/owner/vouchers/OwnerVouchersPage"
@@ -99,6 +103,16 @@ type VoucherSort =
   | (typeof expiresSortOptions)[number]["value"]
 
 type VoucherStatusFilter = (typeof statusFilterOptions)[number]["value"]
+
+const voucherExportColumns = [
+  { header: "Code", value: (voucher) => voucher.code },
+  { header: "Discount", value: (voucher) => voucher.discountLabel },
+  { header: "Usage", value: (voucher) => voucher.usage },
+  { header: "Quantity", value: (voucher) => voucher.quantity },
+  { header: "Starts at", value: (voucher) => voucher.startsAtLabel },
+  { header: "Expires at", value: (voucher) => voucher.expiresAtLabel },
+  { header: "Status", value: (voucher) => voucher.status },
+] satisfies readonly CsvColumn<VoucherView>[]
 
 function compareText(first: string, second: string) {
   return first.localeCompare(second, undefined, { sensitivity: "base" })
@@ -278,12 +292,19 @@ export function OwnerVouchersTable({
             />
           </InputGroup>
 
-          <TableMonthFilter
-            value={monthFilter}
-            options={monthFilterOptions}
-            onValueChange={handleMonthFilterChange}
-            label="Filter vouchers by start month"
-          />
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <CsvExportButton
+              filename="jim-fort-vouchers.csv"
+              rows={sortedVouchers}
+              columns={voucherExportColumns}
+            />
+            <TableMonthFilter
+              value={monthFilter}
+              options={monthFilterOptions}
+              onValueChange={handleMonthFilterChange}
+              label="Filter vouchers by start month"
+            />
+          </div>
         </div>
         <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
           <TableHeader className="bg-muted/40">
@@ -388,7 +409,7 @@ export function OwnerVouchersTable({
                       label={`Open actions for ${voucher.code}`}
                       actions={[
                         {
-                          href: `/voucher/${encodeURIComponent(voucher.code)}`,
+                          href: `/vouchers/${encodeURIComponent(voucher.code)}`,
                           label: "View details",
                         },
                         ...(canManage

@@ -3,6 +3,10 @@
 import { useState } from "react"
 import { ClipboardList } from "lucide-react"
 
+import {
+  CsvExportButton,
+  type CsvColumn,
+} from "@/components/CsvExportButton"
 import { StatusBadge } from "@/components/StatusBadge"
 import { TableRowActions } from "@/components/TableRowActions"
 import {
@@ -48,6 +52,26 @@ const date = new Intl.DateTimeFormat("en-US", {
   timeZone: appTimeZone,
 })
 
+const requestExportColumns = [
+  {
+    header: "Member",
+    value: (request) => request.users?.full_name ?? "Member",
+  },
+  {
+    header: "Package",
+    value: (request) => request.membership_packages?.name ?? "Membership",
+  },
+  { header: "Status", value: (request) => request.status },
+  {
+    header: "PT requested",
+    value: (request) => (request.has_pt_snapshot ? "Yes" : "No"),
+  },
+  {
+    header: "Created at",
+    value: (request) => date.format(new Date(request.created_at)),
+  },
+] satisfies readonly CsvColumn<ManagerRequestTableRow>[]
+
 export function ManagerRequestsTable({ requests }: ManagerRequestsTableProps) {
   const [monthFilter, setMonthFilter] = useState(ALL_MONTHS_VALUE)
   const monthFilterOptions = getTableMonthFilterOptions(
@@ -62,6 +86,11 @@ export function ManagerRequestsTable({ requests }: ManagerRequestsTableProps) {
   return (
     <>
       <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-end">
+        <CsvExportButton
+          filename="jim-fort-manager-requests.csv"
+          rows={filteredRequests}
+          columns={requestExportColumns}
+        />
         <TableMonthFilter
           value={monthFilter}
           options={monthFilterOptions}

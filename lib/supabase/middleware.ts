@@ -49,15 +49,28 @@ function getSafeReturnPath(request: NextRequest, role: Role) {
 }
 
 function getLegacyVoucherDetailRedirectUrl(request: NextRequest) {
-  const legacyPrefix = "/vouchers/view="
+  const legacyViewPrefixes = ["/vouchers/view=", "/voucher/view="]
+  const matchedViewPrefix = legacyViewPrefixes.find((prefix) =>
+    request.nextUrl.pathname.startsWith(prefix)
+  )
 
-  if (!request.nextUrl.pathname.startsWith(legacyPrefix)) {
+  if (matchedViewPrefix) {
+    const url = request.nextUrl.clone()
+    const voucherCode = request.nextUrl.pathname.slice(matchedViewPrefix.length)
+    url.pathname = `/vouchers/${voucherCode}`
+
+    return url
+  }
+
+  const legacySingularPrefix = "/voucher/"
+
+  if (!request.nextUrl.pathname.startsWith(legacySingularPrefix)) {
     return null
   }
 
   const url = request.nextUrl.clone()
-  const voucherCode = request.nextUrl.pathname.slice(legacyPrefix.length)
-  url.pathname = `/voucher/view=${voucherCode}`
+  const voucherCode = request.nextUrl.pathname.slice(legacySingularPrefix.length)
+  url.pathname = `/vouchers/${voucherCode}`
 
   return url
 }

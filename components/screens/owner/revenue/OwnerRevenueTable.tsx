@@ -3,6 +3,10 @@
 import { useState } from "react"
 import { ReceiptText, Search } from "lucide-react"
 
+import {
+  CsvExportButton,
+  type CsvColumn,
+} from "@/components/CsvExportButton"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import { TableRowActions } from "@/components/TableRowActions"
 import type { RevenueHistoryRow } from "@/components/screens/owner/revenue/OwnerRevenuePage"
@@ -81,6 +85,17 @@ type RevenueSort =
   | (typeof sourceSortOptions)[number]["value"]
   | (typeof methodSortOptions)[number]["value"]
   | (typeof amountSortOptions)[number]["value"]
+
+const revenueExportColumns = [
+  { header: "Paid at", value: (row) => row.paidAtLabel },
+  { header: "Member", value: (row) => row.memberName },
+  { header: "Phone", value: (row) => row.memberPhone },
+  { header: "Package", value: (row) => row.packageName },
+  { header: "Source", value: (row) => row.type },
+  { header: "Method", value: (row) => row.methodLabel },
+  { header: "Amount", value: (row) => row.amount },
+  { header: "Status", value: (row) => row.subscriptionStatus },
+] satisfies readonly CsvColumn<RevenueHistoryRow>[]
 
 function compareText(first: string, second: string) {
   return first.localeCompare(second, undefined, { sensitivity: "base" })
@@ -242,12 +257,19 @@ export function OwnerRevenueTable({
             aria-label="Search revenue"
           />
         </InputGroup>
-        <TableMonthFilter
-          value={monthFilter}
-          options={monthFilterOptions}
-          onValueChange={handleMonthFilterChange}
-          label="Filter revenue by paid month"
-        />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+          <CsvExportButton
+            filename="jim-fort-revenue.csv"
+            rows={sortedRows}
+            columns={revenueExportColumns}
+          />
+          <TableMonthFilter
+            value={monthFilter}
+            options={monthFilterOptions}
+            onValueChange={handleMonthFilterChange}
+            label="Filter revenue by paid month"
+          />
+        </div>
       </div>
       <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
         <TableHeader className="bg-muted/40">
