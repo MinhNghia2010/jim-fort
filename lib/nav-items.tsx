@@ -158,7 +158,6 @@ export const navItemConfigs: NavItemConfig[] = [
     href: getFacilityHref,
     icon: Building2,
     roles: ["owner", "manager"],
-    exact: true,
   },
   {
     title: "Payments",

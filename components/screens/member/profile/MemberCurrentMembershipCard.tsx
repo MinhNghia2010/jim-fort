@@ -12,7 +12,7 @@ import { StatusBadge } from "@/components/StatusBadge"
 import {
   formatSubscriptionDate,
   formatSubscriptionMoney,
-} from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+} from "@/lib/features/shared/subscriptions/detail-utils"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
