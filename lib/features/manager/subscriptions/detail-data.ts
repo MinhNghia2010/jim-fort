@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import type {
   Relation,
   SubscriptionTimeSlot,
-} from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+} from "@/lib/features/shared/subscriptions/detail-utils"
 
 export type MemberRelation = {
   full_name: string | null

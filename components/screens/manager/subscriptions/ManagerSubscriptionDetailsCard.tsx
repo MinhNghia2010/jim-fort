@@ -2,7 +2,7 @@ import { StatusBadge } from "@/components/StatusBadge"
 import { SubscriptionDetailRow } from "@/components/screens/shared/subscriptions/SubscriptionInfoRows"
 import {
   formatSubscriptionDate,
-} from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+} from "@/lib/features/shared/subscriptions/detail-utils"
 import {
   Card,
   CardContent,
@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-import type { SubscriptionRow } from "./manager-subscription-detail-data"
+import type { SubscriptionRow } from "@/lib/features/manager/subscriptions/detail-data"
 
 type ManagerSubscriptionDetailsCardProps = {
   facilityName: string

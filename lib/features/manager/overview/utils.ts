@@ -10,7 +10,7 @@ import type {
   PaymentRecord,
   StaffRecord,
   SubscriptionRecord,
-} from "./manager-overview-data"
+} from "./data"
 
 export type ManagerOverviewMonthBucket = {
   month: string

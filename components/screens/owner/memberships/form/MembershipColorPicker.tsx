@@ -2,7 +2,7 @@
 
 import { Check } from "lucide-react"
 
-import { membershipColorOptions } from "@/components/screens/owner/memberships/form/constants"
+import { membershipColorOptions } from "@/lib/features/owner/memberships/form/constants"
 import { cn } from "@/lib/utils"
 
 interface MembershipColorPickerProps {

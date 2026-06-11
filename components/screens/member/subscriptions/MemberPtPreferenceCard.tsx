@@ -5,7 +5,7 @@ import {
   subscriptionWeekdays,
   subscriptionWeeklySlotIndexes,
   sortSubscriptionSlots,
-} from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+} from "@/lib/features/shared/subscriptions/detail-utils"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -21,12 +21,12 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   experienceLevelOptions,
   preferredPtGenderOptions,
-} from "./member-subscription-detail-constants"
+} from "@/lib/features/member/subscriptions/detail-constants"
 import type {
   MemberPreferenceRow,
   MemberPtRow,
   MemberSubscriptionRow,
-} from "./member-subscription-detail-data"
+} from "@/lib/features/member/subscriptions/detail-data"
 
 type MemberPtPreferenceCardProps = {
   preference: MemberPreferenceRow | null

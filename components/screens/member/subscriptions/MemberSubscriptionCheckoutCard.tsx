@@ -1,7 +1,7 @@
 import { MemberPaymentForm } from "@/components/screens/member/subscriptions/MemberPaymentForm"
 import {
   formatSubscriptionMoney,
-} from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+} from "@/lib/features/shared/subscriptions/detail-utils"
 import {
   Card,
   CardContent,
@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-import type { MemberSubscriptionRow } from "./member-subscription-detail-data"
+import type { MemberSubscriptionRow } from "@/lib/features/member/subscriptions/detail-data"
 
 type MemberSubscriptionCheckoutCardProps = {
   subscription: MemberSubscriptionRow

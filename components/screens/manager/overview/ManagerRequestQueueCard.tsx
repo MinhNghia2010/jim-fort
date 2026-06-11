@@ -27,9 +27,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-import { managerOverviewDateFormatter } from "./manager-overview-constants"
-import type { SubscriptionRecord } from "./manager-overview-data"
-import { getMemberName, getPackageName } from "./manager-overview-utils"
+import { managerOverviewDateFormatter } from "@/lib/features/manager/overview/constants"
+import type { SubscriptionRecord } from "@/lib/features/manager/overview/data"
+import { getMemberName, getPackageName } from "@/lib/features/manager/overview/utils"
 
 type ManagerRequestQueueCardProps = {
   requests: SubscriptionRecord[]
@@ -97,7 +97,7 @@ export function ManagerRequestQueueCard({
                   <TableHead className="h-12">Package</TableHead>
                   <TableHead className="h-12">Status</TableHead>
                   <TableHead className="h-12">Created</TableHead>
-                  <TableHead className="h-12 pr-6 text-right">
+                  <TableHead className="h-12 w-[10%] text-center">
                     <span className="sr-only">Actions</span>
                   </TableHead>
                 </TableRow>
@@ -117,7 +117,7 @@ export function ManagerRequestQueueCard({
                         new Date(request.created_at)
                       )}
                     </TableCell>
-                    <TableCell className="pr-6 text-right">
+                    <TableCell className="w-[10%] text-center">
                       <TableRowActions
                         label={`Open actions for ${getMemberName(request)}`}
                         actions={[

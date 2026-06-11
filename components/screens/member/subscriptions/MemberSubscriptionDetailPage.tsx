@@ -9,7 +9,7 @@ import { MemberPtAssignmentDecisionCard } from "./MemberPtAssignmentDecisionCard
 import { MemberPtPreferenceCard } from "./MemberPtPreferenceCard"
 import { MemberSubscriptionCheckoutCard } from "./MemberSubscriptionCheckoutCard"
 import { MemberSubscriptionStatusCard } from "./MemberSubscriptionStatusCard"
-import { getMemberSubscriptionDetailData } from "./member-subscription-detail-data"
+import { getMemberSubscriptionDetailData } from "@/lib/features/member/subscriptions/detail-data"
 
 type Props = {
   subscriptionId: string

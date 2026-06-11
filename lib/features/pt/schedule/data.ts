@@ -3,15 +3,15 @@ import { createClient } from "@/lib/supabase/server"
 import type {
   ScheduleFeedbackRow,
   ScheduleSessionRow,
-} from "@/components/screens/shared/schedule/schedule-utils"
+} from "@/lib/features/shared/schedule/utils"
 
-export async function getMemberScheduleData() {
+export async function getPtScheduleData() {
   const supabase = await createClient()
   const [sessionResult, feedbackResult] = await Promise.all([
     supabase
       .from("membership_pt_sessions")
       .select(
-        "id,session_number,starts_at,ends_at,status,users:pt_id(full_name)"
+        "id,session_number,starts_at,ends_at,status,users:member_id(full_name)"
       )
       .order("starts_at", { ascending: true }),
     supabase

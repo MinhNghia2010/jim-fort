@@ -2,7 +2,7 @@
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { Field, FieldContent, FieldLabel } from "@/components/ui/field"
-import type { MembershipRoomOption } from "@/components/screens/owner/memberships/form/types"
+import type { MembershipRoomOption } from "@/lib/features/owner/memberships/form/types"
 
 interface MembershipRoomSelectorProps {
   rooms: readonly MembershipRoomOption[]

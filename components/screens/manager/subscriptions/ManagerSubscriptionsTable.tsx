@@ -111,7 +111,9 @@ export function ManagerSubscriptionsTable({
               <TableHead className="h-12 text-right whitespace-nowrap">
                 Amount
               </TableHead>
-              <TableHead className="h-12 pr-6 text-right">Action</TableHead>
+              <TableHead className="h-12 w-[10%] text-center">
+                Action
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -153,7 +155,7 @@ export function ManagerSubscriptionsTable({
                       <TableCell className="text-right font-medium whitespace-nowrap tabular-nums">
                         {currency.format(Number(row.final_price) || 0)}
                       </TableCell>
-                      <TableCell className="pr-6 text-right">
+                      <TableCell className="w-[10%] text-center">
                         <TableRowActions
                           label={`Open actions for ${row.users?.full_name ?? "member"}`}
                           actions={[

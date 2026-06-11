@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-import type { MemberAssignmentRow } from "./member-subscription-detail-data"
+import type { MemberAssignmentRow } from "@/lib/features/member/subscriptions/detail-data"
 
 type MemberAcceptedPtCardProps = {
   assignment: MemberAssignmentRow

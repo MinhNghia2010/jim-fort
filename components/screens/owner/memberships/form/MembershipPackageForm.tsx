@@ -46,8 +46,8 @@ import type {
   MembershipPackageFormValues,
   MembershipPlanKind,
   MembershipStatus,
-} from "@/components/screens/owner/memberships/form/types"
-import { initialMembershipFormState } from "@/components/screens/owner/memberships/form/types"
+} from "@/lib/features/owner/memberships/form/types"
+import { initialMembershipFormState } from "@/lib/features/owner/memberships/form/types"
 
 export type MembershipFormAction = (
   state: MembershipFormState,

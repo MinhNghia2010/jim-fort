@@ -2,7 +2,7 @@ import Link from "next/link"
 import { UserRound } from "lucide-react"
 
 import { SubscriptionSummaryRow } from "@/components/screens/shared/subscriptions/SubscriptionInfoRows"
-import { formatSubscriptionMoney } from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+import { formatSubscriptionMoney } from "@/lib/features/shared/subscriptions/detail-utils"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 
-import type { SubscriptionRow } from "./manager-subscription-detail-data"
+import type { SubscriptionRow } from "@/lib/features/manager/subscriptions/detail-data"
 
 type ManagerSubscriptionSideCardsProps = {
   facilityAddress: string

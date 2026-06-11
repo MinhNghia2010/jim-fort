@@ -432,7 +432,9 @@ export function MemberSubscriptionsTable({
                   onValueChange={handleSortChange}
                 />
               </TableHead>
-              <TableHead className="h-12 pr-6 text-right">Action</TableHead>
+              <TableHead className="h-12 w-[10%] text-center">
+                Action
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -465,7 +467,7 @@ export function MemberSubscriptionsTable({
                   <TableCell className="font-medium whitespace-nowrap tabular-nums">
                     {currencyFormatter.format(subscription.amount)}
                   </TableCell>
-                  <TableCell className="pr-6 text-right">
+                  <TableCell className="w-[10%] text-center">
                     <TableRowActions
                       label={`Open actions for ${subscription.plan}`}
                     >

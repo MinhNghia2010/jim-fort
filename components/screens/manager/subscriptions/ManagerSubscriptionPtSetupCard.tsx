@@ -6,7 +6,7 @@ import {
   formatSubscriptionSlot,
   getSingleRelation,
   sortSubscriptionSlots,
-} from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+} from "@/lib/features/shared/subscriptions/detail-utils"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -20,7 +20,7 @@ import { Separator } from "@/components/ui/separator"
 import type {
   AssignmentRow,
   PreferenceRow,
-} from "./manager-subscription-detail-data"
+} from "@/lib/features/manager/subscriptions/detail-data"
 
 type ManagerSubscriptionPtSetupCardProps = {
   assignments: AssignmentRow[]

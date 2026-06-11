@@ -1,6 +1,6 @@
 import { PageShell } from "@/components/PageShell"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { getSingleRelation } from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+import { getSingleRelation } from "@/lib/features/shared/subscriptions/detail-utils"
 
 import { ManagerSubscriptionDetailsCard } from "./ManagerSubscriptionDetailsCard"
 import { ManagerSubscriptionMetricGrid } from "./ManagerSubscriptionMetricGrid"
@@ -8,8 +8,8 @@ import { ManagerSubscriptionNotFound } from "./ManagerSubscriptionNotFound"
 import { ManagerSubscriptionPaymentHistoryCard } from "./ManagerSubscriptionPaymentHistoryCard"
 import { ManagerSubscriptionPtSetupCard } from "./ManagerSubscriptionPtSetupCard"
 import { ManagerSubscriptionSideCards } from "./ManagerSubscriptionSideCards"
-import { getManagerSubscriptionDetailData } from "./manager-subscription-detail-data"
-import { getTotalPaid } from "./manager-subscription-detail-utils"
+import { getManagerSubscriptionDetailData } from "@/lib/features/manager/subscriptions/detail-data"
+import { getTotalPaid } from "@/lib/features/manager/subscriptions/detail-utils"
 
 type Props = {
   subscriptionId: string

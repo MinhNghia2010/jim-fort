@@ -16,10 +16,10 @@ import {
   groupScheduleSessionsByDay,
   parseScheduleMonth,
   scheduleMonthTitle,
-} from "@/components/screens/shared/schedule/schedule-utils"
+} from "@/lib/features/shared/schedule/utils"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-import { getMemberScheduleData } from "./member-schedule-data"
+import { getMemberScheduleData } from "@/lib/features/member/schedule/data"
 
 type MemberSchedulePageProps = {
   month?: string

@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import type { MembershipStatus } from "@/components/screens/owner/memberships/form/types"
+import type { MembershipStatus } from "@/lib/features/owner/memberships/form/types"
 
 type PreviewAccentStyle = CSSProperties & {
   [key: `--${string}`]: string | number | undefined

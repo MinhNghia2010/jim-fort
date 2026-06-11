@@ -1,9 +1,9 @@
-import { toSubscriptionNumber } from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+import { toSubscriptionNumber } from "@/lib/features/shared/subscriptions/detail-utils"
 
 import type {
   PaymentRow,
   SubscriptionRow,
-} from "./manager-subscription-detail-data"
+} from "./detail-data"
 
 export function getManagerSubscriptionTermLabel(
   subscription: SubscriptionRow

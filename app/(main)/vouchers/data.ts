@@ -10,7 +10,7 @@ import type {
 import type {
   VoucherFormData,
   VoucherFormValues,
-} from "@/components/screens/owner/vouchers/form/types"
+} from "@/lib/features/owner/vouchers/form/types"
 import { createClient } from "@/lib/supabase/server"
 
 type FacilityRow = {

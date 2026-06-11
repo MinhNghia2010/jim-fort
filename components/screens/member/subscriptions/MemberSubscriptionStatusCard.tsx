@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-import type { MemberSubscriptionRow } from "./member-subscription-detail-data"
+import type { MemberSubscriptionRow } from "@/lib/features/member/subscriptions/detail-data"
 
 type MemberSubscriptionStatusCardProps = {
   subscription: MemberSubscriptionRow

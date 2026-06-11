@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 
-import type { SubscriptionTimeSlot } from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+import type { SubscriptionTimeSlot } from "@/lib/features/shared/subscriptions/detail-utils"
 
 export type MemberSubscriptionRow = {
   id: string

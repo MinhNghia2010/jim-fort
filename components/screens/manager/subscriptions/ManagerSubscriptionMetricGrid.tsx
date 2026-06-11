@@ -10,13 +10,13 @@ import {
   formatSubscriptionDate,
   formatSubscriptionLabel,
   formatSubscriptionMoney,
-} from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+} from "@/lib/features/shared/subscriptions/detail-utils"
 
-import type { SubscriptionRow } from "./manager-subscription-detail-data"
+import type { SubscriptionRow } from "@/lib/features/manager/subscriptions/detail-data"
 import {
   getManagerSubscriptionPlanType,
   getManagerSubscriptionTermLabel,
-} from "./manager-subscription-detail-utils"
+} from "@/lib/features/manager/subscriptions/detail-utils"
 
 type ManagerSubscriptionMetricGridProps = {
   subscription: SubscriptionRow

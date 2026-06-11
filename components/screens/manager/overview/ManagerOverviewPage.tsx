@@ -9,8 +9,8 @@ import { ManagerRequestQueueCard } from "./ManagerRequestQueueCard"
 import {
   managerOverviewMonthCount,
   managerOverviewRequestPreviewLimit,
-} from "./manager-overview-constants"
-import { getManagerOverviewData } from "./manager-overview-data"
+} from "@/lib/features/manager/overview/constants"
+import { getManagerOverviewData } from "@/lib/features/manager/overview/data"
 import {
   countUniqueMembers,
   getActiveStaffCount,
@@ -23,7 +23,7 @@ import {
   getTopPackages,
   isInRange,
   sumPaymentsInRange,
-} from "./manager-overview-utils"
+} from "@/lib/features/manager/overview/utils"
 
 export async function ManagerOverviewPage() {
   const {

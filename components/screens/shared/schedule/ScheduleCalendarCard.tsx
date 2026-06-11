@@ -32,7 +32,7 @@ import {
   type CalendarWeek,
   type ScheduleFeedbackRow,
   type ScheduleSessionRow,
-} from "./schedule-utils"
+} from "@/lib/features/shared/schedule/utils"
 
 type ScheduleCalendarCardProps = {
   calendarWeeks: CalendarWeek[]

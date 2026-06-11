@@ -46,8 +46,8 @@ import type {
   VoucherFormMode,
   VoucherFormState,
   VoucherStatus,
-} from "@/components/screens/owner/vouchers/form/types"
-import { initialVoucherFormState } from "@/components/screens/owner/vouchers/form/types"
+} from "@/lib/features/owner/vouchers/form/types"
+import { initialVoucherFormState } from "@/lib/features/owner/vouchers/form/types"
 
 export type VoucherFormAction = (
   state: VoucherFormState,

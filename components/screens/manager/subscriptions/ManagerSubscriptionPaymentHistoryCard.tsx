@@ -3,7 +3,7 @@ import {
   formatSubscriptionDate,
   formatSubscriptionLabel,
   formatSubscriptionMoney,
-} from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+} from "@/lib/features/shared/subscriptions/detail-utils"
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-import type { PaymentRow } from "./manager-subscription-detail-data"
+import type { PaymentRow } from "@/lib/features/manager/subscriptions/detail-data"
 
 type ManagerSubscriptionPaymentHistoryCardProps = {
   payments: PaymentRow[]

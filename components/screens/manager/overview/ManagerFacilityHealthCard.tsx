@@ -13,7 +13,7 @@ import {
 import { Progress } from "@/components/ui/progress"
 import type { EquipmentStatus } from "@/lib/owner-overview"
 
-import { formatPercent } from "./manager-overview-utils"
+import { formatPercent } from "@/lib/features/manager/overview/utils"
 
 type EquipmentStatusCount = {
   count: number

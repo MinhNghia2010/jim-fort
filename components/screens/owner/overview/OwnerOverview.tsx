@@ -1,4 +1,4 @@
-import { getOwnerOverviewPageProps } from "./owner-overview-data"
+import { getOwnerOverviewPageProps } from "@/lib/features/owner/overview/data"
 import { OwnerOverviewPage } from "./OwnerOverviewPage"
 
 export async function OwnerOverview() {

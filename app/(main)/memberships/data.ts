@@ -2,12 +2,12 @@ import type {
   MembershipPlanView,
   OwnerMembershipsPageProps,
 } from "@/components/screens/owner/memberships/OwnerMembershipsPage"
-import { defaultMembershipColor } from "@/components/screens/owner/memberships/form/constants"
+import { defaultMembershipColor } from "@/lib/features/owner/memberships/form/constants"
 import type {
   MembershipPackageFormData,
   MembershipPackageFormValues,
   MembershipStatus,
-} from "@/components/screens/owner/memberships/form/types"
+} from "@/lib/features/owner/memberships/form/types"
 import { createClient } from "@/lib/supabase/server"
 
 type FacilityRow = {

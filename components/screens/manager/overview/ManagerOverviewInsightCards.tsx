@@ -22,9 +22,9 @@ import { Progress } from "@/components/ui/progress"
 import {
   managerOverviewDateFormatter,
   managerOverviewFeedbackPreviewLimit,
-} from "./manager-overview-constants"
-import type { FeedbackRecord } from "./manager-overview-data"
-import { formatPercent, getFeedbackMemberName } from "./manager-overview-utils"
+} from "@/lib/features/manager/overview/constants"
+import type { FeedbackRecord } from "@/lib/features/manager/overview/data"
+import { formatPercent, getFeedbackMemberName } from "@/lib/features/manager/overview/utils"
 
 type ManagerOverviewInsightCardsProps = {
   activeSubscriptionCount: number

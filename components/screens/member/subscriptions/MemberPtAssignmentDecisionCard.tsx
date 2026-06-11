@@ -2,7 +2,7 @@ import { Check, X } from "lucide-react"
 
 import { decidePtAssignment } from "@/app/(main)/member-actions"
 import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
-import { subscriptionWeekdays } from "@/components/screens/shared/subscriptions/subscription-detail-utils"
+import { subscriptionWeekdays } from "@/lib/features/shared/subscriptions/detail-utils"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input"
 import type {
   MemberAssignmentRow,
   MemberSubscriptionRow,
-} from "./member-subscription-detail-data"
+} from "@/lib/features/member/subscriptions/detail-data"
 
 type MemberPtAssignmentDecisionCardProps = {
   assignment: MemberAssignmentRow
