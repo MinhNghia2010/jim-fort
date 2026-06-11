@@ -2,7 +2,7 @@ import { Building2, Dumbbell, MapPin, Users } from "lucide-react"
 
 import { getFacilityPageData } from "@/app/(main)/facility/data"
 import { PageShell } from "@/components/PageShell"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   Card,
@@ -44,28 +44,28 @@ export async function OwnerFacilityPage() {
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ManagementMetricCard
+        <SummaryCard
           title="Facilities"
           value={data.facilities.length}
-          detail="Accessible gym locations"
+          description="Accessible gym locations"
           icon={Building2}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Rooms"
           value={data.totalRooms}
-          detail="Facility rooms configured"
+          description="Facility rooms configured"
           icon={MapPin}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Equipment"
           value={data.totalEquipment}
-          detail={`${data.activeEquipment} active equipment records`}
+          description={`${data.activeEquipment} active equipment records`}
           icon={Dumbbell}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Active members"
           value={data.activeMembers}
-          detail="Members with active subscriptions"
+          description="Members with active subscriptions"
           icon={Users}
         />
       </div>

@@ -9,10 +9,11 @@ import {
 } from "@/app/(main)/facility/data"
 import { PageShell } from "@/components/PageShell"
 import { OwnerRoomEquipmentTable } from "@/components/screens/owner/facility/OwnerRoomEquipmentTable"
+import { TableActionButton } from "@/components/TableActionButton"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -52,22 +53,6 @@ export async function OwnerRoomEquipmentPage({
         </Alert>
       ) : null}
 
-      {data.facility && data.room ? (
-        <div className="flex justify-end">
-          <Button asChild>
-            <Link
-              href={getCreateEquipmentHref(
-                data.facility.name,
-                data.room.id
-              )}
-            >
-              <CirclePlus data-icon="inline-start" />
-              Add equipment
-            </Link>
-          </Button>
-        </div>
-      ) : null}
-
       <Card className="gap-0 overflow-hidden py-0">
         <CardHeader className="border-b py-4">
           <CardTitle className="flex items-center gap-2">
@@ -80,6 +65,21 @@ export async function OwnerRoomEquipmentPage({
           <CardDescription>
             Showing {data.equipments.length} equipment records for {roomName}.
           </CardDescription>
+          {data.facility && data.room ? (
+            <CardAction>
+              <TableActionButton asChild tone="create">
+                <Link
+                  href={getCreateEquipmentHref(
+                    data.facility.name,
+                    data.room.id
+                  )}
+                >
+                  <CirclePlus data-icon="inline-start" />
+                  Add equipment
+                </Link>
+              </TableActionButton>
+            </CardAction>
+          ) : null}
         </CardHeader>
         <CardContent className="px-0">
           <OwnerRoomEquipmentTable

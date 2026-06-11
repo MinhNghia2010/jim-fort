@@ -17,8 +17,9 @@ import {
 } from "@/app/(main)/facility/data"
 import { PageShell } from "@/components/PageShell"
 import { StatusBadge } from "@/components/StatusBadge"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { OwnerRoomEquipmentTable } from "@/components/screens/owner/facility/OwnerRoomEquipmentTable"
+import { TableActionButton } from "@/components/TableActionButton"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -99,38 +100,29 @@ export async function OwnerFacilityRoomPage({
         </Alert>
       ) : null}
 
-      <div className="flex justify-end">
-        <Button asChild>
-          <Link href={getCreateEquipmentHref(facility.name, room.id)}>
-            <CirclePlus data-icon="inline-start" />
-            Add equipment
-          </Link>
-        </Button>
-      </div>
-
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ManagementMetricCard
+        <SummaryCard
           title="Equipment"
           value={room.equipmentCount}
-          detail="Total equipment in this room"
+          description="Total equipment in this room"
           icon={Dumbbell}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Active"
           value={statusCounts.active}
-          detail="Equipment available for use"
+          description="Equipment available for use"
           icon={Activity}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Maintenance"
           value={statusCounts.maintenance}
-          detail="Scheduled preventive work"
+          description="Scheduled preventive work"
           icon={Wrench}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Broken"
           value={statusCounts.broken}
-          detail={`${statusCounts.retired} retired equipment records`}
+          description={`${statusCounts.retired} retired equipment records`}
           icon={CircleAlert}
         />
       </div>
@@ -217,8 +209,14 @@ export async function OwnerFacilityRoomPage({
           <CardDescription>
             Showing {data.equipments.length} equipment records in {room.name}.
           </CardDescription>
-          <CardAction>
+          <CardAction className="flex items-center gap-2">
             <Badge variant="secondary">{data.equipments.length} records</Badge>
+            <TableActionButton asChild tone="create">
+              <Link href={getCreateEquipmentHref(facility.name, room.id)}>
+                <CirclePlus data-icon="inline-start" />
+                Add equipment
+              </Link>
+            </TableActionButton>
           </CardAction>
         </CardHeader>
         <CardContent className="px-0">

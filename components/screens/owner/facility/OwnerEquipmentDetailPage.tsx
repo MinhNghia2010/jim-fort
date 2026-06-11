@@ -1,12 +1,10 @@
 import { notFound } from "next/navigation"
 import {
-  ArrowRight,
   BadgeDollarSign,
   Barcode,
   CalendarDays,
   Dumbbell,
   Hash,
-  History,
   Send,
 } from "lucide-react"
 
@@ -19,7 +17,8 @@ import { FormSelect } from "@/components/FormSelect"
 import { PageShell } from "@/components/PageShell"
 import { StatusBadge } from "@/components/StatusBadge"
 import { ManagerActionForm } from "@/components/screens/manager/ManagerActionForm"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { OwnerEquipmentIssueReportsCard } from "@/components/screens/owner/facility/OwnerEquipmentIssueReportsCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import type { RoomEquipmentStatus } from "@/components/screens/owner/facility/OwnerRoomEquipmentTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
@@ -101,28 +100,28 @@ export async function OwnerEquipmentDetailPage({
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ManagementMetricCard
+        <SummaryCard
           title="Status"
           value={statusLabels[equipment.status]}
-          detail="Current equipment lifecycle"
+          description="Current equipment lifecycle"
           icon={Dumbbell}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Purchase cost"
           value={equipment.costLabel}
-          detail="Recorded purchase price"
+          description="Recorded purchase price"
           icon={BadgeDollarSign}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Purchased"
           value={equipment.purchasedAtLabel}
-          detail="Purchase date"
+          description="Purchase date"
           icon={CalendarDays}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Code"
           value={equipment.code}
-          detail="Facility equipment identifier"
+          description="Facility equipment identifier"
           icon={Barcode}
         />
       </div>
@@ -260,57 +259,11 @@ export async function OwnerEquipmentDetailPage({
           </Card>
         ) : null}
 
-        <Card className={canManageEquipment ? undefined : "xl:col-span-2"}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <History
-                aria-hidden="true"
-                className="size-4 text-muted-foreground"
-              />
-              Issue reports
-            </CardTitle>
-            <CardDescription>Manager status updates for this equipment.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-3">
-            {data.issueReports.length ? (
-              data.issueReports.map((report) => (
-                <div key={report.id} className="rounded-xl border p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium">
-                        {report.reporterName}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {report.createdAtLabel}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <StatusBadge status={report.previousStatus} showDot>
-                        {statusLabels[report.previousStatus]}
-                      </StatusBadge>
-                      <ArrowRight
-                        aria-hidden="true"
-                        className="size-4 text-muted-foreground"
-                      />
-                      <StatusBadge status={report.newStatus} showDot>
-                        {statusLabels[report.newStatus]}
-                      </StatusBadge>
-                    </div>
-                  </div>
-                  <p className="mt-3 whitespace-pre-wrap text-sm">
-                    {report.issue}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <div className="rounded-xl bg-muted/40 p-4">
-                <p className="text-sm text-muted-foreground">
-                  No issue reports recorded.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <OwnerEquipmentIssueReportsCard
+          className={canManageEquipment ? undefined : "xl:col-span-2"}
+          issueReports={data.issueReports}
+          statusLabels={statusLabels}
+        />
       </div>
     </PageShell>
   )

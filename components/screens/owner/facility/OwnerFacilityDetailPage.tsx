@@ -19,7 +19,7 @@ import {
 } from "@/app/(main)/facility/data"
 import { PageShell } from "@/components/PageShell"
 import { StatusBadge } from "@/components/StatusBadge"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -93,31 +93,29 @@ export async function OwnerFacilityDetailPage({
         </Alert>
       ) : null}
 
-
-
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ManagementMetricCard
+        <SummaryCard
           title="Rooms"
           value={facility.roomCount}
-          detail="Configured facility rooms"
+          description="Configured facility rooms"
           icon={MapPin}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Equipment"
           value={facility.equipmentCount}
-          detail={`${facility.activeEquipmentCount} active equipment records`}
+          description={`${facility.activeEquipmentCount} active equipment records`}
           icon={Dumbbell}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Active staff"
           value={facility.activeStaffCount}
-          detail="Staff currently active"
+          description="Staff currently active"
           icon={Users}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Members"
           value={facility.activeMemberCount}
-          detail="Active membership subscriptions"
+          description="Active membership subscriptions"
           icon={Building2}
         />
       </div>

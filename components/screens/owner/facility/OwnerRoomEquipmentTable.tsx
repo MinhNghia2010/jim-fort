@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Dumbbell } from "lucide-react"
+import { Dumbbell, Search } from "lucide-react"
 
 import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
@@ -23,6 +23,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import {
   Table,
   TableBody,
@@ -213,19 +218,37 @@ export function OwnerRoomEquipmentTable({
   facilityName,
   roomId,
 }: OwnerRoomEquipmentTableProps) {
+  const [search, setSearch] = useState("")
   const [sort, setSort] = useState<EquipmentSort>("machine_asc")
   const [statusFilter, setStatusFilter] = useState<EquipmentStatusFilter>("all")
   const [monthFilter, setMonthFilter] = useState(ALL_MONTHS_VALUE)
   const [currentPage, setCurrentPage] = useState(1)
+  const normalizedSearch = search.trim().toLowerCase()
   const monthFilterOptions = getTableMonthFilterOptions(
     equipments,
     (equipment) => equipment.purchasedAt
   )
-  const filteredEquipments = equipments.filter(
-    (equipment) =>
+  const filteredEquipments = equipments.filter((equipment) => {
+    const searchableText = [
+      equipment.name,
+      statusLabels[equipment.status],
+      equipment.code,
+      equipment.serial,
+      equipment.brand,
+      equipment.model,
+      equipment.purchasedAtLabel,
+      equipment.costLabel,
+      equipment.note,
+    ]
+      .join(" ")
+      .toLowerCase()
+
+    return (
+      (!normalizedSearch || searchableText.includes(normalizedSearch)) &&
       (statusFilter === "all" || equipment.status === statusFilter) &&
       matchesTableMonthFilter(equipment.purchasedAt, monthFilter)
-  )
+    )
+  })
   const sortedEquipments = sortEquipments(filteredEquipments, sort)
   const totalPages = Math.max(
     1,
@@ -262,6 +285,11 @@ export function OwnerRoomEquipmentTable({
     sort === "note_desc" || sort === "note_asc" ? sort : "note_asc"
   const canShowAction = Boolean(facilityName && roomId)
 
+  function handleSearchChange(value: string) {
+    setSearch(value)
+    setCurrentPage(1)
+  }
+
   function handleSortChange(value: EquipmentSort) {
     setSort(value)
     setCurrentPage(1)
@@ -279,7 +307,18 @@ export function OwnerRoomEquipmentTable({
 
   return (
     <>
-      <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-end">
+      <div className="flex flex-col gap-3 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+        <InputGroup className="w-full lg:w-96">
+          <InputGroupAddon>
+            <Search aria-hidden="true" />
+          </InputGroupAddon>
+          <InputGroupInput
+            value={search}
+            onChange={(event) => handleSearchChange(event.target.value)}
+            placeholder="Search equipment..."
+            aria-label="Search equipment"
+          />
+        </InputGroup>
         <TableMonthFilter
           value={monthFilter}
           options={monthFilterOptions}
@@ -287,7 +326,18 @@ export function OwnerRoomEquipmentTable({
           label="Filter equipment by purchase month"
         />
       </div>
-      <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+      <Table className="table-fixed text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
+        <colgroup>
+          <col className={canShowAction ? "w-[15%]" : "w-[17%]"} />
+          <col className={canShowAction ? "w-[11%]" : "w-[12%]"} />
+          <col className={canShowAction ? "w-[9%]" : "w-[10%]"} />
+          <col className="w-[10%]" />
+          <col className={canShowAction ? "w-[15%]" : "w-[17%]"} />
+          <col className={canShowAction ? "w-[10%]" : "w-[11%]"} />
+          <col className="w-[8%]" />
+          <col className="w-[15%]" />
+          {canShowAction ? <col className="w-[7%]" /> : null}
+        </colgroup>
         <TableHeader className="bg-muted/40">
           <TableRow>
             <TableHead className="h-12 pl-6">
@@ -355,7 +405,7 @@ export function OwnerRoomEquipmentTable({
               />
             </TableHead>
             {canShowAction ? (
-              <TableHead className="h-12 w-[10%] text-center">
+              <TableHead className="h-12 text-center">
                 <span className="sr-only">Actions</span>
               </TableHead>
             ) : null}
@@ -399,7 +449,7 @@ export function OwnerRoomEquipmentTable({
                   </p>
                 </TableCell>
                 {canShowAction ? (
-                  <TableCell className="w-[10%] text-center">
+                  <TableCell className="text-center">
                     <TableRowActions
                       label={`Open actions for ${equipment.name}`}
                       actions={[
@@ -427,8 +477,8 @@ export function OwnerRoomEquipmentTable({
                     </EmptyMedia>
                     <EmptyTitle>No equipment found</EmptyTitle>
                     <EmptyDescription>
-                      Choose a different status filter or add equipment to this
-                      room.
+                      Try a different search term or filter, or add equipment
+                      to this room.
                     </EmptyDescription>
                   </EmptyHeader>
                 </Empty>
