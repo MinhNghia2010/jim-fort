@@ -17,6 +17,12 @@ export interface TableMonthFilterOption {
   label: string
 }
 
+const tableMonthLabelFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "long",
+  timeZone: "UTC",
+  year: "numeric",
+})
+
 interface TableMonthFilterProps {
   value: string
   options: readonly TableMonthFilterOption[]
@@ -95,6 +101,30 @@ export function matchesTableMonthFilter(
     monthFilter === ALL_MONTHS_VALUE ||
     getTableMonthKey(value, timeZone) === monthFilter
   )
+}
+
+export function getTableMonthFilterLabel(
+  monthFilter: string,
+  fallback = "All months"
+) {
+  if (monthFilter === ALL_MONTHS_VALUE) {
+    return fallback
+  }
+
+  const match = /^(\d{4})-(\d{2})$/.exec(monthFilter)
+
+  if (!match) {
+    return fallback
+  }
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+
+  if (month < 1 || month > 12) {
+    return fallback
+  }
+
+  return tableMonthLabelFormatter.format(new Date(Date.UTC(year, month - 1, 1)))
 }
 
 export function TableMonthFilter({

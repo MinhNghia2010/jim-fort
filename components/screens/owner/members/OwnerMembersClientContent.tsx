@@ -11,6 +11,8 @@ import {
 } from "@/components/screens/owner/members/MembersTable"
 import {
   ALL_MONTHS_VALUE,
+  getTableMonthFilterLabel,
+  getTableMonthKey,
   matchesTableMonthFilter,
 } from "@/components/TableMonthFilter"
 
@@ -54,26 +56,46 @@ export function OwnerMembersClientContent({
   const churnedMembers = summaryMembers.filter(
     (member) => member.status === "expired" || member.status === "cancelled"
   ).length
+  const selectedMonthLabel = getTableMonthFilterLabel(
+    monthFilter,
+    "Selected month"
+  )
+  const currentMonthLabel = getTableMonthFilterLabel(
+    getTableMonthKey(new Date().toISOString()) ?? ALL_MONTHS_VALUE,
+    "This month"
+  )
+  const summaryScope =
+    monthFilter === ALL_MONTHS_VALUE ? "All records" : selectedMonthLabel
+  const newMembersScope =
+    monthFilter === ALL_MONTHS_VALUE ? currentMonthLabel : selectedMonthLabel
 
   return (
     <PageShell title="Members" description="Manage and track all gym members.">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           title="Total Members"
+          description={summaryScope}
           icon={Users}
           value={summaryMembers.length}
         />
         <SummaryCard
           title="Active Members"
+          description={summaryScope}
           icon={UserCheck}
           value={activeMembers}
         />
         <SummaryCard
           title="New This Month"
+          description={newMembersScope}
           icon={UserPlus}
           value={newMembers}
         />
-        <SummaryCard title="Churned" icon={UserMinus} value={churnedMembers} />
+        <SummaryCard
+          title="Churned"
+          description={summaryScope}
+          icon={UserMinus}
+          value={churnedMembers}
+        />
       </div>
 
       <MembersTable

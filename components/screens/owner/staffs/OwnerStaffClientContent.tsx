@@ -11,6 +11,7 @@ import {
 } from "@/components/screens/owner/staffs/StaffTable"
 import {
   ALL_MONTHS_VALUE,
+  getTableMonthFilterLabel,
   matchesTableMonthFilter,
 } from "@/components/TableMonthFilter"
 
@@ -41,6 +42,12 @@ export function OwnerStaffClientContent({
   const roles = new Set(
     summaryStaffs.map((staff) => staff.role).filter(Boolean)
   ).size
+  const selectedMonthLabel = getTableMonthFilterLabel(
+    monthFilter,
+    "Selected month"
+  )
+  const summaryScope =
+    monthFilter === ALL_MONTHS_VALUE ? "All records" : selectedMonthLabel
 
   return (
     <PageShell
@@ -50,17 +57,25 @@ export function OwnerStaffClientContent({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           title="Total Staffs"
+          description={summaryScope}
           icon={UserCog}
           value={summaryStaffs.length}
         />
         <SummaryCard
           title="Active Staffs"
+          description={summaryScope}
           icon={UserCheck}
           value={activeStaffs}
         />
-        <SummaryCard title="On Leave" icon={UserMinus} value={onLeaveStaffs} />
+        <SummaryCard
+          title="On Leave"
+          description={summaryScope}
+          icon={UserMinus}
+          value={onLeaveStaffs}
+        />
         <SummaryCard
           title="Staff Roles"
+          description={summaryScope}
           icon={BriefcaseBusiness}
           value={roles}
         />

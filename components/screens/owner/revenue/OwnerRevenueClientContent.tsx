@@ -9,13 +9,17 @@ import {
 } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { OwnerRevenueTable } from "@/components/screens/owner/revenue/OwnerRevenueTable"
 import type {
   OwnerRevenuePageProps,
   RevenueHistoryRow,
 } from "@/components/screens/owner/revenue/OwnerRevenuePage"
-import { ALL_MONTHS_VALUE } from "@/components/TableMonthFilter"
+import {
+  ALL_MONTHS_VALUE,
+  getTableMonthFilterLabel,
+  getTableMonthKey,
+} from "@/components/TableMonthFilter"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   Card,
@@ -61,14 +65,29 @@ export function OwnerRevenueClientContent({
 }: OwnerRevenuePageProps) {
   const [monthFilter, setMonthFilter] = useState(ALL_MONTHS_VALUE)
   const selectedMonthRows =
-    monthFilter === ALL_MONTHS_VALUE ? rows : filterRowsByMonth(rows, monthFilter)
+    monthFilter === ALL_MONTHS_VALUE
+      ? rows
+      : filterRowsByMonth(rows, monthFilter)
   const selectedYearRows =
-    monthFilter === ALL_MONTHS_VALUE ? rows : filterRowsByYear(rows, monthFilter)
+    monthFilter === ALL_MONTHS_VALUE
+      ? rows
+      : filterRowsByYear(rows, monthFilter)
   const selectedMonthTotal = sumRows(selectedMonthRows)
   const selectedYearTotal = sumRows(selectedYearRows)
   const selectedAverage =
-    selectedMonthRows.length > 0 ? selectedMonthTotal / selectedMonthRows.length : 0
+    selectedMonthRows.length > 0
+      ? selectedMonthTotal / selectedMonthRows.length
+      : 0
   const isAllMonths = monthFilter === ALL_MONTHS_VALUE
+  const currentMonthLabel = getTableMonthFilterLabel(
+    getTableMonthKey(new Date().toISOString()) ?? ALL_MONTHS_VALUE,
+    "This month"
+  )
+  const selectedMonthLabel = getTableMonthFilterLabel(
+    monthFilter,
+    "Selected month"
+  )
+  const selectedYearLabel = monthFilter.slice(0, 4)
 
   return (
     <PageShell
@@ -83,43 +102,45 @@ export function OwnerRevenueClientContent({
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ManagementMetricCard
-          title={isAllMonths ? "Today" : "Selected month"}
+        <SummaryCard
+          title={isAllMonths ? "Today" : selectedMonthLabel}
           value={
             isAllMonths
               ? todayTotalLabel
               : currencyFormatter.format(selectedMonthTotal)
           }
-          detail="Paid membership subscriptions"
+          description="Paid membership subscriptions"
           icon={CalendarDays}
         />
-        <ManagementMetricCard
-          title={isAllMonths ? "This month" : "Selected year"}
+        <SummaryCard
+          title={isAllMonths ? currentMonthLabel : `${selectedYearLabel} total`}
           value={
             isAllMonths
               ? monthTotalLabel
               : currencyFormatter.format(selectedYearTotal)
           }
-          detail="Paid membership subscriptions"
+          description="Paid membership subscriptions"
           icon={CircleDollarSign}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title={isAllMonths ? "This year" : "Average payment"}
           value={
             isAllMonths
               ? yearTotalLabel
               : currencyFormatter.format(selectedAverage)
           }
-          detail="Paid membership subscriptions"
+          description="Paid membership subscriptions"
           icon={ReceiptText}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Membership payments"
-          value={isAllMonths ? membershipPaymentCount : selectedMonthRows.length}
-          detail={
+          value={
+            isAllMonths ? membershipPaymentCount : selectedMonthRows.length
+          }
+          description={
             isAllMonths
               ? "Total paid subscription records"
-              : "Paid records in selected month"
+              : `Paid records in ${selectedMonthLabel}`
           }
           icon={CreditCard}
         />

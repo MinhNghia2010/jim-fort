@@ -11,7 +11,7 @@ import Link from "next/link"
 import { getVoucherDetailData } from "@/app/(main)/vouchers/data"
 import { PageShell } from "@/components/PageShell"
 import { StatusBadge } from "@/components/StatusBadge"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { OwnerVoucherRedemptionsTable } from "@/components/screens/owner/vouchers/OwnerVoucherRedemptionsTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -107,22 +107,22 @@ function VoucherDetailContent({
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-3">
-        <ManagementMetricCard
+        <SummaryCard
           title="Discount"
           value={voucher.discountLabel}
-          detail="Saved voucher discount"
+          description="Saved voucher discount"
           icon={Tag}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Usage"
           value={`${voucher.usage} / ${voucher.quantity}`}
-          detail="Redemptions used"
+          description="Redemptions used"
           icon={TicketCheck}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Discount impact"
           value={voucher.discountImpactLabel}
-          detail="Total redeemed discount"
+          description="Total redeemed discount"
           icon={CircleDollarSign}
         />
       </div>

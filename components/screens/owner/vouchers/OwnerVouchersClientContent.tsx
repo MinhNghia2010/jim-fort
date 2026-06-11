@@ -4,13 +4,12 @@ import { useState } from "react"
 import { CircleDollarSign, Tag, TicketCheck } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
-import {
-  OwnerVouchersTable,
-} from "@/components/screens/owner/vouchers/OwnerVouchersTable"
+import { SummaryCard } from "@/components/SummaryCard"
+import { OwnerVouchersTable } from "@/components/screens/owner/vouchers/OwnerVouchersTable"
 import type { OwnerVouchersPageProps } from "@/components/screens/owner/vouchers/OwnerVouchersPage"
 import {
   ALL_MONTHS_VALUE,
+  getTableMonthFilterLabel,
   matchesTableMonthFilter,
 } from "@/components/TableMonthFilter"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -53,6 +52,10 @@ export function OwnerVouchersClientContent({
     0
   )
   const isAllMonths = monthFilter === ALL_MONTHS_VALUE
+  const selectedMonthLabel = getTableMonthFilterLabel(
+    monthFilter,
+    "Selected month"
+  )
 
   return (
     <PageShell
@@ -68,26 +71,38 @@ export function OwnerVouchersClientContent({
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-3">
-        <ManagementMetricCard
+        <SummaryCard
           title="Available vouchers"
           value={isAllMonths ? activeVoucherCount : selectedActiveVoucherCount}
-          detail="Active and currently redeemable"
+          description={
+            isAllMonths
+              ? "Active and currently redeemable"
+              : `Active in ${selectedMonthLabel}`
+          }
           icon={Tag}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Redemptions"
           value={isAllMonths ? redeemedVoucherCount : selectedRedemptionCount}
-          detail="Total voucher redemptions"
+          description={
+            isAllMonths
+              ? "Total voucher redemptions"
+              : `Redemptions in ${selectedMonthLabel}`
+          }
           icon={TicketCheck}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Discount impact"
           value={
             isAllMonths
               ? discountImpactLabel
               : currencyFormatter.format(selectedDiscountImpact)
           }
-          detail="Total value from voucher redemptions"
+          description={
+            isAllMonths
+              ? "Total value from voucher redemptions"
+              : `Impact in ${selectedMonthLabel}`
+          }
           icon={CircleDollarSign}
         />
       </div>

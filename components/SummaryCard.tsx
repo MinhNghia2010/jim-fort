@@ -3,8 +3,8 @@ import { TrendingDown, TrendingUp } from "lucide-react"
 
 import {
   Card,
-  CardAction,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils"
 
 interface SummaryCardProps {
   title: string
+  description: string
   icon: LucideIcon
   value: string | number
   growth?: number
@@ -22,6 +23,7 @@ interface SummaryCardProps {
 
 export function SummaryCard({
   title,
+  description,
   icon: Icon,
   value,
   growth,
@@ -35,34 +37,39 @@ export function SummaryCard({
 
   return (
     <Card
-      size="sm"
       className={cn(
         "min-w-0",
         isEmphasis && "bg-foreground text-background ring-foreground/10",
         className
       )}
     >
-      <CardHeader>
-        <CardTitle
+      <CardHeader className="flex flex-row items-center justify-between gap-3">
+        <div className="min-w-0">
+          <CardTitle
+            className={cn(
+              isEmphasis ? "text-background" : "text-card-foreground"
+            )}
+          >
+            {title}
+          </CardTitle>
+          <CardDescription
+            className={cn(
+              isEmphasis ? "text-background/60" : "text-muted-foreground"
+            )}
+          >
+            {description}
+          </CardDescription>
+        </div>
+        <Icon
+          aria-hidden="true"
           className={cn(
-            "text-xs font-normal",
+            "size-5 shrink-0",
             isEmphasis ? "text-background/60" : "text-muted-foreground"
           )}
-        >
-          {title}
-        </CardTitle>
-        <CardAction
-          className={cn(
-            isEmphasis ? "text-background/60" : "text-muted-foreground"
-          )}
-        >
-          <Icon aria-hidden="true" className="size-4" />
-        </CardAction>
+        />
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
-        <p className="font-heading text-2xl font-semibold tracking-tight tabular-nums">
-          {value}
-        </p>
+        <p className="text-2xl font-semibold tabular-nums">{value}</p>
         {growth !== undefined && (
           <div
             className={cn(

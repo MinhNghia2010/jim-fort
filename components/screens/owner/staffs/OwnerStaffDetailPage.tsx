@@ -14,7 +14,7 @@ import { getStaffDetailData } from "@/app/(main)/staffs/data"
 import { DeleteConfirmationButton } from "@/components/DeleteConfirmationButton"
 import { PageShell } from "@/components/PageShell"
 import { StatusBadge } from "@/components/StatusBadge"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -133,32 +133,32 @@ export async function OwnerStaffDetailPage({
       {staff ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <ManagementMetricCard
+            <SummaryCard
               title="Status"
               value={statusLabels[staff.status]}
-              detail="Current staff state"
+              description="Current staff state"
               icon={CircleDot}
             />
-            <ManagementMetricCard
+            <SummaryCard
               title="Role"
               value={staff.role ?? "Staff"}
-              detail={
+              description={
                 staff.kind === "login_user"
                   ? "Login account role"
                   : "Directory staff role"
               }
               icon={BriefcaseBusiness}
             />
-            <ManagementMetricCard
+            <SummaryCard
               title="Phone"
               value={staff.phone ?? "Not recorded"}
-              detail="Contact number"
+              description="Contact number"
               icon={Phone}
             />
-            <ManagementMetricCard
+            <SummaryCard
               title="Hired"
               value={staff.hiredAt ? formatDate(staff.hiredAt) : "N/A"}
-              detail="Employment start date"
+              description="Employment start date"
               icon={CalendarClock}
             />
           </div>

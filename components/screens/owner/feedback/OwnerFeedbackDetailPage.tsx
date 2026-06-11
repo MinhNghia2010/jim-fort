@@ -16,7 +16,7 @@ import { respondFacilityFeedback } from "@/app/(main)/manager-actions"
 import { PageShell } from "@/components/PageShell"
 import { StatusBadge } from "@/components/StatusBadge"
 import { ManagerActionForm } from "@/components/screens/manager/ManagerActionForm"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import type { FacilityFeedbackStatus } from "@/components/screens/owner/feedback/OwnerFeedbackTable"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -258,28 +258,28 @@ export async function OwnerFeedbackDetailPage({
       {feedback ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <ManagementMetricCard
+            <SummaryCard
               title="Status"
               value={statusLabels[feedback.status]}
-              detail="Current feedback state"
+              description="Current feedback state"
               icon={CircleDot}
             />
-            <ManagementMetricCard
+            <SummaryCard
               title="Rating"
               value={ratingLabel(feedback.rating)}
-              detail="Member facility rating"
+              description="Member facility rating"
               icon={Star}
             />
-            <ManagementMetricCard
+            <SummaryCard
               title="Submitted"
               value={formatDate(feedback.created_at)}
-              detail={formatTimeDetail(feedback.created_at)}
+              description={formatTimeDetail(feedback.created_at)}
               icon={CalendarClock}
             />
-            <ManagementMetricCard
+            <SummaryCard
               title="Response"
               value={responseState}
-              detail="Manager or owner reply"
+              description="Manager or owner reply"
               icon={MessageSquareReply}
             />
           </div>

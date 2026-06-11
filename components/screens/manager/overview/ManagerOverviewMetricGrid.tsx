@@ -1,6 +1,6 @@
 import { ClipboardList, DollarSign, Dumbbell, Users } from "lucide-react"
 
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { currencyFormatter } from "@/lib/owner-overview"
 
 type ManagerOverviewMetricGridProps = {
@@ -20,28 +20,28 @@ export function ManagerOverviewMetricGrid({
 }: ManagerOverviewMetricGridProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <ManagementMetricCard
+      <SummaryCard
         title="Active members"
         value={activeMembers}
-        detail={`${newMembersThisMonth} new this month`}
+        description={`${newMembersThisMonth} new this month`}
         icon={Users}
       />
-      <ManagementMetricCard
+      <SummaryCard
         title="Pending requests"
         value={pendingRequestCount}
-        detail="Payment and PT setup queue"
+        description="Payment and PT setup queue"
         icon={ClipboardList}
       />
-      <ManagementMetricCard
+      <SummaryCard
         title="Monthly revenue"
         value={currencyFormatter.format(monthlyRevenue)}
-        detail="Paid subscription payments"
+        description="Paid subscription payments"
         icon={DollarSign}
       />
-      <ManagementMetricCard
+      <SummaryCard
         title="Equipment issues"
         value={equipmentIssueCount}
-        detail="Maintenance or broken records"
+        description="Maintenance or broken records"
         icon={Dumbbell}
       />
     </div>

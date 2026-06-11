@@ -11,7 +11,7 @@ import {
 import { getCurrentProfileData } from "@/app/(main)/profile/[username]/data"
 import { PageShell } from "@/components/PageShell"
 import { StatusBadge } from "@/components/StatusBadge"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -89,28 +89,28 @@ export async function ProfilePageContent({
       description="View your account identity and contact details."
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ManagementMetricCard
+        <SummaryCard
           title="Role"
           value={roleLabel}
-          detail="Current workspace access"
+          description="Current workspace access"
           icon={ShieldCheck}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Email"
           value={profile.email}
-          detail="Sign-in address"
+          description="Sign-in address"
           icon={Mail}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Phone"
           value={profile.phone ?? "Not recorded"}
-          detail="Profile contact number"
+          description="Profile contact number"
           icon={Phone}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Updated"
           value={formatDate(profile.updatedAt)}
-          detail="Latest profile change"
+          description="Latest profile change"
           icon={CalendarClock}
         />
       </div>

@@ -1,4 +1,4 @@
-import { DollarSign, Users } from "lucide-react"
+import { Activity, BadgeCheck, DollarSign, UserPlus, Users } from "lucide-react"
 
 import { FiveMonthBarChart } from "@/components/FiveMonthBarChart"
 import { PageShell } from "@/components/PageShell"
@@ -8,11 +8,12 @@ import {
   type OwnerOverviewPageProps,
 } from "@/lib/owner-overview"
 
-import { AverageMonthlyCard } from "./AverageMonthlyCard"
 import { EquipmentOverviewCard } from "./EquipmentOverviewCard"
 import { FacilityDistributionCard } from "./FacilityDistributionCard"
 import { MembershipTypesCard } from "./MembershipTypesCard"
 import { RevenueOverview } from "./RevenueOverview"
+
+const averageMonthlyIcons = [DollarSign, UserPlus, BadgeCheck] as const
 
 export function OwnerOverviewPage({
   totalRevenue,
@@ -49,12 +50,14 @@ export function OwnerOverviewPage({
         <div className="grid gap-3 sm:grid-cols-2">
           <SummaryCard
             title="Total Members"
+            description="Active members"
             icon={Users}
             value={totalMembers.toLocaleString("en-US")}
             growth={memberGrowth}
           />
           <SummaryCard
             title="Monthly Revenue"
+            description="This month"
             icon={DollarSign}
             value={currencyFormatter.format(monthlyRevenue)}
             growth={monthlyRevenueGrowth}
@@ -95,7 +98,21 @@ export function OwnerOverviewPage({
           rooms={equipmentRooms}
           statusCounts={equipmentStatusCounts}
         />
-        <AverageMonthlyCard metrics={averageMonthlyMetrics} />
+        <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+          {averageMonthlyMetrics.map((metric, index) => {
+            const Icon = averageMonthlyIcons[index] ?? Activity
+
+            return (
+              <SummaryCard
+                key={metric.label}
+                title={metric.label}
+                description={metric.detail ?? "Five-month average"}
+                icon={Icon}
+                value={metric.value}
+              />
+            )
+          })}
+        </div>
       </section>
     </PageShell>
   )

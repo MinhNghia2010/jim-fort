@@ -9,7 +9,7 @@ import {
 
 import { getPaymentDetailData } from "@/app/(main)/payments/data"
 import { PageShell } from "@/components/PageShell"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { StatusBadge } from "@/components/StatusBadge"
 import { Button } from "@/components/ui/button"
 import {
@@ -103,28 +103,28 @@ export async function MemberPaymentDetailPage({
       description="Review the payment amount, method, and linked subscription."
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ManagementMetricCard
+        <SummaryCard
           title="Amount"
           value={currencyFormatter.format(payment.amount)}
-          detail="Payment total"
+          description="Payment total"
           icon={DollarSign}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Status"
           value={payment.status.replaceAll("_", " ")}
-          detail="Current payment state"
+          description="Current payment state"
           icon={ReceiptText}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Method"
           value={payment.method?.replaceAll("_", " ") ?? "Not set"}
-          detail="Recorded payment channel"
+          description="Recorded payment channel"
           icon={CreditCard}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Paid"
           value={formatDate(payment.paidAt)}
-          detail="Completion timestamp"
+          description="Completion timestamp"
           icon={CalendarClock}
         />
       </div>

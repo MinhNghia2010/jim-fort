@@ -5,7 +5,7 @@ import {
   Dumbbell,
 } from "lucide-react"
 
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import {
   formatSubscriptionDate,
   formatSubscriptionLabel,
@@ -27,28 +27,28 @@ export function ManagerSubscriptionMetricGrid({
 }: ManagerSubscriptionMetricGridProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      <ManagementMetricCard
+      <SummaryCard
         title="Final price"
         value={formatSubscriptionMoney(subscription.final_price)}
-        detail="Subscription total"
+        description="Subscription total"
         icon={CircleDollarSign}
       />
-      <ManagementMetricCard
+      <SummaryCard
         title="Status"
         value={formatSubscriptionLabel(subscription.status)}
-        detail="Current lifecycle state"
+        description="Current lifecycle state"
         icon={ClipboardList}
       />
-      <ManagementMetricCard
+      <SummaryCard
         title="Plan type"
         value={getManagerSubscriptionPlanType(subscription)}
-        detail={getManagerSubscriptionTermLabel(subscription)}
+        description={getManagerSubscriptionTermLabel(subscription)}
         icon={Dumbbell}
       />
-      <ManagementMetricCard
+      <SummaryCard
         title="Created"
         value={formatSubscriptionDate(subscription.created_at)}
-        detail="Subscription request date"
+        description="Subscription request date"
         icon={CalendarClock}
       />
     </div>

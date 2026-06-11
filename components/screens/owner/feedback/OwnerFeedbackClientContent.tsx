@@ -4,13 +4,14 @@ import { useState } from "react"
 import { MessageSquare, MessageSquareReply, Star, TicketX } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import {
   OwnerFeedbackTable,
   type OwnerFeedbackRow,
 } from "@/components/screens/owner/feedback/OwnerFeedbackTable"
 import {
   ALL_MONTHS_VALUE,
+  getTableMonthFilterLabel,
   matchesTableMonthFilter,
 } from "@/components/TableMonthFilter"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -48,16 +49,20 @@ export function OwnerFeedbackClientContent({
     monthFilter === ALL_MONTHS_VALUE
       ? feedbacks
       : feedbacks.filter((feedback) =>
-          matchesTableMonthFilter(
-            feedback.createdAt,
-            monthFilter,
-            appTimeZone
-          )
+          matchesTableMonthFilter(feedback.createdAt, monthFilter, appTimeZone)
         )
   const respondedCount = summaryFeedbacks.filter(
     (feedback) => feedback.managerResponse !== null
   ).length
   const noResponseCount = summaryFeedbacks.length - respondedCount
+  const isAllMonths = monthFilter === ALL_MONTHS_VALUE
+  const selectedMonthLabel = getTableMonthFilterLabel(
+    monthFilter,
+    "Selected month"
+  )
+  const feedbackScope = isAllMonths
+    ? "Facility feedback records"
+    : `Facility feedback in ${selectedMonthLabel}`
 
   return (
     <PageShell
@@ -72,28 +77,40 @@ export function OwnerFeedbackClientContent({
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ManagementMetricCard
+        <SummaryCard
           title="Total feedback"
           value={summaryFeedbacks.length}
-          detail="Facility feedback records"
+          description={feedbackScope}
           icon={MessageSquare}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Responded"
           value={respondedCount}
-          detail="Feedback with manager response"
+          description={
+            isAllMonths
+              ? "Feedback with manager response"
+              : `Responses in ${selectedMonthLabel}`
+          }
           icon={MessageSquareReply}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="No response"
           value={noResponseCount}
-          detail="Waiting for a manager response"
+          description={
+            isAllMonths
+              ? "Waiting for a manager response"
+              : `Waiting in ${selectedMonthLabel}`
+          }
           icon={TicketX}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Average rating"
           value={averageRatingLabel(summaryFeedbacks)}
-          detail="Rated feedback only"
+          description={
+            isAllMonths
+              ? "Rated feedback only"
+              : `Rated in ${selectedMonthLabel}`
+          }
           icon={Star}
         />
       </div>
