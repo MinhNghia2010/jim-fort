@@ -1,10 +1,10 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { CircleDollarSign, Users } from "lucide-react"
+import { CircleDollarSign, Dumbbell, UserRound, Users } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { OwnerMembershipsTable } from "@/components/screens/owner/memberships/OwnerMembershipsTable"
 import type {
   MembershipMonthSummary,
@@ -13,6 +13,8 @@ import type {
 } from "@/components/screens/owner/memberships/OwnerMembershipsPage"
 import {
   ALL_MONTHS_VALUE,
+  getTableMonthFilterLabel,
+  getTableMonthKey,
   type TableMonthFilterOption,
 } from "@/components/TableMonthFilter"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -61,6 +63,8 @@ export function OwnerMembershipsClientContent({
   plans,
   monthlySummaries,
   activeMembers,
+  ptMembers,
+  nonPtMembers,
   activeMembersDetail,
   revenueThisMonth,
   revenueDetail,
@@ -81,6 +85,31 @@ export function OwnerMembershipsClientContent({
     [plans, monthFilter]
   )
   const selectedMonthLabel = selectedSummary?.monthLabel ?? "selected month"
+  const currentMonthKey =
+    getTableMonthKey(new Date().toISOString()) ?? ALL_MONTHS_VALUE
+  const currentMonthLabel = getTableMonthFilterLabel(
+    currentMonthKey,
+    "This month"
+  )
+  const selectedSnapshotDescription =
+    monthFilter === currentMonthKey
+      ? "Current active membership snapshot"
+      : `Active at the end of ${selectedMonthLabel}`
+  const currentSummary = monthlySummaries.find(
+    (summary) => summary.monthKey === currentMonthKey
+  )
+  const activationSummary = isAllMonths ? currentSummary : selectedSummary
+  const activationMonthLabel = isAllMonths
+    ? currentMonthLabel
+    : selectedMonthLabel
+  const activeMembersDescription = isAllMonths
+    ? activeMembersDetail.replace("this month", `in ${currentMonthLabel}`)
+    : selectedSnapshotDescription
+  const revenueDescription = isAllMonths
+    ? revenueDetail.replace("this month", `in ${currentMonthLabel}`)
+    : `${selectedSummary?.paymentCount ?? 0} paid payments in ${selectedMonthLabel}`
+  const getActivationDescription = (count: number) =>
+    `${count} ${count === 1 ? "activation" : "activations"} in ${activationMonthLabel}`
 
   return (
     <PageShell
@@ -99,31 +128,41 @@ export function OwnerMembershipsClientContent({
         </Alert>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <ManagementMetricCard
-          title={isAllMonths ? "Active members" : "Selected active members"}
-          value={isAllMonths ? activeMembers : selectedSummary?.activeMembers ?? 0}
-          detail={
-            isAllMonths
-              ? activeMembersDetail
-              : `${selectedSummary?.activations ?? 0} activations in ${selectedMonthLabel}`
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard
+          title="Active members"
+          value={
+            isAllMonths ? activeMembers : (selectedSummary?.activeMembers ?? 0)
           }
+          description={activeMembersDescription}
           icon={Users}
         />
-        <ManagementMetricCard
-          title={
-            isAllMonths ? "Paid revenue this month" : "Selected month revenue"
+        <SummaryCard
+          title="PT members"
+          value={isAllMonths ? ptMembers : (selectedSummary?.ptMembers ?? 0)}
+          description={getActivationDescription(
+            activationSummary?.ptActivations ?? 0
+          )}
+          icon={Dumbbell}
+        />
+        <SummaryCard
+          title="Non-PT members"
+          value={
+            isAllMonths ? nonPtMembers : (selectedSummary?.nonPtMembers ?? 0)
           }
+          description={getActivationDescription(
+            activationSummary?.nonPtActivations ?? 0
+          )}
+          icon={UserRound}
+        />
+        <SummaryCard
+          title={isAllMonths ? "Paid revenue this month" : "Paid revenue"}
           value={
             isAllMonths
               ? revenueThisMonth
               : currencyFormatter.format(selectedSummary?.revenue ?? 0)
           }
-          detail={
-            isAllMonths
-              ? revenueDetail
-              : `${selectedSummary?.paymentCount ?? 0} paid payments in ${selectedMonthLabel}`
-          }
+          description={revenueDescription}
           icon={CircleDollarSign}
         />
       </div>

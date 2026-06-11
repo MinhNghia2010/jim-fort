@@ -45,7 +45,12 @@ type SubscriptionRow = {
   member_id: string
   package_id: string
   status: string
+  has_pt_snapshot: boolean
   activated_at: string | null
+  starts_at: string | null
+  expires_at: string | null
+  cancelled_at: string | null
+  created_at: string
 }
 
 type PaymentRow = {
@@ -109,6 +114,48 @@ function getMonthLabel(monthKey: string) {
   const date = new Date(Date.UTC(year, month - 1, 1))
 
   return monthLabelFormatter.format(date)
+}
+
+function toDate(value: string | null | undefined) {
+  if (!value) {
+    return null
+  }
+
+  const date = new Date(value)
+
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function getMonthCutoff(monthKey: string, now: Date) {
+  const [year, month] = monthKey.split("-").map(Number)
+  const nextMonthStart = new Date(
+    Date.UTC(year, month, 1) - 7 * 60 * 60 * 1000
+  )
+  const monthEnd = new Date(nextMonthStart.getTime() - 1)
+
+  return monthEnd < now ? monthEnd : now
+}
+
+function isSubscriptionActiveAt(subscription: SubscriptionRow, cutoff: Date) {
+  if (!["active", "cancelled", "expired"].includes(subscription.status)) {
+    return false
+  }
+
+  const startedAt =
+    toDate(subscription.starts_at) ??
+    toDate(subscription.activated_at) ??
+    toDate(subscription.created_at)
+
+  if (!startedAt || startedAt > cutoff) {
+    return false
+  }
+
+  const endedAt = [subscription.cancelled_at, subscription.expires_at]
+    .map(toDate)
+    .filter((date): date is Date => date !== null)
+    .sort((first, second) => first.getTime() - second.getTime())[0]
+
+  return !endedAt || cutoff < endedAt
 }
 
 function addToNumberMap(map: Map<string, number>, key: string, value: number) {
@@ -261,7 +308,9 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
     supabase.from("rooms").select("id, facility_id, name"),
     supabase
       .from("membership_subscriptions")
-      .select("id, member_id, package_id, status, activated_at"),
+      .select(
+        "id, member_id, package_id, status, has_pt_snapshot, activated_at, starts_at, expires_at, cancelled_at, created_at"
+      ),
     supabase
       .from("membership_payments")
       .select("subscription_id, amount, paid_at")
@@ -301,42 +350,46 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
   }
 
   const activeMemberIds = new Set<string>()
+  const activePtMemberIds = new Set<string>()
+  const activeNonPtMemberIds = new Set<string>()
   const activeMembersByPackage = new Map<string, Set<string>>()
-  const activeMemberIdsByMonth = new Map<string, Set<string>>()
-  const activeMemberIdsByPackageAndMonth = new Map<
-    string,
-    Map<string, Set<string>>
-  >()
   const activationCountByMonth = new Map<string, number>()
+  const ptActivationCountByMonth = new Map<string, number>()
+  const nonPtActivationCountByMonth = new Map<string, number>()
   const packageIdBySubscription = new Map<string, string>()
 
   for (const subscription of subscriptions) {
     packageIdBySubscription.set(subscription.id, subscription.package_id)
+
+    const activationMonthKey = getMonthKey(subscription.activated_at)
+
+    if (activationMonthKey) {
+      addToNumberMap(activationCountByMonth, activationMonthKey, 1)
+      addToNumberMap(
+        subscription.has_pt_snapshot
+          ? ptActivationCountByMonth
+          : nonPtActivationCountByMonth,
+        activationMonthKey,
+        1
+      )
+    }
 
     if (subscription.status !== "active") {
       continue
     }
 
     activeMemberIds.add(subscription.member_id)
+
+    if (subscription.has_pt_snapshot) {
+      activePtMemberIds.add(subscription.member_id)
+    } else {
+      activeNonPtMemberIds.add(subscription.member_id)
+    }
+
     const packageMembers =
       activeMembersByPackage.get(subscription.package_id) ?? new Set<string>()
     packageMembers.add(subscription.member_id)
     activeMembersByPackage.set(subscription.package_id, packageMembers)
-
-    const activationMonthKey = getMonthKey(subscription.activated_at)
-
-    if (activationMonthKey) {
-      const monthMembers =
-        activeMemberIdsByMonth.get(activationMonthKey) ?? new Set<string>()
-      monthMembers.add(subscription.member_id)
-      activeMemberIdsByMonth.set(activationMonthKey, monthMembers)
-      getNestedSet(
-        activeMemberIdsByPackageAndMonth,
-        subscription.package_id,
-        activationMonthKey
-      ).add(subscription.member_id)
-      addToNumberMap(activationCountByMonth, activationMonthKey, 1)
-    }
   }
 
   const revenueByPackage = new Map<string, number>()
@@ -380,6 +433,50 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
     )
   }
 
+  const summaryMonthKeys = Array.from(
+    new Set([
+      ...activationCountByMonth.keys(),
+      ...revenueByMonth.keys(),
+      ...paymentCountByMonth.keys(),
+    ])
+  ).sort((firstKey, secondKey) => secondKey.localeCompare(firstKey))
+  const activeMemberIdsByMonth = new Map<string, Set<string>>()
+  const activePtMemberIdsByMonth = new Map<string, Set<string>>()
+  const activeNonPtMemberIdsByMonth = new Map<string, Set<string>>()
+  const activeMemberIdsByPackageAndMonth = new Map<
+    string,
+    Map<string, Set<string>>
+  >()
+
+  for (const monthKey of summaryMonthKeys) {
+    const cutoff = getMonthCutoff(monthKey, now)
+
+    for (const subscription of subscriptions) {
+      if (!isSubscriptionActiveAt(subscription, cutoff)) {
+        continue
+      }
+
+      const monthMembers =
+        activeMemberIdsByMonth.get(monthKey) ?? new Set<string>()
+      monthMembers.add(subscription.member_id)
+      activeMemberIdsByMonth.set(monthKey, monthMembers)
+
+      const membershipTypeMembers = subscription.has_pt_snapshot
+        ? activePtMemberIdsByMonth
+        : activeNonPtMemberIdsByMonth
+      const typeMembers =
+        membershipTypeMembers.get(monthKey) ?? new Set<string>()
+      typeMembers.add(subscription.member_id)
+      membershipTypeMembers.set(monthKey, typeMembers)
+
+      getNestedSet(
+        activeMemberIdsByPackageAndMonth,
+        subscription.package_id,
+        monthKey
+      ).add(subscription.member_id)
+    }
+  }
+
   const plans: MembershipPlanView[] = packageRows.map((packageRow, index) => {
     const roomNames = (roomNamesByPackage.get(packageRow.id) ?? []).sort()
     const activeMembersByMonth =
@@ -418,19 +515,15 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
       })),
     }
   })
-  const summaryMonthKeys = Array.from(
-    new Set([
-      ...activeMemberIdsByMonth.keys(),
-      ...activationCountByMonth.keys(),
-      ...revenueByMonth.keys(),
-      ...paymentCountByMonth.keys(),
-    ])
-  ).sort((firstKey, secondKey) => secondKey.localeCompare(firstKey))
   const monthlySummaries = summaryMonthKeys.map((monthKey) => ({
     monthKey,
     monthLabel: getMonthLabel(monthKey),
     activeMembers: activeMemberIdsByMonth.get(monthKey)?.size ?? 0,
+    ptMembers: activePtMemberIdsByMonth.get(monthKey)?.size ?? 0,
+    nonPtMembers: activeNonPtMemberIdsByMonth.get(monthKey)?.size ?? 0,
     activations: activationCountByMonth.get(monthKey) ?? 0,
+    ptActivations: ptActivationCountByMonth.get(monthKey) ?? 0,
+    nonPtActivations: nonPtActivationCountByMonth.get(monthKey) ?? 0,
     revenue: revenueByMonth.get(monthKey) ?? 0,
     paymentCount: paymentCountByMonth.get(monthKey) ?? 0,
   }))
@@ -440,6 +533,8 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
     plans,
     monthlySummaries,
     activeMembers: activeMemberIds.size,
+    ptMembers: activePtMemberIds.size,
+    nonPtMembers: activeNonPtMemberIds.size,
     activeMembersDetail: `${
       activationCountByMonth.get(currentMonthKey) ?? 0
     } activations this month`,

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Check, CirclePlus, PackageCheck } from "lucide-react"
+import { Check, CirclePlus, PackageCheck, Search } from "lucide-react"
 
 import { deleteMembershipPackage } from "@/app/(main)/memberships/actions"
 import { StatusBadge } from "@/components/StatusBadge"
@@ -31,6 +31,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import {
   Table,
   TableBody,
@@ -177,6 +182,7 @@ export function OwnerMembershipsTable({
   monthFilterOptions = [{ value: ALL_MONTHS_VALUE, label: "All months" }],
   onMonthFilterChange,
 }: OwnerMembershipsTableProps) {
+  const [search, setSearch] = useState("")
   const [sort, setSort] = useState<MembershipSort>("plan_asc")
   const [statusFilter, setStatusFilter] =
     useState<MembershipStatusFilter>("all")
@@ -185,9 +191,26 @@ export function OwnerMembershipsTable({
     deleteOptimistically: markPlanDeleted,
     optimisticDeletedIds: optimisticDeletedPlanIds,
   } = useOptimisticDeletion()
-  const filteredPlans = plans.filter(
-    (plan) => statusFilter === "all" || plan.status === statusFilter
-  )
+  const normalizedSearch = search.trim().toLowerCase()
+  const filteredPlans = plans.filter((plan) => {
+    const searchableText = [
+      plan.name,
+      plan.description,
+      plan.status,
+      plan.priceLabel,
+      plan.termLabel,
+      ...plan.features,
+      plan.activeMembers,
+      plan.revenueLabel,
+    ]
+      .join(" ")
+      .toLowerCase()
+
+    return (
+      (!normalizedSearch || searchableText.includes(normalizedSearch)) &&
+      (statusFilter === "all" || plan.status === statusFilter)
+    )
+  })
   const sortedPlans = sortPlans(filteredPlans, sort)
   const planSortValue =
     sort === "plan_desc" || sort === "plan_asc" ? sort : "plan_asc"
@@ -221,16 +244,27 @@ export function OwnerMembershipsTable({
         </CardAction>
       </CardHeader>
       <CardContent className="px-0">
-        {onMonthFilterChange ? (
-          <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-end">
+        <div className="flex flex-col gap-3 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+          <InputGroup className="w-full lg:w-96">
+            <InputGroupInput
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search membership plans..."
+              aria-label="Search membership plans"
+            />
+            <InputGroupAddon>
+              <Search aria-hidden="true" />
+            </InputGroupAddon>
+          </InputGroup>
+          {onMonthFilterChange ? (
             <TableMonthFilter
               value={monthFilter}
               options={monthFilterOptions}
               onValueChange={onMonthFilterChange}
               label="Filter membership stats by month"
             />
-          </div>
-        ) : null}
+          ) : null}
+        </div>
         <Table
           className={cn(
             "table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal",
@@ -374,8 +408,7 @@ export function OwnerMembershipsTable({
                           description: `Delete ${plan.name}? This permanently removes the plan and its room access. Plans with subscription history must be archived instead.`,
                           inputName: "packageId",
                           inputValue: plan.id,
-                          onDeleteSuccess: () =>
-                            commitPlanDeletion(plan.id),
+                          onDeleteSuccess: () => commitPlanDeletion(plan.id),
                           onOptimisticDelete: () => markPlanDeleted(plan.id),
                           successMessage: "Membership plan deleted",
                           title: "Delete membership plan?",
@@ -396,7 +429,7 @@ export function OwnerMembershipsTable({
                       <EmptyTitle>No membership plans found</EmptyTitle>
                       <EmptyDescription>
                         {plans.length
-                          ? "Try a different status filter."
+                          ? "Try a different search term or status filter."
                           : "Plans from the live membership_packages table will appear here."}
                       </EmptyDescription>
                     </EmptyHeader>

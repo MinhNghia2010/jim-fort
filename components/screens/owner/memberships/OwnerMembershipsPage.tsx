@@ -26,7 +26,11 @@ export interface MembershipMonthSummary {
   monthKey: string
   monthLabel: string
   activeMembers: number
+  ptMembers: number
+  nonPtMembers: number
   activations: number
+  ptActivations: number
+  nonPtActivations: number
   revenue: number
   paymentCount: number
 }
@@ -36,6 +40,8 @@ export interface OwnerMembershipsPageProps {
   plans: readonly MembershipPlanView[]
   monthlySummaries: readonly MembershipMonthSummary[]
   activeMembers: number
+  ptMembers: number
+  nonPtMembers: number
   activeMembersDetail: string
   revenueThisMonth: string
   revenueDetail: string
@@ -48,6 +54,8 @@ export function OwnerMembershipsContent({
   plans,
   monthlySummaries,
   activeMembers,
+  ptMembers,
+  nonPtMembers,
   activeMembersDetail,
   revenueThisMonth,
   revenueDetail,
@@ -60,6 +68,8 @@ export function OwnerMembershipsContent({
       plans={plans}
       monthlySummaries={monthlySummaries}
       activeMembers={activeMembers}
+      ptMembers={ptMembers}
+      nonPtMembers={nonPtMembers}
       activeMembersDetail={activeMembersDetail}
       revenueThisMonth={revenueThisMonth}
       revenueDetail={revenueDetail}
