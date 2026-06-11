@@ -1,8 +1,8 @@
 "use client"
 
-import { useActionState, useEffect, useRef, useState } from "react"
+import { useActionState, useEffect, useId, useRef, useState } from "react"
 import Link from "next/link"
-import { ClipboardList, Eye, Loader2, Search, X } from "lucide-react"
+import { ClipboardList, Loader2, Search, X } from "lucide-react"
 import { toast } from "sonner"
 
 import { cancelPendingSubscription } from "@/app/(main)/member-actions"
@@ -223,7 +223,7 @@ function CancelSubscriptionMenuAction({
 }: {
   subscriptionId: string
 }) {
-  const formRef = useRef<HTMLFormElement>(null)
+  const formId = useId()
   const [state, formAction, pending] = useActionState(
     cancelPendingSubscription,
     initialActionState
@@ -252,23 +252,18 @@ function CancelSubscriptionMenuAction({
 
   return (
     <>
-      <form ref={formRef} action={formAction} className="hidden">
+      <form id={formId} action={formAction} className="hidden">
         <input type="hidden" name="subscriptionId" value={subscriptionId} />
       </form>
-      <DropdownMenuItem
-        variant="destructive"
-        disabled={pending}
-        onSelect={(event) => {
-          event.preventDefault()
-          formRef.current?.requestSubmit()
-        }}
-      >
-        {pending ? (
-          <Loader2 aria-hidden="true" className="animate-spin" />
-        ) : (
-          <X aria-hidden="true" />
-        )}
-        {pending ? "Cancelling" : "Cancel"}
+      <DropdownMenuItem asChild variant="destructive" disabled={pending}>
+        <button type="submit" form={formId}>
+          {pending ? (
+            <Loader2 aria-hidden="true" className="animate-spin" />
+          ) : (
+            <X aria-hidden="true" />
+          )}
+          {pending ? "Cancelling" : "Cancel"}
+        </button>
       </DropdownMenuItem>
     </>
   )
@@ -478,7 +473,6 @@ export function MemberSubscriptionsTable({
                     >
                       <DropdownMenuItem asChild>
                         <Link href={`/subscriptions/${subscription.id}`}>
-                          <Eye aria-hidden="true" />
                           View detail
                         </Link>
                       </DropdownMenuItem>

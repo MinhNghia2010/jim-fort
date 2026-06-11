@@ -4,7 +4,6 @@ import {
   CreditCard,
   DollarSign,
   Dumbbell,
-  History,
   Pencil,
   Phone,
   SearchX,
@@ -21,8 +20,6 @@ import { DeleteConfirmationButton } from "@/components/DeleteConfirmationButton"
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
 import { StatusBadge } from "@/components/StatusBadge"
-import { isPastOrCurrentActivityDate } from "@/lib/features/shared/activity-history"
-import { isCancellablePlanStatus } from "@/lib/features/owner/members/cancel-plan"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -122,113 +119,12 @@ function getCurrentSubscription(subscriptions: MemberDetailSubscription[]) {
   )
 }
 
-type MemberActivity = {
-  id: string
-  title: string
-  detail: string
-  at: string
-}
-
-function addActivity(
-  activities: MemberActivity[],
-  activity: MemberActivity | null
-) {
-  if (activity?.at) {
-    activities.push(activity)
-  }
-}
-
-function getMemberActivity(member: MemberDetailData, now = new Date()) {
-  const activities: MemberActivity[] = []
-
-  addActivity(
-    activities,
-    member.createdAt
-      ? {
-          id: "member-created",
-          title: "Member profile created",
-          detail: member.name,
-          at: member.createdAt,
-        }
-      : null
+function canCancelPlan(subscription: MemberDetailSubscription | null) {
+  return (
+    subscription?.status === "active" ||
+    subscription?.status === "pending_payment" ||
+    subscription?.status === "pending_pt_setup"
   )
-  addActivity(
-    activities,
-    member.updatedAt
-      ? {
-          id: "member-updated",
-          title: "Member profile updated",
-          detail: member.name,
-          at: member.updatedAt,
-        }
-      : null
-  )
-
-  member.subscriptions.forEach((subscription) => {
-    addActivity(activities, {
-      id: `${subscription.id}-created`,
-      title: "Subscription created",
-      detail: `${subscription.plan} · ${statusLabels[subscription.status]}`,
-      at: subscription.createdAt,
-    })
-    addActivity(
-      activities,
-      subscription.activatedAt
-        ? {
-            id: `${subscription.id}-activated`,
-            title: "Subscription activated",
-            detail: subscription.plan,
-            at: subscription.activatedAt,
-          }
-        : null
-    )
-    addActivity(
-      activities,
-      subscription.cancelledAt
-        ? {
-            id: `${subscription.id}-cancelled`,
-            title: "Subscription cancelled",
-            detail: subscription.cancelledReason ?? subscription.plan,
-            at: subscription.cancelledAt,
-          }
-        : null
-    )
-
-    subscription.payments.forEach((payment) => {
-      const paymentAt = payment.paidAt ?? payment.createdAt
-
-      addActivity(
-        activities,
-        paymentAt
-          ? {
-              id: `${subscription.id}-${payment.id}`,
-              title: `Payment ${payment.status}`,
-              detail: `${subscription.plan} · ${currencyFormatter.format(payment.amount)}`,
-              at: paymentAt,
-            }
-          : null
-      )
-    })
-  })
-
-  member.sessions.forEach((session) => {
-    addActivity(
-      activities,
-      session.startsAt
-        ? {
-            id: `session-${session.id}`,
-            title: `PT session ${session.status}`,
-            detail: `${session.trainerName} · #${session.sessionNumber ?? "-"}`,
-            at: session.startsAt,
-          }
-        : null
-    )
-  })
-
-  return activities
-    .filter((activity) => isPastOrCurrentActivityDate(activity.at, now))
-    .sort((first, second) => second.at.localeCompare(first.at))
-    .slice(0, 12)
 }
 
 function MemberNotFound() {
@@ -285,10 +181,8 @@ export async function OwnerMemberDetailPage({
     member?.subscriptions.filter(
       (subscription) => subscription.status === "active"
     ).length ?? 0
-  const canCancelCurrentPlan =
-    canDelete && isCancellablePlanStatus(currentSubscription?.status)
+  const canCancelCurrentPlan = canDelete && canCancelPlan(currentSubscription)
   const paidRevenue = member ? getPaidRevenue(member) : 0
-  const memberActivity = member ? getMemberActivity(member) : []
 
   return (
     <PageShell
@@ -442,57 +336,6 @@ export async function OwnerMemberDetailPage({
               </CardContent>
             </Card>
           </div>
-
-          <Card className="gap-0 overflow-hidden py-0">
-            <CardHeader className="border-b py-4">
-              <CardTitle className="flex items-center gap-2">
-                <History className="size-5 text-muted-foreground" />
-                Activity history
-              </CardTitle>
-              <CardDescription>
-                Recent profile, subscription, payment, and session lifecycle
-                events.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="px-0">
-              {memberActivity.length ? (
-                <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
-                  <TableHeader className="bg-muted/40">
-                    <TableRow>
-                      <TableHead className="h-12 pl-6">Event</TableHead>
-                      <TableHead className="h-12">Detail</TableHead>
-                      <TableHead className="h-12 pr-6">When</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {memberActivity.map((activity) => (
-                      <TableRow key={activity.id} className="h-[4.5rem]">
-                        <TableCell className="pl-6 font-medium">
-                          {activity.title}
-                        </TableCell>
-                        <TableCell>{activity.detail}</TableCell>
-                        <TableCell className="pr-6 font-mono text-xs whitespace-nowrap text-muted-foreground">
-                          {formatDateTime(activity.at)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <Empty className="min-h-48">
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <History />
-                    </EmptyMedia>
-                    <EmptyTitle>No activity yet</EmptyTitle>
-                    <EmptyDescription>
-                      Lifecycle events will appear as this member uses the app.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              )}
-            </CardContent>
-          </Card>
 
           <Card className="gap-0 overflow-hidden py-0">
             <CardHeader className="border-b py-4">

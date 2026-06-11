@@ -102,7 +102,7 @@ export const appRoutes = [
   },
   {
     label: "Voucher Detail",
-    path: "/vouchers/[voucherCode]",
+    path: "/voucher/[voucherCode]",
     roles: ["owner", "manager"],
   },
   {

@@ -5,15 +5,10 @@ import Link from "next/link"
 import { CirclePlus, Search, Users } from "lucide-react"
 
 import { cancelMemberPlan } from "@/app/(main)/members/actions"
-import {
-  CsvExportButton,
-  type CsvColumn,
-} from "@/components/CsvExportButton"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { StatusBadge } from "@/components/StatusBadge"
 import { TableActionButton } from "@/components/TableActionButton"
 import { TableRowActions } from "@/components/TableRowActions"
-import { isCancellablePlanStatus } from "@/lib/features/owner/members/cancel-plan"
 import {
   ALL_MONTHS_VALUE,
   getTableMonthFilterOptions,
@@ -132,16 +127,6 @@ const statusLabels: Record<MemberStatus, string> = {
   cancelled: "Cancelled",
 }
 
-const memberExportColumns = [
-  { header: "Name", value: (member) => member.name },
-  { header: "Phone", value: (member) => member.phone },
-  { header: "Plan", value: (member) => member.plan },
-  { header: "Joined at", value: (member) => member.joinedAt },
-  { header: "Status", value: (member) => statusLabels[member.status] },
-  { header: "Sessions", value: (member) => member.sessions },
-  { header: "Revenue", value: (member) => member.revenue },
-] satisfies readonly CsvColumn<MemberTableRow>[]
-
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   dateStyle: "medium",
   timeZone: "UTC",
@@ -176,6 +161,14 @@ function matchesStatus(status: MemberStatus, filter: MemberStatusFilter) {
   }
 
   return status === filter
+}
+
+function canCancelMemberPlan(status: MemberStatus) {
+  return (
+    status === "active" ||
+    status === "pending_payment" ||
+    status === "pending_pt_setup"
+  )
 }
 
 function compareText(first: string, second: string) {
@@ -347,19 +340,12 @@ export function MembersTable({
                 aria-label="Search members"
               />
             </InputGroup>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
-              <CsvExportButton
-                filename="jim-fort-members.csv"
-                rows={sortedMembers}
-                columns={memberExportColumns}
-              />
-              <TableMonthFilter
-                value={monthFilter}
-                options={monthFilterOptions}
-                onValueChange={handleMonthFilterChange}
-                label="Filter members by joined month"
-              />
-            </div>
+            <TableMonthFilter
+              value={monthFilter}
+              options={monthFilterOptions}
+              onValueChange={handleMonthFilterChange}
+              label="Filter members by joined month"
+            />
           </div>
 
           <Table className="table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal">
@@ -420,7 +406,7 @@ export function MembersTable({
             </TableHeader>
             <TableBody>
               {sortedMembers.length ? (
-                paginatedMembers.map((member) => (
+              paginatedMembers.map((member) => (
                   <TableRow key={member.id} className="h-[4.5rem]">
                     <TableCell className="pl-6">
                       <div className="flex items-center gap-3">
@@ -478,7 +464,7 @@ export function MembersTable({
                             : []),
                         ]}
                         deleteAction={
-                          canDeleteMember && isCancellablePlanStatus(member.status)
+                          canDeleteMember && canCancelMemberPlan(member.status)
                             ? {
                                 action: cancelMemberPlan,
                                 label: "Cancel plan",

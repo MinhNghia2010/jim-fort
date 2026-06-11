@@ -250,10 +250,10 @@ export async function updateVoucher(
   }
 
   revalidatePath("/vouchers")
-  revalidatePath(`/vouchers/${encodeURIComponent(payload.code)}`)
+  revalidatePath(`/voucher/view=${encodeURIComponent(payload.code)}`)
   redirect(
     withRedirectToast(
-      `/vouchers/${encodeURIComponent(payload.code)}`,
+      `/voucher/view=${encodeURIComponent(payload.code)}`,
       `${payload.code} voucher was updated.`
     )
   )
@@ -334,7 +334,7 @@ export async function deleteVoucher(
   }
 
   revalidatePath("/vouchers")
-  revalidatePath(`/vouchers/${encodeURIComponent(accessibleVoucher.code)}`)
+  revalidatePath(`/voucher/${encodeURIComponent(accessibleVoucher.code)}`)
   revalidatePath("/overview")
 
   return { message: `${accessibleVoucher.code} was deleted.` }

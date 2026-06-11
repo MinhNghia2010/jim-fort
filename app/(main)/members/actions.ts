@@ -5,12 +5,17 @@ import { redirect } from "next/navigation"
 
 import { getOwnerMemberAccess } from "@/app/(main)/members/owner-member-access"
 import type { DeleteActionState } from "@/components/DeleteConfirmationDialog"
-import { cancellablePlanStatuses } from "@/lib/features/owner/members/cancel-plan"
 import { withRedirectToast } from "@/lib/redirect-toast"
 
 function text(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim()
 }
+
+const cancellablePlanStatuses = [
+  "active",
+  "pending_payment",
+  "pending_pt_setup",
+] as const
 
 async function cancelFuturePtSessions(
   admin: ReturnType<typeof import("@/lib/supabase/admin").createAdminClient>,

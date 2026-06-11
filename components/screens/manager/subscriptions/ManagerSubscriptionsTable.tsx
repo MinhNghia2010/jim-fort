@@ -3,10 +3,6 @@
 import { Fragment, useState } from "react"
 import { ClipboardList } from "lucide-react"
 
-import {
-  CsvExportButton,
-  type CsvColumn,
-} from "@/components/CsvExportButton"
 import { StatusBadge } from "@/components/StatusBadge"
 import { TableRowActions } from "@/components/TableRowActions"
 import {
@@ -75,20 +71,6 @@ const monthKey = new Intl.DateTimeFormat("en-US", {
   timeZone: appTimeZone,
 })
 
-const subscriptionExportColumns = [
-  { header: "Member", value: (row) => row.users?.full_name ?? "Member" },
-  {
-    header: "Package",
-    value: (row) => row.membership_packages?.name ?? "Membership",
-  },
-  {
-    header: "Created at",
-    value: (row) => date.format(new Date(row.created_at)),
-  },
-  { header: "Status", value: (row) => row.status },
-  { header: "Amount", value: (row) => row.final_price },
-] satisfies readonly CsvColumn<ManagerSubscriptionTableRow>[]
-
 export function ManagerSubscriptionsTable({
   rows,
 }: ManagerSubscriptionsTableProps) {
@@ -112,11 +94,6 @@ export function ManagerSubscriptionsTable({
       </CardHeader>
       <CardContent className="px-0">
         <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-end">
-          <CsvExportButton
-            filename="jim-fort-manager-subscriptions.csv"
-            rows={filteredRows}
-            columns={subscriptionExportColumns}
-          />
           <TableMonthFilter
             value={monthFilter}
             options={monthFilterOptions}

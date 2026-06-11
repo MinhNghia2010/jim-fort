@@ -1,5 +1,3 @@
-import type { ReactNode } from "react"
-
 import { StatusBadge } from "@/components/StatusBadge"
 import { SubscriptionSummaryRow } from "@/components/screens/shared/subscriptions/SubscriptionInfoRows"
 import { formatSubscriptionMoney } from "@/lib/features/shared/subscriptions/detail-utils"
@@ -14,12 +12,10 @@ import {
 import type { MemberSubscriptionRow } from "@/lib/features/member/subscriptions/detail-data"
 
 type MemberPaymentSummaryCardProps = {
-  actions?: ReactNode
   subscription: MemberSubscriptionRow
 }
 
 export function MemberPaymentSummaryCard({
-  actions,
   subscription,
 }: MemberPaymentSummaryCardProps) {
   return (
@@ -52,7 +48,6 @@ export function MemberPaymentSummaryCard({
             {formatSubscriptionMoney(subscription.final_price)}
           </span>
         </div>
-        {actions ? <div className="pt-1">{actions}</div> : null}
       </CardContent>
     </Card>
   )

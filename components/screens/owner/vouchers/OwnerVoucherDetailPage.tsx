@@ -1,7 +1,6 @@
 import {
   BadgePercent,
   CircleDollarSign,
-  History,
   SearchX,
   Pencil,
   Tag,
@@ -25,12 +24,9 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { isPastOrCurrentActivityDate } from "@/lib/features/shared/activity-history"
 import type { VoucherView } from "@/components/screens/owner/vouchers/OwnerVouchersPage"
 
 export interface VoucherDetailView extends VoucherView {
-  createdAt: string | null
-  updatedAt: string | null
   createdAtLabel: string
   updatedAtLabel: string
   discountImpactLabel: string
@@ -89,68 +85,6 @@ function VoucherNotFoundContent({
   )
 }
 
-type VoucherActivity = {
-  id: string
-  title: string
-  detail: string
-  at: string | null
-  label: string
-}
-
-function getVoucherActivity(
-  voucher: VoucherDetailView,
-  redemptions: readonly VoucherRedemptionView[],
-  now = new Date()
-) {
-  const activity: VoucherActivity[] = [
-    {
-      id: "created",
-      title: "Voucher created",
-      detail: voucher.discountLabel,
-      at: voucher.createdAt,
-      label: voucher.createdAtLabel,
-    },
-    {
-      id: "updated",
-      title: "Voucher updated",
-      detail: `Status: ${voucher.status}`,
-      at: voucher.updatedAt,
-      label: voucher.updatedAtLabel,
-    },
-    {
-      id: "starts",
-      title: "Voucher starts",
-      detail: "First eligible redemption date",
-      at: voucher.startsAt,
-      label: voucher.startsAtLabel,
-    },
-    {
-      id: "expires",
-      title: "Voucher expires",
-      detail: "Last eligible redemption date",
-      at: voucher.expiresAt,
-      label: voucher.expiresAtLabel,
-    },
-    ...redemptions.map((redemption) => ({
-      id: `redemption-${redemption.id}`,
-      title: "Voucher redeemed",
-      detail: `${redemption.memberName} · ${redemption.discountAmountLabel}`,
-      at: redemption.redeemedAt,
-      label: redemption.redeemedAtLabel,
-    })),
-  ]
-
-  return activity
-    .filter(
-      (item) =>
-        item.label !== "Not recorded" &&
-        isPastOrCurrentActivityDate(item.at, now)
-    )
-    .sort((first, second) =>
-      (second.at ?? "").localeCompare(first.at ?? "")
-    )
-}
-
 function VoucherDetailContent({
   facilityLabel,
   voucher,
@@ -158,8 +92,6 @@ function VoucherDetailContent({
   errorMessage,
   canManage = true,
 }: OwnerVoucherDetailPageProps) {
-  const activity = getVoucherActivity(voucher, redemptions)
-
   return (
     <PageShell
       backHref="/vouchers"
@@ -263,44 +195,6 @@ function VoucherDetailContent({
               />
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card className="gap-0 overflow-hidden py-0">
-        <CardHeader className="border-b py-4">
-          <CardTitle className="flex items-center gap-2">
-            <History className="size-5 text-muted-foreground" />
-            Activity history
-          </CardTitle>
-          <CardDescription>
-            Creation, update, active window, and redemption events.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-0">
-          {activity.length ? (
-            <div className="divide-y">
-              {activity.map((item) => (
-                <div
-                  key={item.id}
-                  className="grid gap-1 px-6 py-4 text-sm md:grid-cols-[minmax(0,1fr)_12rem] md:items-center"
-                >
-                  <div className="min-w-0">
-                    <p className="font-medium">{item.title}</p>
-                    <p className="truncate text-muted-foreground">
-                      {item.detail}
-                    </p>
-                  </div>
-                  <p className="font-mono text-xs text-muted-foreground md:text-right">
-                    {item.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="px-6 py-10 text-sm text-muted-foreground">
-              No voucher activity is recorded yet.
-            </div>
-          )}
         </CardContent>
       </Card>
 

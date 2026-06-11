@@ -4,9 +4,6 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
 import { createAdminClient } from "@/lib/supabase/admin"
-import {
-  getVoucherAvailabilityError,
-} from "@/lib/features/member/subscriptions/voucher"
 import { withRedirectToast } from "@/lib/redirect-toast"
 import { createClient } from "@/lib/supabase/server"
 
@@ -287,19 +284,6 @@ function parseChoice(value: string, choices: readonly string[]) {
   return choices.includes(value) ? value : null
 }
 
-type VoucherRow = {
-  id: string
-  code: string
-  discount_type: "percentage" | "amount"
-  percentage: number | string | null
-  amount: number | string | null
-  status: string
-  starts_at: string | null
-  expires_at: string | null
-  max_redemptions: number | string | null
-  facility_id: string
-}
-
 type PaymentDetailPayload = {
   payer_name: string | null
   payer_phone: string | null
@@ -530,18 +514,6 @@ export async function cancelPendingSubscription(
         error: `Subscription was cancelled, but pending payment cleanup failed: ${paymentError.message}`,
       }
     }
-
-    const { error: voucherCleanupError } = await admin
-      .from("voucher_redemptions")
-      .delete()
-      .eq("subscription_id", subscriptionId)
-      .eq("member_id", context.memberId)
-
-    if (voucherCleanupError) {
-      return {
-        error: `Subscription was cancelled, but voucher cleanup failed: ${voucherCleanupError.message}`,
-      }
-    }
   } catch (error) {
     return {
       error: friendlySubscriptionError(
@@ -552,7 +524,6 @@ export async function cancelPendingSubscription(
 
   revalidatePath(`/subscriptions/${subscriptionId}`)
   revalidatePath("/subscriptions")
-  revalidatePath("/vouchers")
   redirect(
     withRedirectToast("/subscriptions", "Subscription was cancelled.")
   )
@@ -746,24 +717,13 @@ export async function applyVoucher(
     return { error: context.error }
   }
 
-  let admin: ReturnType<typeof createAdminClient>
-
-  try {
-    admin = createAdminClient()
-  } catch (error) {
-    return {
-      error: friendlySubscriptionError(
-        error instanceof Error ? error.message : String(error)
-      ),
-    }
-  }
-
-  const { data: subscription, error: subscriptionError } = await admin
-    .from("membership_subscriptions")
-    .select("id,status,facility_id,base_price,discount_amount,final_price")
-    .eq("id", subscriptionId)
-    .eq("member_id", context.memberId)
-    .single()
+  const { data: subscription, error: subscriptionError } =
+    await context.supabase
+      .from("membership_subscriptions")
+      .select("id,status")
+      .eq("id", subscriptionId)
+      .eq("member_id", context.memberId)
+      .single()
 
   if (subscriptionError || !subscription) {
     return { error: "This subscription is not available." }
@@ -773,107 +733,30 @@ export async function applyVoucher(
     return { error: "Vouchers can only be applied before payment." }
   }
 
-  const { data: existingRedemption, error: existingRedemptionError } =
-    await admin
-      .from("voucher_redemptions")
-      .select("id,discount_amount")
-      .eq("subscription_id", subscriptionId)
-      .eq("member_id", context.memberId)
-      .limit(1)
-
-  if (existingRedemptionError) {
-    return {
-      error: `Unable to check existing voucher usage: ${existingRedemptionError.message}`,
-    }
-  }
-
-  if (existingRedemption?.length) {
-    return {
-      error: "A voucher is already applied to this subscription.",
-    }
-  }
-
-  const { data: voucher, error: voucherError } = await admin
+  const { data: voucher, error: voucherError } = await context.supabase
     .from("vouchers")
-    .select(
-      "id,code,discount_type,percentage,amount,status,starts_at,expires_at,max_redemptions,facility_id"
-    )
+    .select("id")
     .eq("code", code)
-    .limit(1)
+    .single()
 
-  if (voucherError || !voucher?.length) {
+  if (voucherError || !voucher) {
     return { error: "Voucher is unavailable or cannot be used here." }
   }
 
-  const voucherRow = voucher[0] as VoucherRow
-
-  const { data: existingMemberVoucher, error: existingMemberVoucherError } =
-    await admin
-      .from("voucher_redemptions")
-      .select("id")
-      .eq("voucher_id", voucherRow.id)
-      .eq("member_id", context.memberId)
-      .limit(1)
-
-  if (existingMemberVoucherError) {
-    return {
-      error: `Unable to check member voucher usage: ${existingMemberVoucherError.message}`,
-    }
-  }
-
-  if (existingMemberVoucher?.length) {
-    return { error: "You have already used this voucher." }
-  }
-
-  if (voucherRow.facility_id !== subscription.facility_id) {
-    return {
-      error: "This voucher cannot be used for this subscription.",
-    }
-  }
-
-  const { count: redemptionCount, error: redemptionCountError } = await admin
-    .from("voucher_redemptions")
-    .select("id", { count: "exact", head: true })
-    .eq("voucher_id", voucherRow.id)
-
-  if (redemptionCountError) {
-    return {
-      error: `Unable to check voucher usage: ${redemptionCountError.message}`,
-    }
-  }
-
-  const availabilityError = getVoucherAvailabilityError(
-    voucherRow,
-    redemptionCount ?? 0,
-    new Date()
-  )
-
-  if (availabilityError) {
-    return { error: availabilityError }
-  }
-
-  const appliedAt = new Date().toISOString()
-
-  const { error: insertError } = await admin.from("voucher_redemptions").insert({
-    voucher_id: voucherRow.id,
+  const { error } = await context.supabase.from("voucher_redemptions").insert({
+    voucher_id: voucher.id,
     member_id: context.memberId,
     subscription_id: subscriptionId,
-    redeemed_at: appliedAt,
   })
 
-  if (insertError) {
-    return { error: `Unable to apply voucher: ${insertError.message}` }
+  if (error) {
+    return { error: `Unable to apply voucher: ${error.message}` }
   }
 
   revalidatePath(`/subscriptions/${subscriptionId}`)
-  revalidatePath("/subscriptions")
   revalidatePath("/payments")
-  revalidatePath("/vouchers")
-  revalidatePath(`/vouchers/${encodeURIComponent(voucherRow.code)}`)
 
-  return {
-    message: `${voucherRow.code} voucher was applied.`,
-  }
+  return {}
 }
 
 export async function paySubscription(

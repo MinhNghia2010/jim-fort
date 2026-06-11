@@ -1,4 +1,7 @@
-import { redirect } from "next/navigation"
+import { ManagerVoucherDetailPage } from "@/components/screens/manager/vouchers/ManagerVoucherDetailPage"
+import { OwnerVoucherDetailPage } from "@/components/screens/owner/vouchers/OwnerVoucherDetailPage"
+import { getAuthenticatedRole } from "@/lib/auth/current-role"
+import { renderRolePage } from "@/lib/role-page"
 
 interface VoucherDetailPageProps {
   params: Promise<{
@@ -9,10 +12,11 @@ interface VoucherDetailPageProps {
 export default async function VoucherDetailPage({
   params,
 }: VoucherDetailPageProps) {
+  const role = await getAuthenticatedRole()
   const { voucherCode } = await params
-  const normalizedVoucherCode = voucherCode.startsWith("view=")
-    ? voucherCode.slice("view=".length)
-    : voucherCode
 
-  redirect(`/vouchers/${encodeURIComponent(normalizedVoucherCode)}`)
+  return renderRolePage(role, {
+    owner: <OwnerVoucherDetailPage voucherCode={voucherCode} />,
+    manager: <ManagerVoucherDetailPage voucherCode={voucherCode} />,
+  })
 }

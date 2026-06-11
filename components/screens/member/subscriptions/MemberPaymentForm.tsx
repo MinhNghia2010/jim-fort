@@ -2,15 +2,20 @@
 
 import Image from "next/image"
 import { useId, useState } from "react"
-import { CreditCard, Landmark } from "lucide-react"
+import { useFormStatus } from "react-dom"
+import { CreditCard, Landmark, X } from "lucide-react"
 
+import { checkoutSubscription } from "@/app/(main)/member-actions"
 import { FormSelect } from "@/components/FormSelect"
+import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 type PaymentMethod = "card" | "bank_transfer"
 
 type MemberPaymentFormProps = {
+  subscriptionId: string
   amountLabel: string
 }
 
@@ -18,6 +23,25 @@ const paymentMethods: { value: PaymentMethod; label: string }[] = [
   { value: "card", label: "Card" },
   { value: "bank_transfer", label: "Bank transfer" },
 ]
+
+function CancelCheckoutButton() {
+  const { pending } = useFormStatus()
+
+  return (
+    <Button
+      type="submit"
+      name="intent"
+      value="cancel"
+      variant="outline"
+      formNoValidate
+      disabled={pending}
+      className="px-3"
+    >
+      <X data-icon="inline-start" />
+      Cancel
+    </Button>
+  )
+}
 
 function BankTransferQrPanel({ amountLabel }: { amountLabel: string }) {
   return (
@@ -49,7 +73,10 @@ function BankTransferQrPanel({ amountLabel }: { amountLabel: string }) {
   )
 }
 
-export function MemberPaymentFields({ amountLabel }: MemberPaymentFormProps) {
+export function MemberPaymentForm({
+  subscriptionId,
+  amountLabel,
+}: MemberPaymentFormProps) {
   const [method, setMethod] = useState<PaymentMethod>("card")
   const methodId = useId()
   const cardholderNameId = useId()
@@ -58,7 +85,18 @@ export function MemberPaymentFields({ amountLabel }: MemberPaymentFormProps) {
   const cardCvvId = useId()
 
   return (
-    <>
+    <MemberActionForm
+      action={checkoutSubscription}
+      submitLabel={`Pay ${amountLabel}`}
+      pendingLabel="Processing"
+      submitName="intent"
+      submitValue="pay"
+      actionsClassName="grid grid-cols-[minmax(0,1fr)_auto] gap-2"
+      buttonClassName="w-full"
+      secondaryAction={<CancelCheckoutButton />}
+      successMessage="Payment completed"
+    >
+      <input type="hidden" name="subscriptionId" value={subscriptionId} />
       <div className="grid gap-2">
         <Label htmlFor={methodId}>Payment method</Label>
         <FormSelect
@@ -125,6 +163,6 @@ export function MemberPaymentFields({ amountLabel }: MemberPaymentFormProps) {
       {method === "bank_transfer" ? (
         <BankTransferQrPanel amountLabel={amountLabel} />
       ) : null}
-    </>
+    </MemberActionForm>
   )
 }

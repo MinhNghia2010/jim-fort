@@ -479,8 +479,6 @@ export async function getVoucherDetailData(
       expiresAt: voucher.expires_at,
       expiresAtLabel: formatDate(voucher.expires_at, "No expiry"),
       status: getVoucherStatus(voucher, usage, quantity, new Date()),
-      createdAt: voucher.created_at ?? null,
-      updatedAt: voucher.updated_at ?? null,
       createdAtLabel: formatDateTime(voucher.created_at, "Not recorded"),
       updatedAtLabel: formatDateTime(voucher.updated_at, "Not recorded"),
       discountImpact: discountImpact,
