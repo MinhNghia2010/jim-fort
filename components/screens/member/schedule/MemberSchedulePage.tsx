@@ -13,7 +13,9 @@ import { ScheduleMetricGrid } from "@/components/screens/shared/schedule/Schedul
 import {
   buildScheduleCalendarWeeks,
   getScheduleMonthSessions,
+  getScheduleSessionStatus,
   groupScheduleSessionsByDay,
+  isUpcomingScheduleSession,
   parseScheduleMonth,
   scheduleMonthTitle,
 } from "@/lib/features/shared/schedule/utils"
@@ -38,12 +40,11 @@ export async function MemberSchedulePage({ month }: MemberSchedulePageProps) {
   const monthSessions = getScheduleMonthSessions(sessions, year, monthIndex)
   const sessionsByDay = groupScheduleSessionsByDay(monthSessions)
   const now = new Date()
-  const upcomingCount = monthSessions.filter(
-    (session) =>
-      session.status === "scheduled" && new Date(session.starts_at) >= now
+  const upcomingCount = monthSessions.filter((session) =>
+    isUpcomingScheduleSession(session, now)
   ).length
   const completedCount = monthSessions.filter(
-    (session) => session.status === "completed"
+    (session) => getScheduleSessionStatus(session, now) === "completed"
   ).length
   const feedbackReceivedCount = monthSessions.filter((session) =>
     feedbackBySession.has(session.id)

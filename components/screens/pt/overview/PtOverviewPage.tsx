@@ -7,7 +7,7 @@ import {
 } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { TableRowActions } from "@/components/TableRowActions"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { isUpcomingScheduleSession } from "@/lib/features/shared/schedule/utils"
 import { createClient } from "@/lib/supabase/server"
 
 type SessionRow = {
@@ -77,9 +78,8 @@ export async function PtOverviewPage() {
   const now = new Date()
   const clients = new Set(sessions.map((session) => session.member_id))
   const todaySessions = sessions.filter((session) => isToday(session.starts_at))
-  const upcomingSessions = sessions.filter(
-    (session) =>
-      session.status === "scheduled" && new Date(session.starts_at) >= now
+  const upcomingSessions = sessions.filter((session) =>
+    isUpcomingScheduleSession(session, now)
   )
   const needsFeedback = sessions.filter(
     (session) =>
@@ -101,28 +101,28 @@ export async function PtOverviewPage() {
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ManagementMetricCard
+        <SummaryCard
           title="Active clients"
           value={clients.size}
-          detail="Members with generated PT sessions"
+          description="Members with generated PT sessions"
           icon={Users}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Today"
           value={todaySessions.length}
-          detail="Sessions scheduled today"
+          description="Sessions scheduled today"
           icon={CalendarDays}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Upcoming"
           value={upcomingSessions.length}
-          detail="Scheduled future sessions"
+          description="Scheduled future sessions"
           icon={Clock}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Needs feedback"
           value={needsFeedback.length}
-          detail="Past sessions without PT notes"
+          description="Past sessions without PT notes"
           icon={MessageSquareWarning}
         />
       </div>

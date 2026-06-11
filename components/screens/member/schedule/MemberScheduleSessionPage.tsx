@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { getScheduleSessionStatus } from "@/lib/features/shared/schedule/utils"
 import { createClient } from "@/lib/supabase/server"
 
 type SessionRow = {
@@ -181,6 +182,7 @@ export async function MemberScheduleSessionPage({
   const error = sessionResult.error ?? feedbackResult.error
   const startsAt = session ? new Date(session.starts_at) : null
   const endsAt = session ? new Date(session.ends_at) : null
+  const sessionStatus = session ? getScheduleSessionStatus(session) : null
 
   return (
     <PageShell
@@ -211,7 +213,7 @@ export async function MemberScheduleSessionPage({
                       "Facility"}
                   </CardDescription>
                 </div>
-                <StatusBadge status={session.status} showDot />
+                <StatusBadge status={sessionStatus} showDot />
               </div>
             </CardHeader>
             <CardContent className="grid gap-4">

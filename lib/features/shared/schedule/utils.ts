@@ -46,6 +46,33 @@ export const scheduleTime = new Intl.DateTimeFormat("en-US", {
   timeZone: scheduleTimeZone,
 })
 
+export function getScheduleSessionStatus(
+  session: Pick<ScheduleSessionRow, "starts_at" | "status">,
+  now = new Date()
+) {
+  const startsAt = new Date(session.starts_at)
+
+  if (
+    session.status === "missed" &&
+    !Number.isNaN(startsAt.getTime()) &&
+    startsAt > now
+  ) {
+    return "scheduled"
+  }
+
+  return session.status
+}
+
+export function isUpcomingScheduleSession(
+  session: Pick<ScheduleSessionRow, "starts_at" | "status">,
+  now = new Date()
+) {
+  return (
+    getScheduleSessionStatus(session, now) === "scheduled" &&
+    new Date(session.starts_at) >= now
+  )
+}
+
 export function parseScheduleMonth(value?: string) {
   const match = value?.match(/^(\d{4})-(\d{2})$/)
   const now = new Date()

@@ -4,6 +4,7 @@ import type {
 } from "@/components/screens/owner/members/MembersTable"
 import { getOwnerMemberAccess } from "@/app/(main)/members/owner-member-access"
 import { createClient } from "@/lib/supabase/server"
+import { getScheduleSessionStatus } from "@/lib/features/shared/schedule/utils"
 
 interface MemberRecord {
   id: string
@@ -369,6 +370,11 @@ function mapMemberDetailSubscription(
 
 function mapMemberDetailSession(session: SessionRecord): MemberDetailSession {
   const trainer = getSingleRelation(session.trainer ?? null)
+  const startsAt = session.starts_at ?? ""
+  const status = getScheduleSessionStatus({
+    starts_at: startsAt,
+    status: session.status ?? "scheduled",
+  })
 
   return {
     id: session.id ?? `${session.subscription_id}-${session.session_number}`,
@@ -377,7 +383,7 @@ function mapMemberDetailSession(session: SessionRecord): MemberDetailSession {
     trainerName: trainer?.full_name?.trim() || "Trainer",
     startsAt: session.starts_at ?? null,
     endsAt: session.ends_at ?? null,
-    status: session.status ?? "scheduled",
+    status,
   }
 }
 

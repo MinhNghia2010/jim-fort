@@ -1,8 +1,14 @@
-import { CalendarDays } from "lucide-react"
+import {
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  MessageSquareText,
+} from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
 import { StatusBadge } from "@/components/StatusBadge"
 import { TableRowActions } from "@/components/TableRowActions"
+import { ScheduleMetricGrid } from "@/components/screens/shared/schedule/ScheduleMetricGrid"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import {
   Card,
@@ -26,6 +32,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  getScheduleSessionStatus,
+  isUpcomingScheduleSession,
+} from "@/lib/features/shared/schedule/utils"
 import { createClient } from "@/lib/supabase/server"
 
 type Props = {
@@ -71,12 +81,11 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
   )
   const memberName = sessions[0]?.users?.full_name ?? "Member"
   const now = new Date()
-  const upcomingCount = sessions.filter(
-    (session) =>
-      session.status === "scheduled" && new Date(session.starts_at) >= now
+  const upcomingCount = sessions.filter((session) =>
+    isUpcomingScheduleSession(session, now)
   ).length
   const completedCount = sessions.filter(
-    (session) => session.status === "completed"
+    (session) => getScheduleSessionStatus(session, now) === "completed"
   ).length
   const feedbackCount = sessions.filter((session) =>
     feedbackBySession.has(session.id)
@@ -99,44 +108,34 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
 
       {sessions.length ? (
         <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Total sessions</CardTitle>
-                <CardDescription>Generated for this client</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">{sessions.length}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Upcoming</CardTitle>
-                <CardDescription>Scheduled future sessions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">{upcomingCount}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Completed</CardTitle>
-                <CardDescription>Finished session records</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">{completedCount}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Feedback sent</CardTitle>
-                <CardDescription>Sessions with PT feedback</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-semibold">{feedbackCount}</p>
-              </CardContent>
-            </Card>
-          </div>
+          <ScheduleMetricGrid
+            metrics={[
+              {
+                title: "Total sessions",
+                description: "Generated for this client",
+                value: sessions.length,
+                icon: CalendarDays,
+              },
+              {
+                title: "Upcoming",
+                description: "Scheduled future sessions",
+                value: upcomingCount,
+                icon: Clock,
+              },
+              {
+                title: "Completed",
+                description: "Finished session records",
+                value: completedCount,
+                icon: CheckCircle2,
+              },
+              {
+                title: "Feedback sent",
+                description: "Sessions with PT feedback",
+                value: feedbackCount,
+                icon: MessageSquareText,
+              },
+            ]}
+          />
 
           <Card className="gap-0 overflow-hidden py-0">
             <CardHeader className="border-b py-4">
@@ -162,6 +161,7 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
                 <TableBody>
                   {sessions.map((session) => {
                     const feedback = feedbackBySession.get(session.id)
+                    const status = getScheduleSessionStatus(session, now)
 
                     return (
                       <TableRow key={session.id} className="h-[4.5rem]">
@@ -175,7 +175,7 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
                           {date.format(new Date(session.ends_at))}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          <StatusBadge status={session.status} showDot />
+                          <StatusBadge status={status} showDot />
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
                           <StatusBadge

@@ -7,7 +7,7 @@ import {
 } from "lucide-react"
 
 import { PageShell } from "@/components/PageShell"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { StatusBadge } from "@/components/StatusBadge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { isUpcomingScheduleSession } from "@/lib/features/shared/schedule/utils"
 import { createClient } from "@/lib/supabase/server"
 
 type SubscriptionRow = {
@@ -30,6 +31,7 @@ type SubscriptionRow = {
 type SessionRow = {
   id: string
   starts_at: string
+  status: string
   users: { full_name: string | null } | null
 }
 
@@ -57,8 +59,9 @@ export async function MemberOverviewPage() {
         .order("created_at", { ascending: false }),
       supabase
         .from("membership_pt_sessions")
-        .select("id,starts_at,users:pt_id(full_name)")
-        .eq("status", "scheduled")
+        .select("id,starts_at,status,users:pt_id(full_name)")
+        .in("status", ["scheduled", "missed"])
+        .gte("starts_at", new Date().toISOString())
         .order("starts_at", { ascending: true })
         .limit(3),
       supabase
@@ -71,6 +74,9 @@ export async function MemberOverviewPage() {
   const subscriptions = (subscriptionsResult.data ??
     []) as unknown as SubscriptionRow[]
   const sessions = (sessionsResult.data ?? []) as unknown as SessionRow[]
+  const upcomingSessions = sessions.filter((session) =>
+    isUpcomingScheduleSession(session)
+  )
   const paidTotal = (paymentsResult.data ?? []).reduce(
     (sum, payment) => sum + Number(payment.amount ?? 0),
     0
@@ -101,19 +107,19 @@ export async function MemberOverviewPage() {
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <ManagementMetricCard
+        <SummaryCard
           title="Active memberships"
           value={
             subscriptions.filter(
               (subscription) => subscription.status === "active"
             ).length
           }
-          detail={
+          description={
             activeSubscription?.membership_packages?.name ?? "No active plan"
           }
           icon={PackageCheck}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Pending setup"
           value={
             subscriptions.filter((subscription) =>
@@ -122,23 +128,23 @@ export async function MemberOverviewPage() {
               )
             ).length
           }
-          detail={
+          description={
             pendingSubscription
               ? pendingSubscription.status.replaceAll("_", " ")
               : "Nothing pending"
           }
           icon={CreditCard}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Paid total"
           value={formatCurrency(paidTotal)}
-          detail="Completed member payments"
+          description="Completed member payments"
           icon={CreditCard}
         />
-        <ManagementMetricCard
+        <SummaryCard
           title="Feedback sent"
           value={feedbackResult.data?.length ?? 0}
-          detail="Facility feedback records"
+          description="Facility feedback records"
           icon={MessageCircle}
         />
       </div>
@@ -152,8 +158,8 @@ export async function MemberOverviewPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3">
-            {sessions.length ? (
-              sessions.map((session) => (
+            {upcomingSessions.length ? (
+              upcomingSessions.map((session) => (
                 <div
                   key={session.id}
                   className="flex items-center justify-between gap-3 rounded-lg border p-3"

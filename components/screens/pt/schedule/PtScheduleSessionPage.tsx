@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { getScheduleSessionStatus } from "@/lib/features/shared/schedule/utils"
 import { createClient } from "@/lib/supabase/server"
 
 type Props = {
@@ -60,6 +61,7 @@ export async function PtScheduleSessionPage({ sessionId }: Props) {
   const session = sessionResult.data as unknown as SessionRow | null
   const feedback = feedbackResult.data as unknown as FeedbackRow | null
   const error = sessionResult.error ?? feedbackResult.error
+  const sessionStatus = session ? getScheduleSessionStatus(session) : null
 
   return (
     <PageShell
@@ -93,7 +95,7 @@ export async function PtScheduleSessionPage({ sessionId }: Props) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Status</p>
-                  <StatusBadge status={session.status} showDot />
+                  <StatusBadge status={sessionStatus} showDot />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Feedback</p>

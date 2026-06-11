@@ -25,6 +25,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  getScheduleSessionStatus,
+  isUpcomingScheduleSession,
+} from "@/lib/features/shared/schedule/utils"
 import { createClient } from "@/lib/supabase/server"
 
 type SessionRow = {
@@ -76,14 +80,15 @@ function summarizeClients(sessions: SessionRow[], feedbacks: FeedbackRow[]) {
         nextSessionAt: null,
       } satisfies ClientSummary)
     const startsAt = new Date(session.starts_at)
+    const status = getScheduleSessionStatus(session, now)
 
     summary.totalSessions += 1
 
-    if (session.status === "completed") {
+    if (status === "completed") {
       summary.completedSessions += 1
     }
 
-    if (startsAt >= now && session.status === "scheduled") {
+    if (isUpcomingScheduleSession(session, now)) {
       summary.upcomingSessions += 1
 
       if (

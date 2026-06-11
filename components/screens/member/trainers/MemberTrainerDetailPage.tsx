@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { getScheduleSessionStatus } from "@/lib/features/shared/schedule/utils"
 import { createClient } from "@/lib/supabase/server"
 
 type TrainerRow = {
@@ -195,6 +196,7 @@ export async function MemberTrainerDetailPage({
                   sessions.map((session) => {
                     const startsAt = new Date(session.starts_at)
                     const endsAt = new Date(session.ends_at)
+                    const status = getScheduleSessionStatus(session)
 
                     return (
                       <div
@@ -211,7 +213,7 @@ export async function MemberTrainerDetailPage({
                             {timeFormatter.format(endsAt)}
                           </p>
                         </div>
-                        <StatusBadge status={session.status} showDot />
+                        <StatusBadge status={status} showDot />
                       </div>
                     )
                   })

@@ -18,8 +18,9 @@ import {
 import { cancelMemberPlan } from "@/app/(main)/members/actions"
 import { DeleteConfirmationButton } from "@/components/DeleteConfirmationButton"
 import { PageShell } from "@/components/PageShell"
-import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
+import { SummaryCard } from "@/components/SummaryCard"
 import { StatusBadge } from "@/components/StatusBadge"
+import { getScheduleSessionStatus } from "@/lib/features/shared/schedule/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -201,30 +202,30 @@ export async function OwnerMemberDetailPage({
       {member ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <ManagementMetricCard
+            <SummaryCard
               title="Subscriptions"
               value={member.subscriptions.length}
-              detail={`${activeSubscriptions} active subscriptions`}
+              description={`${activeSubscriptions} active subscriptions`}
               icon={CreditCard}
             />
-            <ManagementMetricCard
+            <SummaryCard
               title="Paid revenue"
               value={currencyFormatter.format(paidRevenue)}
-              detail="Paid membership payments"
+              description="Paid membership payments"
               icon={DollarSign}
             />
-            <ManagementMetricCard
+            <SummaryCard
               title="PT sessions"
               value={member.sessions.length}
-              detail="Generated training sessions"
+              description="Generated training sessions"
               icon={Dumbbell}
             />
-            <ManagementMetricCard
+            <SummaryCard
               title="Joined"
               value={formatDate(
                 currentSubscription?.createdAt ?? member.createdAt
               )}
-              detail="Earliest available record"
+              description="Earliest available record"
               icon={CalendarClock}
             />
           </div>
@@ -425,23 +426,30 @@ export async function OwnerMemberDetailPage({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {member.sessions.slice(0, 8).map((session) => (
-                      <TableRow key={session.id} className="h-[4.5rem]">
-                        <TableCell className="pl-6 font-medium">
-                          #{session.sessionNumber ?? "-"}
-                        </TableCell>
-                        <TableCell>{session.trainerName}</TableCell>
-                        <TableCell className="whitespace-nowrap text-muted-foreground">
-                          {formatDateTime(session.startsAt)}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap text-muted-foreground">
-                          {formatDateTime(session.endsAt)}
-                        </TableCell>
-                        <TableCell className="pr-6 whitespace-nowrap">
-                          <StatusBadge status={session.status} showDot />
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {member.sessions.slice(0, 8).map((session) => {
+                      const status = getScheduleSessionStatus({
+                        starts_at: session.startsAt ?? "",
+                        status: session.status,
+                      })
+
+                      return (
+                        <TableRow key={session.id} className="h-[4.5rem]">
+                          <TableCell className="pl-6 font-medium">
+                            #{session.sessionNumber ?? "-"}
+                          </TableCell>
+                          <TableCell>{session.trainerName}</TableCell>
+                          <TableCell className="whitespace-nowrap text-muted-foreground">
+                            {formatDateTime(session.startsAt)}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap text-muted-foreground">
+                            {formatDateTime(session.endsAt)}
+                          </TableCell>
+                          <TableCell className="pr-6 whitespace-nowrap">
+                            <StatusBadge status={status} showDot />
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
                   </TableBody>
                 </Table>
               ) : (

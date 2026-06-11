@@ -32,7 +32,7 @@ async function cancelFuturePtSessions(
     .update({ status: "cancelled" })
     .in("subscription_id", subscriptionIds)
     .eq("member_id", memberId)
-    .eq("status", "scheduled")
+    .in("status", ["scheduled", "missed"])
     .gte("starts_at", cancelledAt)
 
   return error

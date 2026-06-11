@@ -22,6 +22,7 @@ import {
 
 import {
   formatScheduleSessionRange,
+  getScheduleSessionStatus,
   scheduleDayNumber,
   scheduleMonthParam,
   scheduleMonthTitle,
@@ -196,6 +197,7 @@ function ScheduleSessionPopover({
   session,
 }: ScheduleSessionPopoverProps) {
   const participantName = session.users?.full_name ?? participantFallback
+  const status = getScheduleSessionStatus(session)
 
   return (
     <Popover>
@@ -203,7 +205,7 @@ function ScheduleSessionPopover({
         <button
           type="button"
           className={`flex min-h-8 w-full items-center gap-1.5 rounded-md border px-2 py-1 text-left text-xs shadow-sm transition-colors ${scheduleSessionClass(
-            session.status
+            status
           )}`}
         >
           <span className="rounded bg-background/70 px-1.5 py-0.5 font-medium tabular-nums">
@@ -233,7 +235,7 @@ function ScheduleSessionPopover({
           />
           <div className="flex items-center justify-between gap-3">
             <span className="text-muted-foreground">Status</span>
-            <StatusBadge status={session.status} showDot />
+            <StatusBadge status={status} showDot />
           </div>
           <div className="flex items-center justify-between gap-3">
             <span className="text-muted-foreground">Feedback</span>
