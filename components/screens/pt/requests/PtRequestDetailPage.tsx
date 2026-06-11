@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { getAuthenticatedUser } from "@/lib/auth/current-user"
 import { createClient } from "@/lib/supabase/server"
 
 interface PtRequestDetailPageProps {
@@ -90,34 +91,27 @@ function PtRequestNotFound({ requestId }: PtRequestDetailPageProps) {
 export async function PtRequestDetailPage({
   requestId,
 }: PtRequestDetailPageProps) {
+  const user = await getAuthenticatedUser()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  const [assignmentResult, subscriptionResult] = user
-    ? await Promise.all([
-        supabase
-          .from("membership_pt_assignments")
-          .select(
-            "id, subscription_id, status, schedule_starts_on, schedule_timezone, schedule_note, member_response_note, assigned_at, membership_pt_assignment_schedule_slots(day_of_week, start_time, end_time)"
-          )
-          .eq("subscription_id", requestId)
-          .eq("pt_id", user.id)
-          .order("assigned_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        supabase
-          .from("membership_subscriptions")
-          .select(
-            "id, status, users:member_id(full_name, phone), membership_packages(name)"
-          )
-          .eq("id", requestId)
-          .maybeSingle(),
-      ])
-    : [
-        { data: null, error: null },
-        { data: null, error: null },
-      ]
+  const [assignmentResult, subscriptionResult] = await Promise.all([
+    supabase
+      .from("membership_pt_assignments")
+      .select(
+        "id, subscription_id, status, schedule_starts_on, schedule_timezone, schedule_note, member_response_note, assigned_at, membership_pt_assignment_schedule_slots(day_of_week, start_time, end_time)"
+      )
+      .eq("subscription_id", requestId)
+      .eq("pt_id", user.id)
+      .order("assigned_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("membership_subscriptions")
+      .select(
+        "id, status, users:member_id(full_name, phone), membership_packages(name)"
+      )
+      .eq("id", requestId)
+      .maybeSingle(),
+  ])
   const assignment = assignmentResult.data as unknown as AssignmentRow | null
   const subscription =
     subscriptionResult.data as unknown as SubscriptionRow | null

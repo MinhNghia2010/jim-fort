@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation"
-
+import { getAuthenticatedUser } from "@/lib/auth/current-user"
 import { isRole, type Role } from "@/lib/routes"
 import { createClient } from "@/lib/supabase/server"
 
@@ -61,15 +60,6 @@ function getSingleRelation<T>(relation: T | T[] | null) {
   return Array.isArray(relation) ? (relation[0] ?? null) : relation
 }
 
-function getStringMetadata(
-  metadata: Record<string, unknown>,
-  key: string
-): string | null {
-  const value = metadata[key]
-
-  return typeof value === "string" && value.trim() ? value.trim() : null
-}
-
 function getUsername(email: string, metadataUsername: string | null) {
   if (metadataUsername) {
     return metadataUsername
@@ -79,23 +69,11 @@ function getUsername(email: string, metadataUsername: string | null) {
 }
 
 export async function getCurrentProfileData(): Promise<CurrentProfileData> {
+  const user = await getAuthenticatedUser()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect("/login")
-  }
-
-  const email = user.email ?? "No email address"
-  const metadata = user.user_metadata as Record<string, unknown>
-  const appRole = user.app_metadata.app_role
-  const fallbackName =
-    getStringMetadata(metadata, "full_name") ??
-    getStringMetadata(metadata, "name") ??
-    email.split("@")[0] ??
-    "User"
+  const email = user.email || "No email address"
+  const fallbackName = user.fullName
 
   const { data } = await supabase
     .from("users")
@@ -106,20 +84,18 @@ export async function getCurrentProfileData(): Promise<CurrentProfileData> {
   const profile = data as unknown as UserRecord | null
   const role = isRole(profile?.role)
     ? profile.role
-    : isRole(appRole)
-      ? appRole
-      : "member"
+    : user.role
 
   return {
     id: user.id,
     name: profile?.full_name?.trim() || fallbackName,
     email,
-    username: getUsername(email, getStringMetadata(metadata, "username")),
+    username: getUsername(email, user.username),
     phone: profile?.phone?.trim() || null,
     avatarUrl: profile?.avatar_url ?? null,
     role,
-    createdAt: profile?.created_at ?? user.created_at ?? null,
-    updatedAt: profile?.updated_at ?? user.updated_at ?? null,
+    createdAt: profile?.created_at ?? null,
+    updatedAt: profile?.updated_at ?? null,
   }
 }
 
@@ -127,14 +103,8 @@ export async function getCurrentMemberMembershipData(): Promise<{
   membership: CurrentMemberMembershipData | null
   error: string | null
 }> {
+  const user = await getAuthenticatedUser()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/login")
-  }
 
   const { data, error } = await supabase
     .from("membership_subscriptions")

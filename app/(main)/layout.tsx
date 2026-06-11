@@ -1,9 +1,8 @@
-import type { ReactNode } from "react"
-import { redirect } from "next/navigation"
-import type { User } from "@supabase/supabase-js"
+import { Suspense, type ReactNode } from "react"
 
 import { AppSidebar, type AppSidebarUser } from "@/components/AppSidebar"
 import { NavigationHistoryTracker } from "@/components/NavigationHistoryTracker"
+import { RedirectToast } from "@/components/RedirectToast"
 import { Separator } from "@/components/ui/separator"
 import {
   SidebarInset,
@@ -11,9 +10,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { isRole } from "@/lib/nav-items"
-import type { Role } from "@/lib/nav-items"
-import { createClient } from "@/lib/supabase/server"
+import { getAuthenticatedUser } from "@/lib/auth/current-user"
 
 import { signOut } from "./actions"
 
@@ -31,82 +28,21 @@ function getInitials(name: string, email: string) {
     .toUpperCase()
 }
 
-function getUsername(email: string, metadataUsername: unknown) {
-  if (typeof metadataUsername === "string" && metadataUsername.trim()) {
-    return metadataUsername.trim()
-  }
-
-  return email.split("@")[0] || "profile"
-}
-
-type FacilityNameRow = {
-  name: string | null
-}
-
-async function getPrimaryFacilityName(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  role: Role
-) {
-  if (role !== "owner" && role !== "manager") {
-    return undefined
-  }
-
-  const { data, error } = await supabase
-    .from("gym_facilities")
-    .select("name")
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle()
-
-  if (error) {
-    return undefined
-  }
-
-  const facility = data as FacilityNameRow | null
-  const facilityName = facility?.name?.trim()
-
-  return facilityName || undefined
-}
-
 export default async function MainLayout({
   children,
 }: {
   children: ReactNode
 }) {
-  const supabase = await createClient()
-  let user: User | null = null
-
-  try {
-    const {
-      data: { user: authenticatedUser },
-    } = await supabase.auth.getUser()
-
-    user = authenticatedUser
-  } catch (error) {
-    console.error("Supabase Auth layout session check failed", error)
-    redirect("/login")
-  }
-
-  if (!user) {
-    redirect("/login")
-  }
-
-  const role = isRole(user.app_metadata.app_role)
-    ? user.app_metadata.app_role
-    : "member"
-  const email = user.email ?? ""
-  const name =
-    typeof user.user_metadata.full_name === "string" &&
-    user.user_metadata.full_name.trim()
-      ? user.user_metadata.full_name
-      : email || "Gym User"
+  const user = await getAuthenticatedUser()
+  const role = user.role
+  const email = user.email
+  const name = user.fullName
 
   const sidebarUser: AppSidebarUser = {
     name,
     email,
-    facilityName: await getPrimaryFacilityName(supabase, role),
     role,
-    username: getUsername(email, user.user_metadata.username),
+    username: user.username,
     initials: getInitials(name, email),
   }
 
@@ -116,6 +52,9 @@ export default async function MainLayout({
         <AppSidebar user={sidebarUser} signOutAction={signOut} />
         <SidebarInset className="min-h-0 overflow-hidden">
           <NavigationHistoryTracker />
+          <Suspense fallback={null}>
+            <RedirectToast />
+          </Suspense>
           <header className="flex h-14 shrink-0 items-center gap-3 border-b bg-background px-4">
             <SidebarTrigger />
             <Separator orientation="vertical" className="h-5" />

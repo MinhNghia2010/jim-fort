@@ -71,6 +71,18 @@
   --chart-3: #14a7d2;
   --chart-4: #e6ad73;
   --chart-5: #241d18;
+  --toast-success-bg: hsl(138 58% 94%);
+  --toast-success-border: hsl(140 43% 76%);
+  --toast-success-text: hsl(133 65% 24%);
+  --toast-info-bg: hsl(210 100% 95%);
+  --toast-info-border: hsl(210 60% 75%);
+  --toast-info-text: hsl(210 80% 30%);
+  --toast-warning-bg: hsl(38 100% 94%);
+  --toast-warning-border: hsl(35 89% 72%);
+  --toast-warning-text: hsl(32 97% 32%);
+  --toast-error-bg: hsl(350 100% 96%);
+  --toast-error-border: hsl(350 75% 78%);
+  --toast-error-text: hsl(345 84% 38%);
   --radius: 0.625rem;
   --sidebar: #f5f4f3;
   --sidebar-foreground: #151515;
@@ -106,6 +118,18 @@
   --chart-3: oklch(0.586 0.253 17.585);
   --chart-4: oklch(0.514 0.222 16.935);
   --chart-5: oklch(0.455 0.188 13.697);
+  --toast-success-bg: hsl(145 45% 12%);
+  --toast-success-border: hsl(145 45% 25%);
+  --toast-success-text: hsl(138 68% 72%);
+  --toast-info-bg: hsl(210 50% 14%);
+  --toast-info-border: hsl(210 50% 28%);
+  --toast-info-text: hsl(210 85% 75%);
+  --toast-warning-bg: hsl(36 58% 13%);
+  --toast-warning-border: hsl(35 64% 28%);
+  --toast-warning-text: hsl(38 95% 72%);
+  --toast-error-bg: hsl(350 54% 14%);
+  --toast-error-border: hsl(350 60% 30%);
+  --toast-error-text: hsl(350 95% 78%);
   --sidebar: oklch(0.212 0.019 322.12);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.715 0.143 215.221);
@@ -114,6 +138,72 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.542 0.034 322.5);
+}
+
+@layer components {
+  /* Base toast layout */
+  [data-sonner-toaster] [data-sonner-toast].cn-toast {
+    padding: 10px 14px;
+    gap: 8px;
+    align-items: center;
+    font-size: 13px;
+    line-height: 1.4;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  }
+
+  /* Icon container */
+  [data-sonner-toaster] [data-sonner-toast] .cn-toast-icon {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  /* Title */
+  [data-sonner-toaster] [data-sonner-toast] .cn-toast-title {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* Description */
+  [data-sonner-toaster] [data-sonner-toast] .cn-toast-description {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    opacity: 0.8;
+  }
+
+  /* Close button */
+  [data-sonner-toaster] [data-sonner-toast] .cn-toast-close {
+    top: 50%;
+    right: 4px;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    opacity: 0.4;
+    transition: opacity 0.15s;
+  }
+
+  [data-sonner-toaster] [data-sonner-toast] .cn-toast-close:hover {
+    opacity: 0.8;
+  }
+
+  /* Delete toast variant */
+  [data-sonner-toaster]
+    [data-sonner-toast].cn-toast-delete[data-styled="true"] {
+    background: var(--toast-error-bg);
+    border-color: var(--toast-error-border);
+    color: var(--toast-error-text);
+  }
+
+  [data-sonner-toaster]
+    [data-sonner-toast].cn-toast-delete[data-styled="true"]
+    [data-close-button] {
+    background: var(--toast-error-bg);
+    border-color: var(--toast-error-border);
+    color: var(--toast-error-text);
+  }
 }
 
 @layer base {

@@ -20,18 +20,16 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { getAuthenticatedUser } from "@/lib/auth/current-user"
 import { createClient } from "@/lib/supabase/server"
 
 export async function PtRequestsPage() {
+  const user = await getAuthenticatedUser()
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  const { data, error } = user
-    ? await supabase
-        .from("membership_pt_assignments")
-        .select(
-          `
+  const { data, error } = await supabase
+    .from("membership_pt_assignments")
+    .select(
+      `
             id,
             subscription_id,
             status,
@@ -45,10 +43,9 @@ export async function PtRequestsPage() {
               membership_packages(name)
             )
           `
-        )
-        .eq("pt_id", user.id)
-        .order("assigned_at", { ascending: false })
-    : { data: [], error: null }
+    )
+    .eq("pt_id", user.id)
+    .order("assigned_at", { ascending: false })
   const assignments = (data ?? []) as unknown as PtAssignmentTableRow[]
 
   return (

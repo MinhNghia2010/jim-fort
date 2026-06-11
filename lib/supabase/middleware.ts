@@ -1,13 +1,16 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
-import type { User } from "@supabase/supabase-js"
 
 import {
   canAccessRoute,
   getDefaultRouteForRole,
-  isRole,
   type Role,
 } from "@/lib/routes"
+import {
+  authContextHeader,
+  createAuthContext,
+  serializeAuthContext,
+} from "@/lib/auth/auth-context"
 
 function redirectWithSessionCookies(url: URL, supabaseResponse: NextResponse) {
   const response = NextResponse.redirect(url)
@@ -60,9 +63,24 @@ function getLegacyVoucherDetailRedirectUrl(request: NextRequest) {
 }
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.delete(authContextHeader)
+
+  function createNextResponse(previousResponse?: NextResponse) {
+    const response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    })
+
+    previousResponse?.cookies.getAll().forEach((cookie) => {
+      response.cookies.set(cookie)
+    })
+
+    return response
+  }
+
+  let supabaseResponse = createNextResponse()
 
   const legacyVoucherUrl = getLegacyVoucherDetailRedirectUrl(request)
 
@@ -84,9 +102,7 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
-          supabaseResponse = NextResponse.next({
-            request,
-          })
+          supabaseResponse = createNextResponse(supabaseResponse)
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
@@ -95,16 +111,18 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  let user: User | null = null
+  let user: ReturnType<typeof createAuthContext> = null
 
   try {
-    const {
-      data: { user: authenticatedUser },
-    } = await supabase.auth.getUser()
+    const { data, error } = await supabase.auth.getClaims()
 
-    user = authenticatedUser
+    if (error) {
+      throw error
+    }
+
+    user = data?.claims ? createAuthContext(data.claims) : null
   } catch (error) {
-    console.error("Supabase Auth middleware session check failed", error)
+    console.error("Supabase Auth middleware claims check failed", error)
 
     if (
       !request.nextUrl.pathname.startsWith("/login") &&
@@ -130,9 +148,9 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user) {
-    const role = isRole(user.app_metadata.app_role)
-      ? user.app_metadata.app_role
-      : "member"
+    requestHeaders.set(authContextHeader, serializeAuthContext(user))
+    supabaseResponse = createNextResponse(supabaseResponse)
+    const role = user.role
 
     if (!canAccessRoute(request.nextUrl.pathname, role)) {
       const url = request.nextUrl.clone()
@@ -140,6 +158,12 @@ export async function updateSession(request: NextRequest) {
       url.search = ""
       url.searchParams.set("from", request.nextUrl.pathname)
       url.searchParams.set("returnTo", getSafeReturnPath(request, role))
+      return redirectWithSessionCookies(url, supabaseResponse)
+    }
+
+    if (request.nextUrl.pathname.startsWith("/login")) {
+      const url = request.nextUrl.clone()
+      url.pathname = getDefaultRouteForRole(role)
       return redirectWithSessionCookies(url, supabaseResponse)
     }
   }
