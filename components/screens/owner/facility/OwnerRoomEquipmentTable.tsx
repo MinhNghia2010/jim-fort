@@ -355,7 +355,7 @@ export function OwnerRoomEquipmentTable({
               />
             </TableHead>
             {canShowAction ? (
-              <TableHead className="h-12 pr-6 text-right">
+              <TableHead className="h-12 w-[10%] text-center">
                 <span className="sr-only">Actions</span>
               </TableHead>
             ) : null}
@@ -399,7 +399,7 @@ export function OwnerRoomEquipmentTable({
                   </p>
                 </TableCell>
                 {canShowAction ? (
-                  <TableCell className="pr-6 text-right">
+                  <TableCell className="w-[10%] text-center">
                     <TableRowActions
                       label={`Open actions for ${equipment.name}`}
                       actions={[

@@ -89,7 +89,7 @@ export function PtRequestsTable({ assignments }: PtRequestsTableProps) {
             <TableHead className="h-12">Package</TableHead>
             <TableHead className="h-12">Status</TableHead>
             <TableHead className="h-12">Start</TableHead>
-            <TableHead className="h-12 pr-6 text-right">
+            <TableHead className="h-12 w-[10%] text-center">
               <span className="sr-only">Actions</span>
             </TableHead>
           </TableRow>
@@ -118,7 +118,7 @@ export function PtRequestsTable({ assignments }: PtRequestsTableProps) {
                 <TableCell className="whitespace-nowrap text-muted-foreground">
                   {formatDate(assignment.schedule_starts_on)}
                 </TableCell>
-                <TableCell className="pr-6 text-right">
+                <TableCell className="w-[10%] text-center">
                   <TableRowActions
                     label={`Open actions for ${
                       assignment.membership_subscriptions?.users?.full_name ??

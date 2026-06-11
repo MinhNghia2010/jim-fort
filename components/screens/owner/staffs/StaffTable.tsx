@@ -48,6 +48,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
+import { useOptimisticDeletion } from "@/lib/hooks/useOptimisticDeletion"
+import { cn } from "@/lib/utils"
 
 export type StaffStatus = "active" | "inactive" | "on_leave" | "terminated"
 
@@ -202,6 +204,11 @@ export function StaffTable({
     useState(ALL_MONTHS_VALUE)
   const [sort, setSort] = useState<StaffSort>("staff_asc")
   const [currentPage, setCurrentPage] = useState(1)
+  const {
+    commitDeletion: commitStaffDeletion,
+    deleteOptimistically: markStaffDeleted,
+    optimisticDeletedIds: optimisticDeletedStaffIds,
+  } = useOptimisticDeletion()
 
   const monthFilter = controlledMonthFilter ?? internalMonthFilter
   const normalizedSearch = search.trim().toLowerCase()
@@ -364,13 +371,22 @@ export function StaffTable({
                     onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead className="h-12 pr-6 text-right">Action</TableHead>
+                <TableHead className="h-12 w-[10%] text-center">
+                  Action
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedStaffs.length ? (
                 paginatedStaffs.map((staff) => (
-                  <TableRow key={staff.id} className="h-[4.5rem]">
+                  <TableRow
+                    key={staff.id}
+                    aria-hidden={optimisticDeletedStaffIds.includes(staff.id)}
+                    className={cn(
+                      "h-[4.5rem]",
+                      optimisticDeletedStaffIds.includes(staff.id) && "hidden"
+                    )}
+                  >
                     <TableCell className="pl-6">
                       <div className="flex items-center gap-3">
                         <Avatar className="size-10">
@@ -419,7 +435,7 @@ export function StaffTable({
                         {staff.note ?? "No notes"}
                       </p>
                     </TableCell>
-                    <TableCell className="pr-6 text-right">
+                    <TableCell className="w-[10%] text-center">
                       <TableRowActions
                         label={`Open actions for ${staff.name}`}
                         actions={[
@@ -439,6 +455,10 @@ export function StaffTable({
                                 description: `Delete ${staff.name}? Directory records are removed permanently. Login accounts are deleted only when they have no protected operational history.`,
                                 inputName: "staffId",
                                 inputValue: staff.id,
+                                onDeleteSuccess: () =>
+                                  commitStaffDeletion(staff.id),
+                                onOptimisticDelete: () =>
+                                  markStaffDeleted(staff.id),
                                 successMessage: "Staff deleted",
                                 title: "Delete staff record?",
                               }

@@ -363,7 +363,7 @@ export function OwnerFeedbackTable({
                     onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead className="h-12 pr-6 text-right">
+                <TableHead className="h-12 w-[10%] text-center">
                   <span className="sr-only">Actions</span>
                 </TableHead>
               </TableRow>
@@ -471,7 +471,7 @@ export function OwnerFeedbackTable({
                           </span>
                         )}
                       </TableCell>
-                      <TableCell className="pr-6 text-right">
+                      <TableCell className="w-[10%] text-center">
                         <TableRowActions
                           label={`${tableAction.label} ${feedback.subject}`}
                           actions={[

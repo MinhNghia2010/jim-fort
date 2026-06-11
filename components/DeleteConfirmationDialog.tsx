@@ -1,7 +1,7 @@
 "use client"
 
-import { useActionState, useEffect, useRef } from "react"
-import { Loader2, Trash2, TriangleAlert } from "lucide-react"
+import { useTransition, type FormEvent } from "react"
+import { Trash2, TriangleAlert, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
@@ -29,67 +29,77 @@ export type DeleteServerAction = (
 
 export type DeleteConfirmationDialogProps = {
   action: DeleteServerAction
+  confirmLabel?: string
   description: string
   inputName: string
   inputValue: string
+  onDeleteSuccess?: () => void
   open: boolean
   onOpenChange: (open: boolean) => void
+  onOptimisticDelete?: () => void
   successMessage: string
   title: string
 }
 
 export function DeleteConfirmationDialog({
   action,
+  confirmLabel = "Delete",
   description,
   inputName,
   inputValue,
+  onDeleteSuccess,
   open,
   onOpenChange,
+  onOptimisticDelete,
   successMessage,
   title,
 }: DeleteConfirmationDialogProps) {
   const router = useRouter()
-  const [state, formAction, pending] = useActionState(action, {})
-  const wasPending = useRef(false)
+  const [pending, startTransition] = useTransition()
+  const ConfirmIcon = confirmLabel.toLowerCase().startsWith("cancel")
+    ? X
+    : Trash2
 
-  useEffect(() => {
-    if (pending) {
-      wasPending.current = true
-      return
-    }
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
 
-    if (!wasPending.current) {
-      return
-    }
+    const formData = new FormData(event.currentTarget)
 
-    wasPending.current = false
-
-    if (state.error) {
-      toast.error(state.error)
-      return
-    }
-
-    toast.success(state.message ?? successMessage)
     onOpenChange(false)
-    router.refresh()
-  }, [
-    onOpenChange,
-    pending,
-    router,
-    state.error,
-    state.message,
-    successMessage,
-  ])
+    startTransition(async () => {
+      onOptimisticDelete?.()
+
+      try {
+        const result = await action({}, formData)
+
+        if (result.error) {
+          toast.error(result.error)
+          return
+        }
+
+        onDeleteSuccess?.()
+        toast(result.message ?? successMessage, {
+          className: "cn-toast-delete",
+          icon: <ConfirmIcon className="size-3.5" />,
+          style: {
+            background: "var(--toast-error-bg)",
+            borderColor: "var(--toast-error-border)",
+            color: "var(--toast-error-text)",
+          },
+        })
+        router.refresh()
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Unable to complete this action."
+        )
+      }
+    })
+  }
 
   return (
-    <AlertDialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (!pending) {
-          onOpenChange(nextOpen)
-        }
-      }}
-    >
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogMedia>
@@ -98,25 +108,13 @@ export function DeleteConfirmationDialog({
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
-        {state.error ? (
-          <p className="text-sm text-destructive">{state.error}</p>
-        ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
-          <form action={formAction}>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <form onSubmit={handleSubmit}>
             <input type="hidden" name={inputName} value={inputValue} />
             <Button type="submit" variant="destructive" disabled={pending}>
-              {pending ? (
-                <>
-                  <Loader2 data-icon="inline-start" className="animate-spin" />
-                  Deleting
-                </>
-              ) : (
-                <>
-                  <Trash2 data-icon="inline-start" />
-                  Delete
-                </>
-              )}
+              <ConfirmIcon data-icon="inline-start" />
+              {confirmLabel}
             </Button>
           </form>
         </AlertDialogFooter>

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
 import { createAdminClient } from "@/lib/supabase/admin"
+import { withRedirectToast } from "@/lib/redirect-toast"
 import { createClient } from "@/lib/supabase/server"
 
 type ActionState = {
@@ -500,5 +501,7 @@ export async function createManagedMember(
   revalidatePath(`/members/${memberId}`)
   revalidatePath("/overview")
 
-  redirect(`/members/${memberId}`)
+  redirect(
+    withRedirectToast(`/members/${memberId}`, `${fullName} was created.`)
+  )
 }

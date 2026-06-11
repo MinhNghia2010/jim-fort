@@ -7,7 +7,10 @@ import type {
   VoucherDiscountType,
   VoucherFormState,
   VoucherStatus,
-} from "@/components/screens/owner/vouchers/form/types"
+} from "@/lib/features/owner/vouchers/form/types"
+import type { DeleteActionState } from "@/components/DeleteConfirmationDialog"
+import { withRedirectToast } from "@/lib/redirect-toast"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
 type VoucherPayload = {
@@ -34,7 +37,7 @@ async function getOwnerClient() {
   }
 
   if (user.app_metadata.app_role !== "owner") {
-    return { error: "Only owners can create or edit vouchers." }
+    return { error: "Only owners can manage vouchers." }
   }
 
   return { supabase }
@@ -209,7 +212,9 @@ export async function createVoucher(
   }
 
   revalidatePath("/vouchers")
-  redirect("/vouchers")
+  redirect(
+    withRedirectToast("/vouchers", `${payload.code} voucher was created.`)
+  )
 }
 
 export async function updateVoucher(
@@ -246,5 +251,91 @@ export async function updateVoucher(
 
   revalidatePath("/vouchers")
   revalidatePath(`/voucher/view=${encodeURIComponent(payload.code)}`)
-  redirect(`/voucher/view=${encodeURIComponent(payload.code)}`)
+  redirect(
+    withRedirectToast(
+      `/voucher/view=${encodeURIComponent(payload.code)}`,
+      `${payload.code} voucher was updated.`
+    )
+  )
+}
+
+export async function deleteVoucher(
+  _state: DeleteActionState,
+  formData: FormData
+): Promise<DeleteActionState> {
+  const code = stringValue(formData, "voucherCode").toUpperCase()
+
+  if (!code) {
+    return { error: "Select a voucher to delete." }
+  }
+
+  const ownerClient = await getOwnerClient()
+
+  if ("error" in ownerClient) {
+    return { error: ownerClient.error }
+  }
+
+  const { data: accessibleVoucher, error: accessError } =
+    await ownerClient.supabase
+      .from("vouchers")
+      .select("id, code")
+      .eq("code", code)
+      .maybeSingle()
+
+  if (accessError) {
+    return {
+      error: `Unable to verify voucher access: ${accessError.message}`,
+    }
+  }
+
+  if (!accessibleVoucher) {
+    return { error: "This voucher is not available to delete." }
+  }
+
+  const { count, error: redemptionError } = await ownerClient.supabase
+    .from("voucher_redemptions")
+    .select("id", { count: "exact", head: true })
+    .eq("voucher_id", accessibleVoucher.id)
+
+  if (redemptionError) {
+    return {
+      error: `Unable to check voucher history: ${redemptionError.message}`,
+    }
+  }
+
+  if ((count ?? 0) > 0) {
+    return {
+      error:
+        "This voucher has redemption history and cannot be deleted. Disable it instead.",
+    }
+  }
+
+  const admin = createAdminClient()
+  const { data: deletedVoucher, error: deleteError } = await admin
+    .from("vouchers")
+    .delete()
+    .eq("id", accessibleVoucher.id)
+    .select("id")
+    .maybeSingle()
+
+  if (deleteError) {
+    if (deleteError.code === "23503") {
+      return {
+        error:
+          "This voucher has redemption history and cannot be deleted. Disable it instead.",
+      }
+    }
+
+    return { error: `Unable to delete voucher: ${deleteError.message}` }
+  }
+
+  if (!deletedVoucher) {
+    return { error: "The voucher was not deleted." }
+  }
+
+  revalidatePath("/vouchers")
+  revalidatePath(`/voucher/${encodeURIComponent(accessibleVoucher.code)}`)
+  revalidatePath("/overview")
+
+  return { message: `${accessibleVoucher.code} was deleted.` }
 }

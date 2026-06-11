@@ -11,6 +11,7 @@ import {
   type RoomStatus,
 } from "@/app/(main)/facility/data"
 import type { RoomEquipmentStatus } from "@/components/screens/owner/facility/OwnerRoomEquipmentTable"
+import { withRedirectToast } from "@/lib/redirect-toast"
 import { createClient } from "@/lib/supabase/server"
 
 export type FacilityCreateFormState = {
@@ -248,7 +249,7 @@ export async function createFacilityRoom(
 
   revalidatePath("/facility")
   revalidatePath(facilityHref)
-  redirect(roomHref)
+  redirect(withRedirectToast(roomHref, `${name} was created.`))
 }
 
 export async function createRoomEquipment(
@@ -410,5 +411,5 @@ export async function createRoomEquipment(
   revalidatePath(facilityHref)
   revalidatePath(roomHref)
   revalidatePath(equipmentListHref)
-  redirect(equipmentHref)
+  redirect(withRedirectToast(equipmentHref, `${name} was created.`))
 }

@@ -154,7 +154,7 @@ export async function PtMembersPage() {
                   <TableHead className="h-12">Feedback</TableHead>
                   <TableHead className="h-12">Next session</TableHead>
                   <TableHead className="h-12">Last session</TableHead>
-                  <TableHead className="h-12 pr-6 text-right">
+                  <TableHead className="h-12 w-[10%] text-center">
                     <span className="sr-only">Actions</span>
                   </TableHead>
                 </TableRow>
@@ -187,7 +187,7 @@ export async function PtMembersPage() {
                         ? date.format(new Date(client.lastSessionAt))
                         : "None"}
                     </TableCell>
-                    <TableCell className="pr-6 text-right">
+                    <TableCell className="w-[10%] text-center">
                       <TableRowActions
                         label={`Open actions for ${client.name}`}
                         actions={[

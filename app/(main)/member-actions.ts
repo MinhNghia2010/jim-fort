@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
 import { createAdminClient } from "@/lib/supabase/admin"
+import { withRedirectToast } from "@/lib/redirect-toast"
 import { createClient } from "@/lib/supabase/server"
 
 type MemberActionState = {
@@ -436,7 +437,12 @@ export async function createMemberSubscription(
 
   revalidatePath("/memberships")
   revalidatePath("/subscriptions")
-  redirect(`/subscriptions/${data.id}`)
+  redirect(
+    withRedirectToast(
+      `/subscriptions/${data.id}`,
+      "Membership subscription created."
+    )
+  )
 }
 
 export async function cancelPendingSubscription(
@@ -518,7 +524,9 @@ export async function cancelPendingSubscription(
 
   revalidatePath(`/subscriptions/${subscriptionId}`)
   revalidatePath("/subscriptions")
-  redirect("/subscriptions")
+  redirect(
+    withRedirectToast("/subscriptions", "Subscription was cancelled.")
+  )
 }
 
 export async function savePtPreference(

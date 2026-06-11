@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useState, type ReactNode } from "react"
-import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { Eye, MoreHorizontal, Pencil, Trash2, X } from "lucide-react"
 
 import {
   DeleteConfirmationDialog,
@@ -24,9 +24,13 @@ export type TableRowAction = {
 
 export type TableRowDeleteAction = {
   action: DeleteServerAction
+  label?: string
+  confirmLabel?: string
   description: string
   inputName: string
   inputValue: string
+  onDeleteSuccess?: () => void
+  onOptimisticDelete?: () => void
   successMessage: string
   title: string
 }
@@ -59,6 +63,10 @@ export function TableRowActions({
   deleteAction,
 }: TableRowActionsProps) {
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const deleteActionLabel = deleteAction?.label ?? "Delete"
+  const DeleteActionIcon = deleteActionLabel.toLowerCase().startsWith("cancel")
+    ? X
+    : Trash2
 
   return (
     <>
@@ -90,8 +98,8 @@ export function TableRowActions({
                 className="text-destructive! focus:text-destructive! [&_svg]:text-destructive!"
                 onSelect={() => setDeleteOpen(true)}
               >
-                <Trash2 />
-                Delete
+                <DeleteActionIcon />
+                {deleteActionLabel}
               </DropdownMenuItem>
             ) : null}
           </DropdownMenuGroup>
@@ -100,11 +108,14 @@ export function TableRowActions({
       {deleteAction ? (
         <DeleteConfirmationDialog
           action={deleteAction.action}
+          confirmLabel={deleteAction.confirmLabel}
           description={deleteAction.description}
           inputName={deleteAction.inputName}
           inputValue={deleteAction.inputValue}
+          onDeleteSuccess={deleteAction.onDeleteSuccess}
           open={deleteOpen}
           onOpenChange={setDeleteOpen}
+          onOptimisticDelete={deleteAction.onOptimisticDelete}
           successMessage={deleteAction.successMessage}
           title={deleteAction.title}
         />

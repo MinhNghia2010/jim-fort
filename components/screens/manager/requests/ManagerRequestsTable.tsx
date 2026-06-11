@@ -76,7 +76,7 @@ export function ManagerRequestsTable({ requests }: ManagerRequestsTableProps) {
             <TableHead className="h-12">Package</TableHead>
             <TableHead className="h-12">Status</TableHead>
             <TableHead className="h-12">Created</TableHead>
-            <TableHead className="h-12 pr-6 text-right">
+            <TableHead className="h-12 w-[10%] text-center">
               <span className="sr-only">Actions</span>
             </TableHead>
           </TableRow>
@@ -97,7 +97,7 @@ export function ManagerRequestsTable({ requests }: ManagerRequestsTableProps) {
                 <TableCell className="whitespace-nowrap text-muted-foreground">
                   {date.format(new Date(request.created_at))}
                 </TableCell>
-                <TableCell className="pr-6 text-right">
+                <TableCell className="w-[10%] text-center">
                   <TableRowActions
                     label={`Open actions for ${request.users?.full_name ?? "member"}`}
                     actions={[

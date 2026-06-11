@@ -86,7 +86,7 @@ export function MemberPaymentsTable({ payments }: MemberPaymentsTableProps) {
             <TableHead className="h-12">Status</TableHead>
             <TableHead className="h-12">Method</TableHead>
             <TableHead className="h-12">Date</TableHead>
-            <TableHead className="h-12 pr-6 text-right">
+            <TableHead className="h-12 w-[10%] text-center">
               <span className="sr-only">Actions</span>
             </TableHead>
           </TableRow>
@@ -107,7 +107,7 @@ export function MemberPaymentsTable({ payments }: MemberPaymentsTableProps) {
                 <TableCell className="whitespace-nowrap text-muted-foreground">
                   {date.format(new Date(getPaymentDate(payment)))}
                 </TableCell>
-                <TableCell className="pr-6 text-right">
+                <TableCell className="w-[10%] text-center">
                   <TableRowActions
                     label="Open payment actions"
                     actions={[

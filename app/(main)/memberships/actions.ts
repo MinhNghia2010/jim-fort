@@ -7,9 +7,10 @@ import type {
   MembershipFormState,
   MembershipPlanKind,
   MembershipStatus,
-} from "@/components/screens/owner/memberships/form/types"
+} from "@/lib/features/owner/memberships/form/types"
 import type { DeleteActionState } from "@/components/DeleteConfirmationDialog"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { withRedirectToast } from "@/lib/redirect-toast"
 import { createClient } from "@/lib/supabase/server"
 
 type MembershipPackagePayload = {
@@ -263,7 +264,12 @@ export async function createMembershipPackage(
   }
 
   revalidatePath("/memberships")
-  redirect("/memberships")
+  redirect(
+    withRedirectToast(
+      "/memberships",
+      `${payload.name} membership plan was created.`
+    )
+  )
 }
 
 export async function updateMembershipPackage(
@@ -295,7 +301,9 @@ export async function updateMembershipPackage(
     }
 
     revalidatePath("/memberships")
-    redirect("/memberships")
+    redirect(
+      withRedirectToast("/memberships", "Membership plan was archived.")
+    )
   }
 
   const payload = parseMembershipPackagePayload(formData)
@@ -323,7 +331,12 @@ export async function updateMembershipPackage(
   }
 
   revalidatePath("/memberships")
-  redirect("/memberships")
+  redirect(
+    withRedirectToast(
+      "/memberships",
+      `${payload.name} membership plan was updated.`
+    )
+  )
 }
 
 export async function deleteMembershipPackage(

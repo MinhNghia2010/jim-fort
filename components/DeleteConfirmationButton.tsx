@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Trash2 } from "lucide-react"
+import { Trash2, X } from "lucide-react"
 
 import {
   DeleteConfirmationDialog,
@@ -23,6 +23,7 @@ export function DeleteConfirmationButton({
   ...dialogProps
 }: DeleteConfirmationButtonProps) {
   const [open, setOpen] = useState(false)
+  const TriggerIcon = label.toLowerCase().startsWith("cancel") ? X : Trash2
 
   return (
     <>
@@ -32,7 +33,7 @@ export function DeleteConfirmationButton({
         size={size}
         onClick={() => setOpen(true)}
       >
-        <Trash2 data-icon="inline-start" />
+        <TriggerIcon data-icon="inline-start" />
         {label}
       </Button>
       <DeleteConfirmationDialog

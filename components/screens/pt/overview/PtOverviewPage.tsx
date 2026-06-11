@@ -139,7 +139,7 @@ export async function PtOverviewPage() {
                 <TableRow>
                   <TableHead className="h-12 pl-6">Member</TableHead>
                   <TableHead className="h-12">Time</TableHead>
-                  <TableHead className="h-12 pr-6 text-right">
+                  <TableHead className="h-12 w-[10%] text-center">
                     <span className="sr-only">Actions</span>
                   </TableHead>
                 </TableRow>
@@ -153,7 +153,7 @@ export async function PtOverviewPage() {
                     <TableCell className="whitespace-nowrap text-muted-foreground">
                       {date.format(new Date(session.starts_at))}
                     </TableCell>
-                    <TableCell className="pr-6 text-right">
+                    <TableCell className="w-[10%] text-center">
                       <TableRowActions
                         label={`Open actions for ${
                           session.users?.full_name ?? "member"
@@ -196,7 +196,7 @@ export async function PtOverviewPage() {
                 <TableRow>
                   <TableHead className="h-12 pl-6">Member</TableHead>
                   <TableHead className="h-12">Session</TableHead>
-                  <TableHead className="h-12 pr-6 text-right">
+                  <TableHead className="h-12 w-[10%] text-center">
                     <span className="sr-only">Actions</span>
                   </TableHead>
                 </TableRow>
@@ -210,7 +210,7 @@ export async function PtOverviewPage() {
                     <TableCell>
                       <Badge variant="outline">#{session.session_number}</Badge>
                     </TableCell>
-                    <TableCell className="pr-6 text-right">
+                    <TableCell className="w-[10%] text-center">
                       <TableRowActions
                         label={`Open feedback actions for ${
                           session.users?.full_name ?? "member"

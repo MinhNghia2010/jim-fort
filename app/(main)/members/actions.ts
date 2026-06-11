@@ -5,19 +5,47 @@ import { redirect } from "next/navigation"
 
 import { getOwnerMemberAccess } from "@/app/(main)/members/owner-member-access"
 import type { DeleteActionState } from "@/components/DeleteConfirmationDialog"
+import { withRedirectToast } from "@/lib/redirect-toast"
 
 function text(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim()
 }
 
-export async function deleteMember(
+const cancellablePlanStatuses = [
+  "active",
+  "pending_payment",
+  "pending_pt_setup",
+] as const
+
+async function cancelFuturePtSessions(
+  admin: ReturnType<typeof import("@/lib/supabase/admin").createAdminClient>,
+  subscriptionIds: readonly string[],
+  memberId: string,
+  cancelledAt: string
+) {
+  if (!subscriptionIds.length) {
+    return null
+  }
+
+  const { error } = await admin
+    .from("membership_pt_sessions")
+    .update({ status: "cancelled" })
+    .in("subscription_id", subscriptionIds)
+    .eq("member_id", memberId)
+    .eq("status", "scheduled")
+    .gte("starts_at", cancelledAt)
+
+  return error
+}
+
+export async function cancelMemberPlan(
   _state: DeleteActionState,
   formData: FormData
 ): Promise<DeleteActionState> {
   const memberId = text(formData, "memberId")
 
   if (!memberId) {
-    return { error: "Select a member to delete." }
+    return { error: "Select a member plan to cancel." }
   }
 
   const access = await getOwnerMemberAccess(memberId)
@@ -27,58 +55,82 @@ export async function deleteMember(
   }
 
   const { admin, member } = access
-
-  const { data: deletedMember, error: deleteError } = await admin
-    .from("users")
-    .delete()
-    .eq("id", memberId)
-    .eq("role", "member")
+  const { data: subscriptions, error: loadError } = await admin
+    .from("membership_subscriptions")
     .select("id")
-    .maybeSingle()
+    .eq("member_id", memberId)
+    .in("status", cancellablePlanStatuses)
 
-  if (deleteError) {
+  if (loadError) {
+    return { error: `Unable to load current plans: ${loadError.message}` }
+  }
+
+  const subscriptionIds = (subscriptions ?? []).map(
+    (subscription) => subscription.id
+  )
+
+  if (!subscriptionIds.length) {
+    return { error: "This member has no active or pending plan to cancel." }
+  }
+
+  const cancelledAt = new Date().toISOString()
+  const { data: cancelledSubscriptions, error: cancelError } = await admin
+    .from("membership_subscriptions")
+    .update({
+      status: "cancelled",
+      cancelled_at: cancelledAt,
+      cancelled_reason: "Cancelled by owner.",
+    })
+    .in("id", subscriptionIds)
+    .in("status", cancellablePlanStatuses)
+    .select("id")
+
+  if (cancelError) {
+    return { error: `Unable to cancel member plan: ${cancelError.message}` }
+  }
+
+  const cancelledSubscriptionIds = (cancelledSubscriptions ?? []).map(
+    (subscription) => subscription.id
+  )
+
+  if (!cancelledSubscriptionIds.length) {
+    return { error: "The member plan was not cancelled." }
+  }
+
+  const { error: paymentError } = await admin
+    .from("membership_payments")
+    .update({ status: "cancelled" })
+    .in("subscription_id", cancelledSubscriptionIds)
+    .eq("member_id", memberId)
+    .eq("status", "pending")
+
+  if (paymentError) {
     return {
-      error: `Unable to delete member records: ${deleteError.message}`,
+      error: `Plan was cancelled, but pending payment cleanup failed: ${paymentError.message}`,
     }
   }
 
-  if (!deletedMember) {
-    return { error: "The member account was not deleted." }
-  }
+  const sessionError = await cancelFuturePtSessions(
+    admin,
+    cancelledSubscriptionIds,
+    memberId,
+    cancelledAt
+  )
 
-  const cleanupErrors: string[] = []
-
-  if (member.account_id) {
-    const { error: accountError } = await admin
-      .from("accounts")
-      .delete()
-      .eq("id", member.account_id)
-
-    if (accountError) {
-      cleanupErrors.push(`app account: ${accountError.message}`)
+  if (sessionError) {
+    return {
+      error: `Plan was cancelled, but future PT sessions were not cancelled: ${sessionError.message}`,
     }
-  }
-
-  const { error: authError } = await admin.auth.admin.deleteUser(memberId)
-
-  if (authError) {
-    cleanupErrors.push(`login account: ${authError.message}`)
   }
 
   revalidatePath("/members")
   revalidatePath(`/members/${memberId}`)
   revalidatePath("/memberships")
   revalidatePath("/subscriptions")
-  revalidatePath("/revenue")
+  revalidatePath("/payments")
   revalidatePath("/overview")
 
-  if (cleanupErrors.length) {
-    return {
-      error: `Member records were deleted, but cleanup failed for ${cleanupErrors.join("; ")}.`,
-    }
-  }
-
-  return { message: `${member.full_name} was deleted.` }
+  return { message: `${member.full_name}'s plan was cancelled.` }
 }
 
 export async function updateMember(
@@ -157,5 +209,7 @@ export async function updateMember(
   revalidatePath(`/members/${memberId}/edit`)
   revalidatePath("/overview")
 
-  redirect(`/members/${memberId}`)
+  redirect(
+    withRedirectToast(`/members/${memberId}`, `${fullName} was updated.`)
+  )
 }

@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { BadgePercent, CirclePlus, Tag } from "lucide-react"
+import { BadgePercent, CirclePlus, Search, Tag } from "lucide-react"
 
+import { deleteVoucher } from "@/app/(main)/vouchers/actions"
 import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import type { VoucherView } from "@/components/screens/owner/vouchers/OwnerVouchersPage"
@@ -34,6 +35,11 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import { Progress } from "@/components/ui/progress"
 import {
   Table,
@@ -158,6 +164,7 @@ export function OwnerVouchersTable({
   monthFilter: controlledMonthFilter,
   onMonthFilterChange,
 }: OwnerVouchersTableProps) {
+  const [search, setSearch] = useState("")
   const [sort, setSort] = useState<VoucherSort>("code_asc")
   const [statusFilter, setStatusFilter] = useState<VoucherStatusFilter>("all")
   const [internalMonthFilter, setInternalMonthFilter] =
@@ -168,11 +175,24 @@ export function OwnerVouchersTable({
     vouchers,
     (voucher) => voucher.startsAt
   )
-  const filteredVouchers = vouchers.filter(
-    (voucher) =>
+  const normalizedSearch = search.trim().toLowerCase()
+  const filteredVouchers = vouchers.filter((voucher) => {
+    const searchableText = [
+      voucher.code,
+      voucher.discountLabel,
+      voucher.status,
+      voucher.startsAtLabel,
+      voucher.expiresAtLabel,
+    ]
+      .join(" ")
+      .toLowerCase()
+
+    return (
+      (!normalizedSearch || searchableText.includes(normalizedSearch)) &&
       (statusFilter === "all" || voucher.status === statusFilter) &&
       matchesTableMonthFilter(voucher.startsAt, monthFilter)
-  )
+    )
+  })
   const sortedVouchers = sortVouchers(filteredVouchers, sort)
   const totalPages = Math.max(
     1,
@@ -202,6 +222,11 @@ export function OwnerVouchersTable({
 
   function handleSortChange(value: VoucherSort) {
     setSort(value)
+    setCurrentPage(1)
+  }
+
+  function handleSearchChange(value: string) {
+    setSearch(value)
     setCurrentPage(1)
   }
 
@@ -240,7 +265,19 @@ export function OwnerVouchersTable({
         ) : null}
       </CardHeader>
       <CardContent className="px-0">
-        <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-end">
+        <div className="flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <InputGroup className="w-full sm:w-72">
+            <InputGroupAddon>
+              <Search aria-hidden="true" />
+            </InputGroupAddon>
+            <InputGroupInput
+              value={search}
+              onChange={(event) => handleSearchChange(event.target.value)}
+              placeholder="Search vouchers..."
+              aria-label="Search vouchers"
+            />
+          </InputGroup>
+
           <TableMonthFilter
             value={monthFilter}
             options={monthFilterOptions}
@@ -299,7 +336,7 @@ export function OwnerVouchersTable({
                   onValueChange={handleStatusFilterChange}
                 />
               </TableHead>
-              <TableHead className="h-12 pr-6 text-right">
+              <TableHead className="h-12 w-[10%] text-center">
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
@@ -346,7 +383,7 @@ export function OwnerVouchersTable({
                   <TableCell className="whitespace-nowrap">
                     <StatusBadge status={voucher.status} showDot />
                   </TableCell>
-                  <TableCell className="pr-6 text-right">
+                  <TableCell className="w-[10%] text-center">
                     <TableRowActions
                       label={`Open actions for ${voucher.code}`}
                       actions={[
@@ -363,6 +400,18 @@ export function OwnerVouchersTable({
                             ]
                           : []),
                       ]}
+                      deleteAction={
+                        canManage
+                          ? {
+                              action: deleteVoucher,
+                              description: `Delete ${voucher.code}? This permanently removes the voucher. Vouchers with redemption history cannot be deleted.`,
+                              inputName: "voucherCode",
+                              inputValue: voucher.code,
+                              successMessage: "Voucher deleted",
+                              title: "Delete voucher?",
+                            }
+                          : undefined
+                      }
                     />
                   </TableCell>
                 </TableRow>
@@ -377,7 +426,9 @@ export function OwnerVouchersTable({
                       </EmptyMedia>
                       <EmptyTitle>No vouchers found</EmptyTitle>
                       <EmptyDescription>
-                        Create a code or choose a different status filter.
+                        {normalizedSearch
+                          ? "Try a different search or adjust the table filters."
+                          : "Create a code or choose a different status filter."}
                       </EmptyDescription>
                     </EmptyHeader>
                   </Empty>

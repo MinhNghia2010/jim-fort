@@ -39,6 +39,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { useOptimisticDeletion } from "@/lib/hooks/useOptimisticDeletion"
 import { cn } from "@/lib/utils"
 
 interface OwnerMembershipsTableProps {
@@ -179,6 +180,11 @@ export function OwnerMembershipsTable({
   const [sort, setSort] = useState<MembershipSort>("plan_asc")
   const [statusFilter, setStatusFilter] =
     useState<MembershipStatusFilter>("all")
+  const {
+    commitDeletion: commitPlanDeletion,
+    deleteOptimistically: markPlanDeleted,
+    optimisticDeletedIds: optimisticDeletedPlanIds,
+  } = useOptimisticDeletion()
   const filteredPlans = plans.filter(
     (plan) => statusFilter === "all" || plan.status === statusFilter
   )
@@ -283,7 +289,7 @@ export function OwnerMembershipsTable({
                 />
               </TableHead>
               {canManage ? (
-                <TableHead className="h-12 pr-6 text-right">
+                <TableHead className="h-12 w-[10%] text-center">
                   <span className="sr-only">Actions</span>
                 </TableHead>
               ) : null}
@@ -292,7 +298,14 @@ export function OwnerMembershipsTable({
           <TableBody>
             {sortedPlans.length ? (
               sortedPlans.map((plan) => (
-                <TableRow key={plan.id} className="h-[4.5rem]">
+                <TableRow
+                  key={plan.id}
+                  aria-hidden={optimisticDeletedPlanIds.includes(plan.id)}
+                  className={cn(
+                    "h-[4.5rem]",
+                    optimisticDeletedPlanIds.includes(plan.id) && "hidden"
+                  )}
+                >
                   <TableCell className="pl-6">
                     <div className="flex items-start gap-3">
                       <span
@@ -347,7 +360,7 @@ export function OwnerMembershipsTable({
                     {plan.revenueLabel}
                   </TableCell>
                   {canManage ? (
-                    <TableCell className="pr-6 text-right">
+                    <TableCell className="w-[10%] text-center">
                       <TableRowActions
                         label={`Open actions for ${plan.name}`}
                         actions={[
@@ -361,6 +374,9 @@ export function OwnerMembershipsTable({
                           description: `Delete ${plan.name}? This permanently removes the plan and its room access. Plans with subscription history must be archived instead.`,
                           inputName: "packageId",
                           inputValue: plan.id,
+                          onDeleteSuccess: () =>
+                            commitPlanDeletion(plan.id),
+                          onOptimisticDelete: () => markPlanDeleted(plan.id),
                           successMessage: "Membership plan deleted",
                           title: "Delete membership plan?",
                         }}

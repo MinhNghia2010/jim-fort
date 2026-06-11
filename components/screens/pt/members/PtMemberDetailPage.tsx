@@ -10,6 +10,7 @@ export function PtMemberDetailPage({ memberId }: PtMemberDetailPageProps) {
       memberId={memberId}
       viewerLabel="PT client"
       showSessionsLink
+      canDelete={false}
     />
   )
 }

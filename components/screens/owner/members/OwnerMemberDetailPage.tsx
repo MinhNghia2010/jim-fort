@@ -15,7 +15,7 @@ import {
   type MemberDetailData,
   type MemberDetailSubscription,
 } from "@/app/(main)/members/data"
-import { deleteMember } from "@/app/(main)/members/actions"
+import { cancelMemberPlan } from "@/app/(main)/members/actions"
 import { DeleteConfirmationButton } from "@/components/DeleteConfirmationButton"
 import { PageShell } from "@/components/PageShell"
 import { ManagementMetricCard } from "@/components/screens/owner/ManagementMetricCard"
@@ -119,6 +119,14 @@ function getCurrentSubscription(subscriptions: MemberDetailSubscription[]) {
   )
 }
 
+function canCancelPlan(subscription: MemberDetailSubscription | null) {
+  return (
+    subscription?.status === "active" ||
+    subscription?.status === "pending_payment" ||
+    subscription?.status === "pending_pt_setup"
+  )
+}
+
 function MemberNotFound() {
   return (
     <PageShell
@@ -173,6 +181,7 @@ export async function OwnerMemberDetailPage({
     member?.subscriptions.filter(
       (subscription) => subscription.status === "active"
     ).length ?? 0
+  const canCancelCurrentPlan = canDelete && canCancelPlan(currentSubscription)
   const paidRevenue = member ? getPaidRevenue(member) : 0
 
   return (
@@ -312,15 +321,16 @@ export async function OwnerMemberDetailPage({
                     </Link>
                   </Button>
                 ) : null}
-                {canDelete ? (
+                {canCancelCurrentPlan ? (
                   <DeleteConfirmationButton
-                    action={deleteMember}
-                    description={`Delete ${member.name}? This permanently removes the member login, subscriptions, payments, sessions, and feedback.`}
+                    action={cancelMemberPlan}
+                    confirmLabel="Cancel plan"
+                    description={`Cancel ${member.name}'s current plan? This keeps the member account and history, but cancels active or pending subscriptions, pending payments, and future scheduled PT sessions.`}
                     inputName="memberId"
                     inputValue={member.id}
-                    label="Delete"
-                    successMessage="Member deleted"
-                    title="Delete member account?"
+                    label="Cancel plan"
+                    successMessage="Plan cancelled"
+                    title="Cancel member plan?"
                   />
                 ) : null}
               </CardContent>

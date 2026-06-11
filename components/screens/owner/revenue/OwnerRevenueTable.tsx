@@ -300,7 +300,7 @@ export function OwnerRevenueTable({
                 onValueChange={handleSortChange}
               />
             </TableHead>
-            <TableHead className="h-12 pr-6 text-right">
+            <TableHead className="h-12 w-[10%] text-center">
               <span className="sr-only">Actions</span>
             </TableHead>
           </TableRow>
@@ -335,7 +335,7 @@ export function OwnerRevenueTable({
                 <TableCell className="font-mono font-medium whitespace-nowrap tabular-nums">
                   {row.amountLabel}
                 </TableCell>
-                <TableCell className="pr-6 text-right">
+                <TableCell className="w-[10%] text-center">
                   <TableRowActions
                     label={`Open actions for ${row.packageName}`}
                     actions={[

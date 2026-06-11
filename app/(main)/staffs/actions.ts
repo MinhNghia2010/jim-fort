@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 
 import type { DeleteActionState } from "@/components/DeleteConfirmationDialog"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { withRedirectToast } from "@/lib/redirect-toast"
 import { createClient } from "@/lib/supabase/server"
 
 type ActionState = {
@@ -193,7 +194,9 @@ export async function createStaff(
     revalidatePath("/staffs")
     revalidatePath("/overview")
 
-    redirect(`/staffs/${data.id}`)
+    redirect(
+      withRedirectToast(`/staffs/${data.id}`, `${fullName} was created.`)
+    )
   }
 
   if (context.appRole !== "owner") {
@@ -325,7 +328,9 @@ export async function createStaff(
   revalidatePath("/staffs")
   revalidatePath("/overview")
 
-  redirect(`/staffs/${staffUserId}`)
+  redirect(
+    withRedirectToast(`/staffs/${staffUserId}`, `${fullName} was created.`)
+  )
 }
 
 export async function updateStaff(
@@ -436,7 +441,9 @@ export async function updateStaff(
     revalidatePath(`/staffs/${staffId}/edit`)
     revalidatePath("/overview")
 
-    redirect(`/staffs/${staffId}`)
+    redirect(
+      withRedirectToast(`/staffs/${staffId}`, `${fullName} was updated.`)
+    )
   }
 
   if (staffKind !== "staff_row") {
@@ -494,7 +501,9 @@ export async function updateStaff(
   revalidatePath(`/staffs/${staffId}/edit`)
   revalidatePath("/overview")
 
-  redirect(`/staffs/${staffId}`)
+  redirect(
+    withRedirectToast(`/staffs/${staffId}`, `${fullName} was updated.`)
+  )
 }
 
 export async function deleteStaff(

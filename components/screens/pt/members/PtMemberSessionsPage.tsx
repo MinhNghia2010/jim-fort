@@ -154,7 +154,7 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
                     <TableHead className="h-12">End</TableHead>
                     <TableHead className="h-12">Status</TableHead>
                     <TableHead className="h-12">Feedback</TableHead>
-                    <TableHead className="h-12 pr-6 text-right">
+                    <TableHead className="h-12 w-[10%] text-center">
                       <span className="sr-only">Actions</span>
                     </TableHead>
                   </TableRow>
@@ -185,7 +185,7 @@ export async function PtMemberSessionsPage({ memberId }: Props) {
                             {feedback?.status ?? "not sent"}
                           </StatusBadge>
                         </TableCell>
-                        <TableCell className="pr-6 text-right">
+                        <TableCell className="w-[10%] text-center">
                           <TableRowActions
                             label={`Open actions for session ${session.session_number}`}
                             actions={[

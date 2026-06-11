@@ -4,9 +4,9 @@ import { useState } from "react"
 import Link from "next/link"
 import { CirclePlus, Search, Users } from "lucide-react"
 
-import { deleteMember } from "@/app/(main)/members/actions"
+import { cancelMemberPlan } from "@/app/(main)/members/actions"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/StatusBadge"
 import { TableActionButton } from "@/components/TableActionButton"
 import { TableRowActions } from "@/components/TableRowActions"
 import {
@@ -48,7 +48,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
-import { cn } from "@/lib/utils"
 
 export type MemberStatus =
   | "pending_pt_setup"
@@ -164,6 +163,14 @@ function matchesStatus(status: MemberStatus, filter: MemberStatusFilter) {
   return status === filter
 }
 
+function canCancelMemberPlan(status: MemberStatus) {
+  return (
+    status === "active" ||
+    status === "pending_payment" ||
+    status === "pending_pt_setup"
+  )
+}
+
 function compareText(first: string, second: string) {
   return first.localeCompare(second, undefined, { sensitivity: "base" })
 }
@@ -214,17 +221,7 @@ function sortMembers(members: MemberTableRow[], sort: MemberSort) {
   })
 }
 
-function getStatusClassName(status: MemberStatus) {
-  return cn(
-    "border font-medium",
-    status === "active" &&
-      "border-chart-2/30 bg-chart-2/10 text-chart-2 dark:border-chart-2/40 dark:bg-chart-2/20",
-    (status === "pending_payment" || status === "pending_pt_setup") &&
-      "border-chart-4/40 bg-chart-4/20 text-chart-5 dark:border-chart-4/40 dark:bg-chart-4/20 dark:text-chart-4",
-    (status === "expired" || status === "cancelled") &&
-      "border-destructive/30 bg-destructive/10 text-destructive dark:border-destructive/40 dark:bg-destructive/20"
-  )
-}
+
 
 export function MembersTable({
   members,
@@ -402,14 +399,14 @@ export function MembersTable({
                     onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead className="h-12 pr-6 text-right">
+                <TableHead className="h-12 w-[10%] text-center">
                   <span className="sr-only">Actions</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedMembers.length ? (
-                paginatedMembers.map((member) => (
+              paginatedMembers.map((member) => (
                   <TableRow key={member.id} className="h-[4.5rem]">
                     <TableCell className="pl-6">
                       <div className="flex items-center gap-3">
@@ -439,12 +436,9 @@ export function MembersTable({
                       {dateFormatter.format(new Date(member.joinedAt))}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      <Badge
-                        variant="outline"
-                        className={getStatusClassName(member.status)}
-                      >
+                      <StatusBadge status={member.status} showDot>
                         {statusLabels[member.status]}
-                      </Badge>
+                      </StatusBadge>
                     </TableCell>
                     <TableCell className="font-medium whitespace-nowrap tabular-nums">
                       {member.sessions}
@@ -452,7 +446,7 @@ export function MembersTable({
                     <TableCell className="font-medium whitespace-nowrap tabular-nums">
                       {currencyFormatter.format(member.revenue)}
                     </TableCell>
-                    <TableCell className="pr-6 text-right">
+                    <TableCell className="w-[10%] text-center">
                       <TableRowActions
                         label={`Open actions for ${member.name}`}
                         actions={[
@@ -470,14 +464,16 @@ export function MembersTable({
                             : []),
                         ]}
                         deleteAction={
-                          canDeleteMember
+                          canDeleteMember && canCancelMemberPlan(member.status)
                             ? {
-                                action: deleteMember,
-                                description: `Delete ${member.name}? This permanently removes the member login, subscriptions, payments, sessions, and feedback.`,
+                                action: cancelMemberPlan,
+                                label: "Cancel plan",
+                                confirmLabel: "Cancel plan",
+                                description: `Cancel ${member.name}'s current plan? This keeps the member account and history, but cancels active or pending subscriptions, pending payments, and future scheduled PT sessions.`,
                                 inputName: "memberId",
                                 inputValue: member.id,
-                                successMessage: "Member deleted",
-                                title: "Delete member account?",
+                                successMessage: "Plan cancelled",
+                                title: "Cancel member plan?",
                               }
                             : undefined
                         }
