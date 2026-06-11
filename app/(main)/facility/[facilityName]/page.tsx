@@ -14,7 +14,7 @@ export default async function FacilityPage({ params }: FacilityPageProps) {
   const { facilityName } = await params
 
   return renderRolePage(role, {
-    owner: <OwnerFacilityDetailPage facilityName={facilityName} />,
+    owner: <OwnerFacilityDetailPage facilityName={facilityName} canAddRoom />,
     manager: <ManagerFacilityDetailPage facilityName={facilityName} />,
   })
 }

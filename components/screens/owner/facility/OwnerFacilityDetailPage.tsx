@@ -42,6 +42,7 @@ import {
 
 interface OwnerFacilityDetailPageProps {
   facilityName: string
+  canAddRoom?: boolean
 }
 
 const roomStatusLabels: Record<RoomStatus, string> = {
@@ -52,6 +53,7 @@ const roomStatusLabels: Record<RoomStatus, string> = {
 
 export async function OwnerFacilityDetailPage({
   facilityName,
+  canAddRoom = false,
 }: OwnerFacilityDetailPageProps) {
   const data = await getFacilityDetailPageData(facilityName)
 
@@ -91,14 +93,7 @@ export async function OwnerFacilityDetailPage({
         </Alert>
       ) : null}
 
-      <div className="flex justify-end">
-        <Button asChild>
-          <Link href={getCreateRoomHref(facility.name)}>
-            <CirclePlus data-icon="inline-start" />
-            Add room
-          </Link>
-        </Button>
-      </div>
+
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <ManagementMetricCard
@@ -177,8 +172,16 @@ export async function OwnerFacilityDetailPage({
             <CardDescription>
               Showing {facility.rooms.length} rooms in this facility.
             </CardDescription>
-            <CardAction>
+            <CardAction className="flex items-center gap-2">
               <Badge variant="secondary">{facility.roomCount} rooms</Badge>
+              {canAddRoom ? (
+                <Button size="sm" asChild>
+                  <Link href={getCreateRoomHref(facility.name)}>
+                    <CirclePlus data-icon="inline-start" />
+                    Add room
+                  </Link>
+                </Button>
+              ) : null}
             </CardAction>
           </CardHeader>
           <CardContent className="p-4">

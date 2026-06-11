@@ -156,13 +156,6 @@ type SubscriptionRecord = {
   status: string
 }
 
-const equipmentStatuses: readonly RoomEquipmentStatus[] = [
-  "active",
-  "maintenance",
-  "broken",
-  "retired",
-]
-
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -574,60 +567,96 @@ export async function getFacilityDetailPageData(
   }
 }
 
+function getEmptyEquipmentStatusCounts() {
+  return {
+    active: 0,
+    maintenance: 0,
+    broken: 0,
+    retired: 0,
+  } satisfies Record<RoomEquipmentStatus, number>
+}
+
+function getEquipmentStatusCounts(equipments: readonly EquipmentRecord[]) {
+  const counts = getEmptyEquipmentStatusCounts()
+
+  for (const equipment of equipments) {
+    counts[normalizeEquipmentStatus(equipment.status)] += 1
+  }
+
+  return counts
+}
+
+async function getFacilityRoomContext(facilityName: string, roomId: string) {
+  const {
+    supabase,
+    facility,
+    error: facilityError,
+  } = await getFacilityByName(facilityName)
+
+  if (!facility) {
+    return {
+      facility: null,
+      room: null,
+      equipmentRecords: [],
+      statusCounts: getEmptyEquipmentStatusCounts(),
+      errorMessage: facilityError?.message,
+    }
+  }
+
+  const [roomResult, equipmentResult] = await Promise.all([
+    supabase
+      .from("rooms")
+      .select(
+        "id, facility_id, name, description, status, created_at, updated_at"
+      )
+      .eq("id", roomId)
+      .eq("facility_id", facility.id)
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("gym_equipments")
+      .select(
+        "id, facility_id, room_id, name, category, equipment_code, serial_number, brand, model, description, purchase_date, purchase_price, status, note, created_at, updated_at"
+      )
+      .eq("room_id", roomId)
+      .order("name", { ascending: true }),
+  ])
+
+  const room = roomResult.data as RoomRecord | null
+  const equipmentRecords = (equipmentResult.data ?? []) as EquipmentRecord[]
+  const rooms = room ? [room] : []
+  const facilityView = buildFacilityListItem({
+    facility,
+    rooms,
+    equipments: equipmentRecords,
+    staffs: [],
+    subscriptions: [],
+  })
+
+  return {
+    facility: facilityView,
+    room: room ? buildRoomView({ room, equipments: equipmentRecords }) : null,
+    equipmentRecords,
+    statusCounts: getEquipmentStatusCounts(equipmentRecords),
+    errorMessage:
+      facilityError?.message ??
+      roomResult.error?.message ??
+      equipmentResult.error?.message,
+  }
+}
+
 export async function getFacilityRoomPageData(
   facilityName: string,
   roomId: string
 ): Promise<FacilityRoomPageData> {
-  const detailData = await getFacilityDetailPageData(facilityName)
-  const room = detailData.facility?.rooms.find(
-    (facilityRoom) => facilityRoom.id === roomId
-  )
-
-  if (!detailData.facility || !room) {
-    return {
-      facility: detailData.facility,
-      room: null,
-      statusCounts: {
-        active: 0,
-        maintenance: 0,
-        broken: 0,
-        retired: 0,
-      },
-      equipmentPreview: [],
-      errorMessage: detailData.errorMessage,
-    }
-  }
-
-  const supabase = await createClient()
-  const equipmentResult = await supabase
-    .from("gym_equipments")
-    .select(
-      "id, facility_id, room_id, name, category, equipment_code, serial_number, brand, model, description, purchase_date, purchase_price, status, note, created_at, updated_at"
-    )
-    .eq("room_id", roomId)
-    .order("name", { ascending: true })
-  const equipmentRecords = (equipmentResult.data ?? []) as EquipmentRecord[]
-  const statusCounts = equipmentStatuses.reduce(
-    (counts, status) => ({
-      ...counts,
-      [status]: equipmentRecords.filter(
-        (equipment) => normalizeEquipmentStatus(equipment.status) === status
-      ).length,
-    }),
-    {
-      active: 0,
-      maintenance: 0,
-      broken: 0,
-      retired: 0,
-    } satisfies Record<RoomEquipmentStatus, number>
-  )
+  const roomData = await getFacilityRoomContext(facilityName, roomId)
 
   return {
-    facility: detailData.facility,
-    room,
-    statusCounts,
-    equipmentPreview: equipmentRecords.slice(0, 5).map(mapEquipment),
-    errorMessage: detailData.errorMessage ?? equipmentResult.error?.message,
+    facility: roomData.facility,
+    room: roomData.room,
+    statusCounts: roomData.statusCounts,
+    equipmentPreview: roomData.equipmentRecords.slice(0, 5).map(mapEquipment),
+    errorMessage: roomData.errorMessage,
   }
 }
 
@@ -635,23 +664,13 @@ export async function getRoomEquipmentPageData(
   facilityName: string,
   roomId: string
 ): Promise<RoomEquipmentPageData> {
-  const roomData = await getFacilityRoomPageData(facilityName, roomId)
-  const supabase = await createClient()
-  const equipmentResult = await supabase
-    .from("gym_equipments")
-    .select(
-      "id, facility_id, room_id, name, category, equipment_code, serial_number, brand, model, description, purchase_date, purchase_price, status, note, created_at, updated_at"
-    )
-    .eq("room_id", roomId)
-    .order("name", { ascending: true })
+  const roomData = await getFacilityRoomContext(facilityName, roomId)
 
   return {
     facility: roomData.facility,
     room: roomData.room,
-    equipments: ((equipmentResult.data ?? []) as EquipmentRecord[]).map(
-      mapEquipment
-    ),
-    errorMessage: roomData.errorMessage ?? equipmentResult.error?.message,
+    equipments: roomData.equipmentRecords.map(mapEquipment),
+    errorMessage: roomData.errorMessage,
   }
 }
 
@@ -660,18 +679,12 @@ export async function getEquipmentDetailPageData(
   roomId: string,
   equipmentId: string
 ): Promise<EquipmentDetailPageData> {
-  const roomData = await getFacilityRoomPageData(facilityName, roomId)
+  const roomData = await getFacilityRoomContext(facilityName, roomId)
+  const equipmentRecord =
+    roomData.equipmentRecords.find((equipment) => equipment.id === equipmentId) ??
+    null
   const supabase = await createClient()
-  const equipmentResult = await supabase
-    .from("gym_equipments")
-    .select(
-      "id, facility_id, room_id, name, category, equipment_code, serial_number, brand, model, description, purchase_date, purchase_price, status, note, created_at, updated_at"
-    )
-    .eq("id", equipmentId)
-    .eq("room_id", roomId)
-    .limit(1)
-    .maybeSingle()
-  const issueReportsResult = equipmentResult.data
+  const issueReportsResult = equipmentRecord
     ? await supabase
         .from("equipment_issue_reports")
         .select(
@@ -693,15 +706,10 @@ export async function getEquipmentDetailPageData(
   return {
     facility: roomData.facility,
     room: roomData.room,
-    equipment: equipmentResult.data
-      ? mapEquipmentDetail(equipmentResult.data as EquipmentRecord)
-      : null,
+    equipment: equipmentRecord ? mapEquipmentDetail(equipmentRecord) : null,
     issueReports: (
       (issueReportsResult.data ?? []) as unknown as EquipmentIssueReportRecord[]
     ).map(mapEquipmentIssueReport),
-    errorMessage:
-      roomData.errorMessage ??
-      equipmentResult.error?.message ??
-      issueReportsResult.error?.message,
+    errorMessage: roomData.errorMessage ?? issueReportsResult.error?.message,
   }
 }
