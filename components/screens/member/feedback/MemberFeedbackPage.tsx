@@ -76,7 +76,7 @@ export async function MemberFeedbackPage() {
       ) : null}
 
       <div className="grid gap-4 xl:grid-cols-[420px_1fr]">
-        <Card>
+        <Card className="h-fit self-start">
           <CardHeader>
             <CardTitle>New feedback</CardTitle>
             <CardDescription>

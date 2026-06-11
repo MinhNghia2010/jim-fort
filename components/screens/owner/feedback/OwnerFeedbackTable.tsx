@@ -320,7 +320,15 @@ export function OwnerFeedbackTable({
             />
           </div>
 
-          <Table className="table-auto text-[0.925rem] [&_td]:overflow-hidden [&_td]:whitespace-normal [&_th]:whitespace-normal">
+          <Table className="table-fixed text-[0.925rem] [&_td]:overflow-hidden [&_td]:whitespace-normal [&_th]:whitespace-normal">
+            <colgroup>
+              <col className="w-[30%]" />
+              <col className="w-[16%]" />
+              <col className="w-[10%]" />
+              <col className="w-[12%]" />
+              <col className="w-[24%]" />
+              <col className="w-[8%]" />
+            </colgroup>
             <TableHeader className="bg-muted/40">
               <TableRow>
                 <TableHead className="h-12 pl-6">
@@ -363,7 +371,7 @@ export function OwnerFeedbackTable({
                     onValueChange={handleSortChange}
                   />
                 </TableHead>
-                <TableHead className="h-12 w-[10%] text-center">
+                <TableHead className="h-12 text-center">
                   <span className="sr-only">Actions</span>
                 </TableHead>
               </TableRow>
@@ -471,7 +479,7 @@ export function OwnerFeedbackTable({
                           </span>
                         )}
                       </TableCell>
-                      <TableCell className="w-[10%] text-center">
+                      <TableCell className="text-center">
                         <TableRowActions
                           label={`${tableAction.label} ${feedback.subject}`}
                           actions={[
