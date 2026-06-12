@@ -3,6 +3,7 @@ import type {
   RoomEquipmentStatus,
 } from "@/components/screens/owner/facility/OwnerRoomEquipmentTable"
 import { createClient } from "@/lib/supabase/server"
+import { getAuthenticatedUser } from "@/lib/auth/current-user"
 
 export type RoomStatus = "active" | "maintenance" | "closed"
 
@@ -415,7 +416,96 @@ async function getFacilityByName(facilityName: string) {
 }
 
 export async function getFacilityPageData(): Promise<FacilityPageData> {
+  const user = await getAuthenticatedUser()
   const supabase = await createClient()
+
+  let allowedFacilityIds: string[] | null = null
+
+  if (user.role === "manager") {
+    const { data: managerData } = await supabase
+      .from("facility_managers")
+      .select("facility_id")
+      .eq("manager_id", user.id)
+    if (managerData && managerData.length > 0) {
+      allowedFacilityIds = managerData.map((m) => m.facility_id)
+    } else {
+      allowedFacilityIds = []
+    }
+  } else if (user.role === "owner") {
+    const { data: ownedFacilities } = await supabase
+      .from("gym_facilities")
+      .select("id")
+      .eq("owner_id", user.id)
+    if (ownedFacilities && ownedFacilities.length > 0) {
+      allowedFacilityIds = ownedFacilities.map((f) => f.id)
+    } else {
+      allowedFacilityIds = []
+    }
+  }
+
+  const facilitiesQuery = supabase
+    .from("gym_facilities")
+    .select("id, name, address, phone, description, created_at, updated_at")
+    .order("created_at", { ascending: true })
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      facilitiesQuery.in("id", allowedFacilityIds)
+    } else {
+      facilitiesQuery.eq("id", "none")
+    }
+  }
+
+  const roomsQuery = supabase
+    .from("rooms")
+    .select(
+      "id, facility_id, name, description, status, created_at, updated_at"
+    )
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      roomsQuery.in("facility_id", allowedFacilityIds)
+    } else {
+      roomsQuery.eq("facility_id", "none")
+    }
+  }
+
+  const equipmentQuery = supabase
+    .from("gym_equipments")
+    .select(
+      "id, facility_id, room_id, name, category, equipment_code, serial_number, brand, model, description, purchase_date, purchase_price, status, note, created_at, updated_at"
+    )
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      equipmentQuery.in("facility_id", allowedFacilityIds)
+    } else {
+      equipmentQuery.eq("facility_id", "none")
+    }
+  }
+
+  const staffsQuery = supabase.from("staffs").select("id, facility_id, status")
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      staffsQuery.in("facility_id", allowedFacilityIds)
+    } else {
+      staffsQuery.eq("facility_id", "none")
+    }
+  }
+
+  const subscriptionsQuery = supabase
+    .from("membership_subscriptions")
+    .select("id, facility_id, member_id, status")
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      subscriptionsQuery.in("facility_id", allowedFacilityIds)
+    } else {
+      subscriptionsQuery.eq("facility_id", "none")
+    }
+  }
+
   const [
     facilitiesResult,
     roomsResult,
@@ -423,24 +513,11 @@ export async function getFacilityPageData(): Promise<FacilityPageData> {
     staffsResult,
     subscriptionsResult,
   ] = await Promise.all([
-    supabase
-      .from("gym_facilities")
-      .select("id, name, address, phone, description, created_at, updated_at")
-      .order("created_at", { ascending: true }),
-    supabase
-      .from("rooms")
-      .select(
-        "id, facility_id, name, description, status, created_at, updated_at"
-      ),
-    supabase
-      .from("gym_equipments")
-      .select(
-        "id, facility_id, room_id, name, category, equipment_code, serial_number, brand, model, description, purchase_date, purchase_price, status, note, created_at, updated_at"
-      ),
-    supabase.from("staffs").select("id, facility_id, status"),
-    supabase
-      .from("membership_subscriptions")
-      .select("id, facility_id, member_id, status"),
+    facilitiesQuery,
+    roomsQuery,
+    equipmentQuery,
+    staffsQuery,
+    subscriptionsQuery,
   ])
 
   const facilities = (facilitiesResult.data ?? []) as FacilityRecord[]

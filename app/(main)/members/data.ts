@@ -3,6 +3,7 @@ import type {
   MemberTableRow,
 } from "@/components/screens/owner/members/MembersTable"
 import { getOwnerMemberAccess } from "@/app/(main)/members/owner-member-access"
+import { getAuthenticatedUser } from "@/lib/auth/current-user"
 import { createClient } from "@/lib/supabase/server"
 import { getScheduleSessionStatus } from "@/lib/features/shared/schedule/utils"
 
@@ -186,8 +187,34 @@ function formatPlanTerm(packageRow: MembershipPackageOptionRecord) {
 }
 
 export async function getManagerCreateMemberPageData() {
+  const user = await getAuthenticatedUser()
   const supabase = await createClient()
-  const { data, error } = await supabase
+
+  let allowedFacilityIds: string[] | null = null
+
+  if (user.role === "manager") {
+    const { data: managerData } = await supabase
+      .from("facility_managers")
+      .select("facility_id")
+      .eq("manager_id", user.id)
+    if (managerData && managerData.length > 0) {
+      allowedFacilityIds = managerData.map((m) => m.facility_id)
+    } else {
+      allowedFacilityIds = []
+    }
+  } else if (user.role === "owner") {
+    const { data: ownedFacilities } = await supabase
+      .from("gym_facilities")
+      .select("id")
+      .eq("owner_id", user.id)
+    if (ownedFacilities && ownedFacilities.length > 0) {
+      allowedFacilityIds = ownedFacilities.map((f) => f.id)
+    } else {
+      allowedFacilityIds = []
+    }
+  }
+
+  const packagesQuery = supabase
     .from("membership_packages")
     .select(
       `
@@ -197,11 +224,22 @@ export async function getManagerCreateMemberPageData() {
         has_pt,
         duration_days,
         session_count,
+        facility_id,
         facility:gym_facilities!membership_packages_facility_id_fkey(name)
       `
     )
     .eq("status", "active")
     .order("name", { ascending: true })
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      packagesQuery.in("facility_id", allowedFacilityIds)
+    } else {
+      packagesQuery.eq("facility_id", "none")
+    }
+  }
+
+  const { data, error } = await packagesQuery
 
   if (error) {
     throw new Error(`Unable to load membership plans: ${error.message}`)
@@ -222,30 +260,66 @@ export async function getManagerCreateMemberPageData() {
 }
 
 export async function getMembersPageData() {
+  const user = await getAuthenticatedUser()
   const supabase = await createClient()
 
-  const [subscriptionsResult, sessionsResult] = await Promise.all([
-    supabase
-      .from("membership_subscriptions")
-      .select(
-        `
+  let allowedFacilityIds: string[] | null = null
+
+  if (user.role === "manager") {
+    const { data: managerData } = await supabase
+      .from("facility_managers")
+      .select("facility_id")
+      .eq("manager_id", user.id)
+    if (managerData && managerData.length > 0) {
+      allowedFacilityIds = managerData.map((m) => m.facility_id)
+    } else {
+      allowedFacilityIds = []
+    }
+  } else if (user.role === "owner") {
+    const { data: ownedFacilities } = await supabase
+      .from("gym_facilities")
+      .select("id")
+      .eq("owner_id", user.id)
+    if (ownedFacilities && ownedFacilities.length > 0) {
+      allowedFacilityIds = ownedFacilities.map((f) => f.id)
+    } else {
+      allowedFacilityIds = []
+    }
+  }
+
+  const subscriptionsQuery = supabase
+    .from("membership_subscriptions")
+    .select(
+      `
+        id,
+        member_id,
+        status,
+        created_at,
+        facility_id,
+        member:users!membership_subscriptions_member_id_fkey(
           id,
-          member_id,
-          status,
-          created_at,
-          member:users!membership_subscriptions_member_id_fkey(
-            id,
-            full_name,
-            phone,
-            avatar_url
-          ),
-          package:membership_packages!membership_subscriptions_package_id_fkey(
-            name
-          ),
-          payments:membership_payments(amount, status)
-        `
-      )
-      .order("created_at", { ascending: false }),
+          full_name,
+          phone,
+          avatar_url
+        ),
+        package:membership_packages!membership_subscriptions_package_id_fkey(
+          name
+        ),
+        payments:membership_payments(amount, status)
+      `
+    )
+    .order("created_at", { ascending: false })
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      subscriptionsQuery.in("facility_id", allowedFacilityIds)
+    } else {
+      subscriptionsQuery.eq("facility_id", "none")
+    }
+  }
+
+  const [subscriptionsResult, sessionsResult] = await Promise.all([
+    subscriptionsQuery,
     supabase.from("membership_pt_sessions").select("subscription_id"),
   ])
 

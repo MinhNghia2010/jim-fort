@@ -1,4 +1,6 @@
+import { getAuthenticatedUser } from "@/lib/auth/current-user"
 import type {
+  FacilityFilterOption,
   MembershipPlanView,
   OwnerMembershipsPageProps,
 } from "@/components/screens/owner/memberships/OwnerMembershipsPage"
@@ -282,9 +284,72 @@ function getFacilityLabel(facilities: readonly FacilityRow[]) {
 }
 
 export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProps> {
+  const user = await getAuthenticatedUser()
   const supabase = await createClient()
   const now = new Date()
   const currentMonthKey = getMonthKey(now) ?? ""
+  
+  let allowedFacilityIds: string[] | null = null
+
+  if (user.role === "manager") {
+    const { data: managerData } = await supabase
+      .from("facility_managers")
+      .select("facility_id")
+      .eq("manager_id", user.id)
+    if (managerData && managerData.length > 0) {
+      allowedFacilityIds = managerData.map((m) => m.facility_id)
+    } else {
+      allowedFacilityIds = []
+    }
+  } else if (user.role === "owner") {
+    const { data: ownedFacilities } = await supabase
+      .from("gym_facilities")
+      .select("id")
+      .eq("owner_id", user.id)
+    if (ownedFacilities && ownedFacilities.length > 0) {
+      allowedFacilityIds = ownedFacilities.map((f) => f.id)
+    } else {
+      allowedFacilityIds = []
+    }
+  }
+
+  const facilitiesQuery = supabase
+    .from("gym_facilities")
+    .select("id, name")
+    .order("created_at", { ascending: true })
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      facilitiesQuery.in("id", allowedFacilityIds)
+    } else {
+      facilitiesQuery.eq("id", "none") // Force empty result
+    }
+  }
+
+  const packagesQuery = supabase
+    .from("membership_packages")
+    .select(
+      "id, facility_id, name, description, price, has_pt, duration_days, session_count, status, release_date, end_date"
+    )
+    .order("price", { ascending: true })
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      packagesQuery.in("facility_id", allowedFacilityIds)
+    } else {
+      packagesQuery.eq("facility_id", "none")
+    }
+  }
+
+  const roomsQuery = supabase.from("rooms").select("id, facility_id, name")
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      roomsQuery.in("facility_id", allowedFacilityIds)
+    } else {
+      roomsQuery.eq("facility_id", "none")
+    }
+  }
 
   const [
     facilitiesResult,
@@ -294,18 +359,10 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
     subscriptionsResult,
     paymentsResult,
   ] = await Promise.all([
-    supabase
-      .from("gym_facilities")
-      .select("id, name")
-      .order("created_at", { ascending: true }),
-    supabase
-      .from("membership_packages")
-      .select(
-        "id, facility_id, name, description, price, has_pt, duration_days, session_count, status, release_date, end_date"
-      )
-      .order("price", { ascending: true }),
+    facilitiesQuery,
+    packagesQuery,
     supabase.from("membership_package_rooms").select("package_id, room_id"),
-    supabase.from("rooms").select("id, facility_id, name"),
+    roomsQuery,
     supabase
       .from("membership_subscriptions")
       .select(
@@ -331,8 +388,13 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
   const packageRows = (packagesResult.data ?? []) as MembershipPackageRow[]
   const packageRoomRows = (packageRoomsResult.data ?? []) as PackageRoomRow[]
   const rooms = (roomsResult.data ?? []) as RoomRow[]
-  const subscriptions = (subscriptionsResult.data ?? []) as SubscriptionRow[]
+  let subscriptions = (subscriptionsResult.data ?? []) as SubscriptionRow[]
   const payments = (paymentsResult.data ?? []) as PaymentRow[]
+
+  if (allowedFacilityIds) {
+    const allowedPackageIds = new Set(packageRows.map((p) => p.id))
+    subscriptions = subscriptions.filter((s) => allowedPackageIds.has(s.package_id))
+  }
 
   const roomNameById = new Map(rooms.map((room) => [room.id, room.name]))
   const roomNamesByPackage = new Map<string, string[]>()
@@ -477,6 +539,18 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
     }
   }
 
+  const facilityNameById = new Map(
+    facilities.map((facility) => [facility.id, facility.name])
+  )
+
+  const facilityFilterOptions: FacilityFilterOption[] = [
+    { value: "all", label: "All facilities" },
+    ...facilities.map((facility) => ({
+      value: facility.id,
+      label: facility.name,
+    })),
+  ]
+
   const plans: MembershipPlanView[] = packageRows.map((packageRow, index) => {
     const roomNames = (roomNamesByPackage.get(packageRow.id) ?? []).sort()
     const activeMembersByMonth =
@@ -495,6 +569,9 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
 
     return {
       id: packageRow.id,
+      facilityId: packageRow.facility_id,
+      facilityName:
+        facilityNameById.get(packageRow.facility_id) ?? "Unknown facility",
       name: packageRow.name,
       description:
         packageRow.description ?? "No package description has been added.",
@@ -530,6 +607,7 @@ export async function getMembershipsPageData(): Promise<OwnerMembershipsPageProp
 
   return {
     facilityLabel: getFacilityLabel(facilities),
+    facilityFilterOptions,
     plans,
     monthlySummaries,
     activeMembers: activeMemberIds.size,
@@ -592,6 +670,7 @@ function buildFormValues({
 export async function getMembershipPackageFormData(
   selectedPackageId?: string
 ): Promise<MembershipPackageFormData> {
+  const user = await getAuthenticatedUser()
   const supabase = await createClient()
   const now = new Date()
   const monthStart = new Date(
@@ -601,6 +680,71 @@ export async function getMembershipPackageFormData(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
   )
 
+  let allowedFacilityIds: string[] | null = null
+
+  if (user.role === "manager") {
+    const { data: managerData } = await supabase
+      .from("facility_managers")
+      .select("facility_id")
+      .eq("manager_id", user.id)
+    if (managerData && managerData.length > 0) {
+      allowedFacilityIds = managerData.map((m) => m.facility_id)
+    } else {
+      allowedFacilityIds = []
+    }
+  } else if (user.role === "owner") {
+    const { data: ownedFacilities } = await supabase
+      .from("gym_facilities")
+      .select("id")
+      .eq("owner_id", user.id)
+    if (ownedFacilities && ownedFacilities.length > 0) {
+      allowedFacilityIds = ownedFacilities.map((f) => f.id)
+    } else {
+      allowedFacilityIds = []
+    }
+  }
+
+  const facilitiesQuery = supabase
+    .from("gym_facilities")
+    .select("id, name")
+    .order("created_at", { ascending: true })
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      facilitiesQuery.in("id", allowedFacilityIds)
+    } else {
+      facilitiesQuery.eq("id", "none")
+    }
+  }
+
+  const roomsQuery = supabase
+    .from("rooms")
+    .select("id, facility_id, name")
+    .order("name", { ascending: true })
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      roomsQuery.in("facility_id", allowedFacilityIds)
+    } else {
+      roomsQuery.eq("facility_id", "none")
+    }
+  }
+
+  const packagesQuery = supabase
+    .from("membership_packages")
+    .select(
+      "id, facility_id, name, description, price, has_pt, duration_days, session_count, status, release_date, end_date"
+    )
+    .order("price", { ascending: true })
+
+  if (allowedFacilityIds) {
+    if (allowedFacilityIds.length > 0) {
+      packagesQuery.in("facility_id", allowedFacilityIds)
+    } else {
+      packagesQuery.eq("facility_id", "none")
+    }
+  }
+
   const [
     facilitiesResult,
     roomsResult,
@@ -609,20 +753,9 @@ export async function getMembershipPackageFormData(
     subscriptionsResult,
     paymentsResult,
   ] = await Promise.all([
-    supabase
-      .from("gym_facilities")
-      .select("id, name")
-      .order("created_at", { ascending: true }),
-    supabase
-      .from("rooms")
-      .select("id, facility_id, name")
-      .order("name", { ascending: true }),
-    supabase
-      .from("membership_packages")
-      .select(
-        "id, facility_id, name, description, price, has_pt, duration_days, session_count, status, release_date, end_date"
-      )
-      .order("price", { ascending: true }),
+    facilitiesQuery,
+    roomsQuery,
+    packagesQuery,
     supabase.from("membership_package_rooms").select("package_id, room_id"),
     supabase
       .from("membership_subscriptions")
@@ -648,8 +781,13 @@ export async function getMembershipPackageFormData(
   const rooms = (roomsResult.data ?? []) as RoomRow[]
   const packageRows = (packagesResult.data ?? []) as MembershipPackageRow[]
   const packageRoomRows = (packageRoomsResult.data ?? []) as PackageRoomRow[]
-  const subscriptions = (subscriptionsResult.data ?? []) as SubscriptionRow[]
+  let subscriptions = (subscriptionsResult.data ?? []) as SubscriptionRow[]
   const payments = (paymentsResult.data ?? []) as PaymentRow[]
+
+  if (allowedFacilityIds) {
+    const allowedPackageIds = new Set(packageRows.map((p) => p.id))
+    subscriptions = subscriptions.filter((s) => allowedPackageIds.has(s.package_id))
+  }
   const roomNameById = new Map(rooms.map((room) => [room.id, room.name]))
   const roomIdsByPackage = new Map<string, string[]>()
   const roomNamesByPackage = new Map<string, string[]>()
