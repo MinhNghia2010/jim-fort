@@ -1,9 +1,11 @@
-import { Building2, Dumbbell, MapPin, Users } from "lucide-react"
+import Link from "next/link"
+import { ArrowRight, Building2, Dumbbell, MapPin, Users } from "lucide-react"
 
-import { getFacilityPageData } from "@/app/(main)/facility/data"
+import { getFacilityHref, getFacilityPageData } from "@/app/(main)/facility/data"
 import { PageShell } from "@/components/PageShell"
 import { SummaryCard } from "@/components/SummaryCard"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -87,6 +89,9 @@ export async function OwnerFacilityPage() {
                 <TableHead className="h-12">Equipment</TableHead>
                 <TableHead className="h-12">Staff</TableHead>
                 <TableHead className="h-12">Members</TableHead>
+                <TableHead className="h-12 w-[100px] pr-6 text-right">
+                  <span className="sr-only">Actions</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -118,11 +123,19 @@ export async function OwnerFacilityPage() {
                     <TableCell className="font-mono font-medium whitespace-nowrap tabular-nums">
                       {facility.activeMemberCount}
                     </TableCell>
+                    <TableCell className="pr-6 text-right">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={getFacilityHref(facility.name)}>
+                          Details
+                          <ArrowRight className="ml-1 size-4" />
+                        </Link>
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-64">
+                  <TableCell colSpan={7} className="h-64">
                     <Empty>
                       <EmptyHeader>
                         <EmptyMedia variant="icon">
