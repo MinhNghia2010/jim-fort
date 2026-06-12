@@ -1,13 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
 import Link from "next/link"
-import { Check, CirclePlus, PackageCheck, Search } from "lucide-react"
+import { Archive, Check, CirclePlus, PackageCheck, Pencil, Search } from "lucide-react"
 
-import { deleteMembershipPackage } from "@/app/(main)/memberships/actions"
+import {
+  archiveMembershipPackage,
+  deleteMembershipPackage,
+} from "@/app/(main)/memberships/actions"
 import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
-import type { MembershipPlanView } from "@/components/screens/owner/memberships/OwnerMembershipsPage"
+import type {
+  FacilityFilterOption,
+  MembershipPlanView,
+} from "@/components/screens/owner/memberships/OwnerMembershipsPage"
 import { TableActionButton } from "@/components/TableActionButton"
 import { TableRowActions } from "@/components/TableRowActions"
 import {
@@ -32,10 +38,21 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import {
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
+import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -53,6 +70,10 @@ interface OwnerMembershipsTableProps {
   monthFilter?: string
   monthFilterOptions?: readonly TableMonthFilterOption[]
   onMonthFilterChange?: (value: string) => void
+  facilityFilter?: string
+  facilityFilterOptions?: readonly FacilityFilterOption[]
+  onFacilityFilterChange?: (value: string) => void
+  showFacilityColumn?: boolean
 }
 
 const planSortOptions = [
@@ -181,11 +202,16 @@ export function OwnerMembershipsTable({
   monthFilter = ALL_MONTHS_VALUE,
   monthFilterOptions = [{ value: ALL_MONTHS_VALUE, label: "All months" }],
   onMonthFilterChange,
+  facilityFilter = "all",
+  facilityFilterOptions = [{ value: "all", label: "All facilities" }],
+  onFacilityFilterChange,
+  showFacilityColumn = false,
 }: OwnerMembershipsTableProps) {
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<MembershipSort>("plan_asc")
   const [statusFilter, setStatusFilter] =
     useState<MembershipStatusFilter>("all")
+  const [isPending, startTransition] = useTransition()
   const {
     commitDeletion: commitPlanDeletion,
     deleteOptimistically: markPlanDeleted,
@@ -196,6 +222,7 @@ export function OwnerMembershipsTable({
     const searchableText = [
       plan.name,
       plan.description,
+      plan.facilityName,
       plan.status,
       plan.priceLabel,
       plan.termLabel,
@@ -223,6 +250,8 @@ export function OwnerMembershipsTable({
   const revenueSortValue =
     sort === "revenue_desc" || sort === "revenue_asc" ? sort : "revenue_desc"
   const membersHeaderLabel = canManage ? "Active members" : "Members"
+  const totalColSpan =
+    (canManage ? 8 : 7) + (showFacilityColumn ? 1 : 0)
 
   return (
     <Card className="gap-0 overflow-hidden py-0">
@@ -256,19 +285,45 @@ export function OwnerMembershipsTable({
               <Search aria-hidden="true" />
             </InputGroupAddon>
           </InputGroup>
-          {onMonthFilterChange ? (
-            <TableMonthFilter
-              value={monthFilter}
-              options={monthFilterOptions}
-              onValueChange={onMonthFilterChange}
-              label="Filter membership stats by month"
-            />
+          {onMonthFilterChange || onFacilityFilterChange ? (
+            <div className="flex items-center gap-2">
+              {showFacilityColumn && onFacilityFilterChange ? (
+                <Select
+                  value={facilityFilter}
+                  onValueChange={onFacilityFilterChange}
+                >
+                  <SelectTrigger
+                    aria-label="Filter by facility"
+                    className="h-9 w-full sm:w-48"
+                  >
+                    <SelectValue placeholder="All facilities" />
+                  </SelectTrigger>
+                  <SelectContent align="end">
+                    <SelectGroup>
+                      {facilityFilterOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              ) : null}
+              {onMonthFilterChange ? (
+                <TableMonthFilter
+                  value={monthFilter}
+                  options={monthFilterOptions}
+                  onValueChange={onMonthFilterChange}
+                  label="Filter membership stats by month"
+                />
+              ) : null}
+            </div>
           ) : null}
         </div>
         <Table
           className={cn(
             "table-auto text-[0.925rem] [&_td]:whitespace-normal [&_th]:whitespace-normal",
-            canManage ? "min-w-[1080px]" : "w-full"
+            canManage || showFacilityColumn ? "min-w-[1080px]" : "w-full"
           )}
         >
           <TableHeader className="bg-muted/40">
@@ -281,6 +336,9 @@ export function OwnerMembershipsTable({
                   onValueChange={setSort}
                 />
               </TableHead>
+              {showFacilityColumn ? (
+                <TableHead className="h-12">Facility</TableHead>
+              ) : null}
               <TableHead className="h-12">
                 <OwnerTableHeaderSelect
                   label="Price"
@@ -357,6 +415,11 @@ export function OwnerMembershipsTable({
                       </div>
                     </div>
                   </TableCell>
+                  {showFacilityColumn ? (
+                    <TableCell className="text-sm text-muted-foreground">
+                      {plan.facilityName}
+                    </TableCell>
+                  ) : null}
                   <TableCell className="font-heading text-lg font-semibold whitespace-nowrap tabular-nums">
                     {plan.priceLabel}
                   </TableCell>
@@ -397,12 +460,6 @@ export function OwnerMembershipsTable({
                     <TableCell className="w-[10%] text-center">
                       <TableRowActions
                         label={`Open actions for ${plan.name}`}
-                        actions={[
-                          {
-                            href: `/memberships/edit?planId=${plan.id}`,
-                            label: "Edit",
-                          },
-                        ]}
                         deleteAction={{
                           action: deleteMembershipPackage,
                           description: `Delete ${plan.name}? This permanently removes the plan and its room access. Plans with subscription history must be archived instead.`,
@@ -413,14 +470,37 @@ export function OwnerMembershipsTable({
                           successMessage: "Membership plan deleted",
                           title: "Delete membership plan?",
                         }}
-                      />
+                      >
+                        <DropdownMenuItem asChild>
+                          <Link href={`/memberships/edit?planId=${plan.id}`}>
+                            <Pencil data-icon="inline-start" />
+                            Edit
+                          </Link>
+                        </DropdownMenuItem>
+                        {plan.status !== "archived" ? (
+                          <DropdownMenuItem
+                            disabled={isPending}
+                            onSelect={(e) => {
+                              e.preventDefault()
+                              startTransition(async () => {
+                                const formData = new FormData()
+                                formData.append("packageId", plan.id)
+                                await archiveMembershipPackage(formData)
+                              })
+                            }}
+                          >
+                            <Archive data-icon="inline-start" />
+                            Archive
+                          </DropdownMenuItem>
+                        ) : null}
+                      </TableRowActions>
                     </TableCell>
                   ) : null}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={canManage ? 8 : 7} className="h-64">
+                <TableCell colSpan={totalColSpan} className="h-64">
                   <Empty>
                     <EmptyHeader>
                       <EmptyMedia variant="icon">

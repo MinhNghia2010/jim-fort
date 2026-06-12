@@ -637,20 +637,23 @@ export function MembershipPackageForm({
                   inputName="packageId"
                   inputValue={packageId}
                   label="Delete"
+                  size="default"
                   successMessage="Membership plan deleted"
                   title="Delete membership plan?"
                 />
-                <Button
-                  type="submit"
-                  name="_intent"
-                  value="archive"
-                  variant="destructive"
-                  disabled={pending}
-                  formNoValidate
-                >
-                  <Archive data-icon="inline-start" />
-                  Archive plan
-                </Button>
+                {status !== "archived" ? (
+                  <Button
+                    type="submit"
+                    name="_intent"
+                    value="archive"
+                    variant="destructive"
+                    disabled={pending}
+                    formNoValidate
+                  >
+                    <Archive data-icon="inline-start" />
+                    Archive plan
+                  </Button>
+                ) : null}
               </>
             ) : null}
             <Button variant="outline" asChild>

@@ -203,8 +203,8 @@ async function replacePackageRooms(
   packageId: string,
   roomIds: readonly string[]
 ) {
-  const supabase = await createClient()
-  const deleteResult = await supabase
+  const admin = createAdminClient()
+  const deleteResult = await admin
     .from("membership_package_rooms")
     .delete()
     .eq("package_id", packageId)
@@ -217,7 +217,7 @@ async function replacePackageRooms(
     return null
   }
 
-  const insertResult = await supabase.from("membership_package_rooms").insert(
+  const insertResult = await admin.from("membership_package_rooms").insert(
     roomIds.map((roomId) => ({
       package_id: packageId,
       room_id: roomId,
@@ -412,4 +412,32 @@ export async function deleteMembershipPackage(
   revalidatePath("/overview")
 
   return { message: `${accessiblePackage.name} was deleted.` }
+}
+
+export async function archiveMembershipPackage(
+  formData: FormData
+): Promise<void> {
+  const packageId = stringValue(formData, "packageId")
+
+  if (!packageId) {
+    return
+  }
+
+  const ownerClient = await getOwnerClient()
+
+  if ("error" in ownerClient) {
+    return
+  }
+
+  const { error } = await ownerClient.supabase
+    .from("membership_packages")
+    .update({ status: "archived" })
+    .eq("id", packageId)
+
+  if (!error) {
+    revalidatePath("/memberships")
+    redirect(
+      withRedirectToast("/memberships", "Membership plan was archived.")
+    )
+  }
 }
