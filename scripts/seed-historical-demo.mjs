@@ -791,21 +791,15 @@ async function seedWorkspace(definition, existingUsersByEmail, months, now) {
 
     for (let sequence = 0; sequence < 5; sequence += 1) {
       const member = members[(monthIndex * 5 + sequence) % members.length]
-      const membershipPackage =
-        sequence < 2 ? packages[0] : sequence < 3 ? packages[1] : packages[2]
+      const membershipPackage = sequence < 3 ? packages[0] : packages[1]
       const activatedAt = dateInMonth(monthStart, 4 + sequence, 2 + sequence)
-      const expiryDays = membershipPackage.has_pt
-        ? 31
-        : membershipPackage.duration_days
+      const expiryDays = membershipPackage.duration_days
       const expiresAt = addDays(activatedAt, expiryDays)
       const subscriptionId = seededUuid(
         `subscription:${definition.index}:${monthKey(monthStart)}:${sequence}`
       )
-      const usesVoucher = sequence === 0
-      const discount = usesVoucher
-        ? Number((membershipPackage.price * 0.1).toFixed(2))
-        : 0
-      const finalPrice = Number((membershipPackage.price - discount).toFixed(2))
+      const discount = 0
+      const finalPrice = membershipPackage.price
       const status = isCurrentMonth ? "active" : "expired"
 
       subscriptions.push({
@@ -849,83 +843,6 @@ async function seedWorkspace(definition, existingUsersByEmail, months, now) {
             : null,
         card_expiry: sequence % 2 === 0 ? "12/29" : null,
       })
-
-      if (usesVoucher) {
-        redemptions.push({
-          id: seededUuid(`redemption:${subscriptionId}`),
-          voucher_id: vouchers[0].id,
-          member_id: member.id,
-          subscription_id: subscriptionId,
-          discount_amount: discount,
-          redeemed_at: addDays(activatedAt, -1).toISOString(),
-        })
-      }
-
-      if (membershipPackage.has_pt) {
-        const pt = pts[(monthIndex + sequence) % pts.length]
-        const assignmentId = seededUuid(`assignment:${subscriptionId}`)
-
-        assignments.push({
-          id: assignmentId,
-          subscription_id: subscriptionId,
-          pt_id: pt.id,
-          assigned_by_manager_id: manager.id,
-          status: "accepted",
-          member_response_note: "Seeded member accepted the proposed schedule.",
-          assigned_at: addDays(activatedAt, -2).toISOString(),
-          member_decided_at: addDays(activatedAt, -1).toISOString(),
-          schedule_starts_on: isoDate(addDays(activatedAt, 2)),
-          schedule_timezone: "Asia/Ho_Chi_Minh",
-          schedule_note: "Two coached sessions per week.",
-          created_at: addDays(activatedAt, -2).toISOString(),
-          updated_at: addDays(activatedAt, -1).toISOString(),
-        })
-
-        for (let sessionIndex = 0; sessionIndex < 4; sessionIndex += 1) {
-          const startsAt = addDays(activatedAt, 3 + sessionIndex * 5)
-          startsAt.setUTCHours(1 + (sequence % 2), 30, 0, 0)
-          const endsAt = new Date(startsAt.getTime() + 60 * 60 * 1000)
-          const isCompleted = endsAt < now
-          const sessionId = seededUuid(
-            `session:${subscriptionId}:${sessionIndex + 1}`
-          )
-
-          sessions.push({
-            id: sessionId,
-            subscription_id: subscriptionId,
-            assignment_id: assignmentId,
-            member_id: member.id,
-            pt_id: pt.id,
-            session_number: sessionIndex + 1,
-            starts_at: startsAt.toISOString(),
-            ends_at: endsAt.toISOString(),
-            status: isCompleted ? "completed" : "scheduled",
-            created_at: activatedAt.toISOString(),
-            updated_at: isCompleted
-              ? endsAt.toISOString()
-              : activatedAt.toISOString(),
-          })
-
-          if (isCompleted && sessionIndex === 0) {
-            sessionFeedbacks.push({
-              id: seededUuid(`session-feedback:${sessionId}`),
-              session_id: sessionId,
-              subscription_id: subscriptionId,
-              member_id: member.id,
-              pt_id: pt.id,
-              feedback:
-                "Good consistency and controlled form throughout the session.",
-              rating: 4 + ((monthIndex + sequence) % 2),
-              next_steps: "Increase load gradually and maintain mobility work.",
-              status: "sent",
-              sent_at: addDays(endsAt, 1).toISOString(),
-              member_read_at: addDays(endsAt, 2).toISOString(),
-              created_at: addDays(endsAt, 1).toISOString(),
-              updated_at: addDays(endsAt, 2).toISOString(),
-            })
-          }
-        }
-      }
     }
 
     const feedbackMember = members[monthIndex % members.length]
@@ -974,6 +891,50 @@ async function seedWorkspace(definition, existingUsersByEmail, months, now) {
     expires_at: null,
     updated_at: subscription.created_at,
   }))
+  const seededSubscriptionIds = subscriptions.map(
+    (subscription) => subscription.id
+  )
+  const seededSubscriptionIdList = seededSubscriptionIds
+    .map(sqlLiteral)
+    .join(", ")
+
+  // Clear only deterministic seed history so interrupted runs can resume cleanly.
+  await runDatabaseQuery(`
+    delete from public.pt_session_feedbacks
+    where subscription_id in (${seededSubscriptionIdList});
+
+    delete from public.membership_pt_sessions
+    where subscription_id in (${seededSubscriptionIdList});
+
+    delete from public.membership_pt_assignment_schedule_slots
+    where assignment_id in (
+      select id
+      from public.membership_pt_assignments
+      where subscription_id in (${seededSubscriptionIdList})
+    );
+
+    delete from public.membership_pt_assignments
+    where subscription_id in (${seededSubscriptionIdList});
+
+    delete from public.membership_pt_preference_time_slots
+    where pt_preference_id in (
+      select id
+      from public.membership_pt_preferences
+      where subscription_id in (${seededSubscriptionIdList})
+    );
+
+    delete from public.membership_pt_preferences
+    where subscription_id in (${seededSubscriptionIdList});
+
+    delete from public.voucher_redemptions
+    where subscription_id in (${seededSubscriptionIdList});
+
+    delete from public.membership_payments
+    where subscription_id in (${seededSubscriptionIdList});
+
+    delete from public.membership_subscriptions
+    where id in (${seededSubscriptionIdList});
+  `)
 
   await sqlInsertRowsDoNothing(
     "membership_subscriptions",
@@ -1010,9 +971,45 @@ async function seedWorkspace(definition, existingUsersByEmail, months, now) {
   })
 
   // Payment triggers can activate subscriptions, so restore the historical snapshot.
-  await upsertRows(admin, "membership_subscriptions", subscriptions, {
-    onConflict: "id",
-  })
+  const historicalSubscriptionRows = subscriptions.map((subscription) => ({
+    id: subscription.id,
+    status: subscription.status,
+    activated_at: subscription.activated_at,
+    starts_at: subscription.starts_at,
+    expires_at: subscription.expires_at,
+    cancelled_at: subscription.cancelled_at,
+    cancelled_reason: subscription.cancelled_reason,
+    updated_at: subscription.updated_at,
+  }))
+
+  await runDatabaseQuery(`
+    with history as (
+      select *
+      from jsonb_to_recordset(
+        ${sqlLiteral(JSON.stringify(historicalSubscriptionRows))}::jsonb
+      ) as row(
+        id uuid,
+        status text,
+        activated_at timestamptz,
+        starts_at timestamptz,
+        expires_at timestamptz,
+        cancelled_at timestamptz,
+        cancelled_reason text,
+        updated_at timestamptz
+      )
+    )
+    update public.membership_subscriptions as subscription
+    set
+      status = history.status,
+      activated_at = history.activated_at,
+      starts_at = history.starts_at,
+      expires_at = history.expires_at,
+      cancelled_at = history.cancelled_at,
+      cancelled_reason = history.cancelled_reason,
+      updated_at = history.updated_at
+    from history
+    where subscription.id = history.id;
+  `)
   await upsertRows(admin, "membership_pt_assignments", assignments, {
     onConflict: "id",
   })
@@ -1169,7 +1166,7 @@ async function main() {
     `Seeding ${historyMonths} months (${monthKey(months[0])} through ${monthKey(months.at(-1))})...`
   )
 
-  for (let index = 1; index <= 3; index += 1) {
+  for (let index = 1; index <= 2; index += 1) {
     const definition = buildWorkspaceDefinition(index)
     console.log(`Seeding ${definition.facility.name}...`)
     workspaces.push(
