@@ -10,6 +10,8 @@ export interface MembershipPlanMonthStats {
 
 export interface MembershipPlanView {
   id: string
+  facilityId: string
+  facilityName: string
   name: string
   description: string
   priceLabel: string
@@ -35,8 +37,14 @@ export interface MembershipMonthSummary {
   paymentCount: number
 }
 
+export interface FacilityFilterOption {
+  value: string
+  label: string
+}
+
 export interface OwnerMembershipsPageProps {
   facilityLabel: string
+  facilityFilterOptions: readonly FacilityFilterOption[]
   plans: readonly MembershipPlanView[]
   monthlySummaries: readonly MembershipMonthSummary[]
   activeMembers: number
@@ -51,6 +59,7 @@ export interface OwnerMembershipsPageProps {
 
 export function OwnerMembershipsContent({
   facilityLabel,
+  facilityFilterOptions,
   plans,
   monthlySummaries,
   activeMembers,
@@ -65,6 +74,7 @@ export function OwnerMembershipsContent({
   return (
     <OwnerMembershipsClientContent
       facilityLabel={facilityLabel}
+      facilityFilterOptions={facilityFilterOptions}
       plans={plans}
       monthlySummaries={monthlySummaries}
       activeMembers={activeMembers}

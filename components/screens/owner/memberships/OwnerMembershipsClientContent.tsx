@@ -7,6 +7,7 @@ import { PageShell } from "@/components/PageShell"
 import { SummaryCard } from "@/components/SummaryCard"
 import { OwnerMembershipsTable } from "@/components/screens/owner/memberships/OwnerMembershipsTable"
 import type {
+  FacilityFilterOption,
   MembershipMonthSummary,
   MembershipPlanView,
   OwnerMembershipsPageProps,
@@ -18,6 +19,8 @@ import {
   type TableMonthFilterOption,
 } from "@/components/TableMonthFilter"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+
+const ALL_FACILITIES_VALUE = "all"
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -58,8 +61,35 @@ function getMonthFilterOptions(
   ]
 }
 
+function filterPlansByFacility(
+  plans: readonly MembershipPlanView[],
+  facilityFilter: string
+) {
+  if (facilityFilter === ALL_FACILITIES_VALUE) {
+    return plans
+  }
+
+  return plans.filter((plan) => plan.facilityId === facilityFilter)
+}
+
+function computeFacilityStats(plans: readonly MembershipPlanView[]) {
+  let activeMembers = 0
+  let ptMembers = 0
+  let nonPtMembers = 0
+  const activeMemberIds = new Set<string>()
+  const ptMemberIds = new Set<string>()
+  const nonPtMemberIds = new Set<string>()
+
+  for (const plan of plans) {
+    activeMembers += plan.activeMembers
+  }
+
+  return { activeMembers }
+}
+
 export function OwnerMembershipsClientContent({
   facilityLabel,
+  facilityFilterOptions,
   plans,
   monthlySummaries,
   activeMembers,
@@ -72,18 +102,37 @@ export function OwnerMembershipsClientContent({
   canManage = true,
 }: OwnerMembershipsPageProps) {
   const [monthFilter, setMonthFilter] = useState(ALL_MONTHS_VALUE)
+  const [facilityFilter, setFacilityFilter] = useState(ALL_FACILITIES_VALUE)
+  const hasMultipleFacilities = facilityFilterOptions.length > 2
+  const facilityFilteredPlans = useMemo(
+    () => filterPlansByFacility(plans, facilityFilter),
+    [plans, facilityFilter]
+  )
   const selectedSummary = monthlySummaries.find(
     (summary) => summary.monthKey === monthFilter
   )
   const isAllMonths = monthFilter === ALL_MONTHS_VALUE
+  const isAllFacilities = facilityFilter === ALL_FACILITIES_VALUE
   const monthFilterOptions = useMemo(
     () => getMonthFilterOptions(monthlySummaries),
     [monthlySummaries]
   )
   const displayedPlans = useMemo(
-    () => getPlansForMonth(plans, monthFilter),
-    [plans, monthFilter]
+    () => getPlansForMonth(facilityFilteredPlans, monthFilter),
+    [facilityFilteredPlans, monthFilter]
   )
+
+  const facilityActiveMembers = isAllFacilities
+    ? activeMembers
+    : facilityFilteredPlans.reduce(
+        (total, plan) => total + plan.activeMembers,
+        0
+      )
+
+  const selectedFacilityLabel =
+    facilityFilterOptions.find((option) => option.value === facilityFilter)
+      ?.label ?? facilityLabel
+
   const selectedMonthLabel = selectedSummary?.monthLabel ?? "selected month"
   const currentMonthKey =
     getTableMonthKey(new Date().toISOString()) ?? ALL_MONTHS_VALUE
@@ -113,7 +162,7 @@ export function OwnerMembershipsClientContent({
 
   return (
     <PageShell
-      eyebrow={facilityLabel}
+      eyebrow={isAllFacilities ? facilityLabel : selectedFacilityLabel}
       title="Memberships"
       description={
         canManage
@@ -132,7 +181,9 @@ export function OwnerMembershipsClientContent({
         <SummaryCard
           title="Active members"
           value={
-            isAllMonths ? activeMembers : (selectedSummary?.activeMembers ?? 0)
+            isAllMonths
+              ? facilityActiveMembers
+              : (selectedSummary?.activeMembers ?? 0)
           }
           description={activeMembersDescription}
           icon={Users}
@@ -173,6 +224,10 @@ export function OwnerMembershipsClientContent({
         monthFilter={monthFilter}
         monthFilterOptions={monthFilterOptions}
         onMonthFilterChange={setMonthFilter}
+        facilityFilter={facilityFilter}
+        facilityFilterOptions={facilityFilterOptions}
+        onFacilityFilterChange={setFacilityFilter}
+        showFacilityColumn={hasMultipleFacilities}
       />
     </PageShell>
   )

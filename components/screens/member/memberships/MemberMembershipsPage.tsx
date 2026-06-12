@@ -184,19 +184,56 @@ function MemberPlanCard({
 
 export async function MemberMembershipsPage() {
   const supabase = await createClient()
+
+  // First, get the current user to filter by member_id
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const memberId = user?.id
+
+  // Get the member's subscriptions to determine their facility IDs
+  const memberSubscriptionsResult = memberId
+    ? await supabase
+        .from("membership_subscriptions")
+        .select("facility_id")
+        .eq("member_id", memberId)
+    : { data: [], error: null }
+
+  const memberFacilityIds = [
+    ...new Set(
+      (
+        (memberSubscriptionsResult.data ?? []) as { facility_id: string }[]
+      ).map((subscription) => subscription.facility_id)
+    ),
+  ]
+
+  // Query packages filtered by member's facilities, and only the member's active subscriptions
+  const packagesQuery = supabase
+    .from("membership_packages")
+    .select(
+      "id,name,description,price,has_pt,duration_days,session_count,gym_facilities(name)"
+    )
+    .eq("status", "active")
+    .order("has_pt", { ascending: true })
+    .order("price", { ascending: true })
+
+  // Only filter by facility if the member has subscriptions
+  if (memberFacilityIds.length > 0) {
+    packagesQuery.in("facility_id", memberFacilityIds)
+  }
+
   const [packagesResult, activeSubscriptionsResult] = await Promise.all([
-    supabase
-      .from("membership_packages")
-      .select(
-        "id,name,description,price,has_pt,duration_days,session_count,gym_facilities(name)"
-      )
-      .eq("status", "active")
-      .order("has_pt", { ascending: true })
-      .order("price", { ascending: true }),
-    supabase
-      .from("membership_subscriptions")
-      .select("id,package_id,status,expires_at")
-      .eq("status", "active"),
+    packagesQuery,
+    memberId
+      ? supabase
+          .from("membership_subscriptions")
+          .select("id,package_id,status,expires_at")
+          .eq("member_id", memberId)
+          .eq("status", "active")
+      : Promise.resolve({
+          data: [] as ActiveSubscriptionRow[],
+          error: null,
+        }),
   ])
 
   const packages = (packagesResult.data ?? []) as unknown as PackageRow[]
@@ -220,7 +257,18 @@ export async function MemberMembershipsPage() {
     },
     new Map<string, ActiveSubscriptionRow>()
   )
-  const error = packagesResult.error ?? activeSubscriptionsResult.error
+
+  const packagesByFacility = packages.reduce((map, plan) => {
+    const facilityName = plan.gym_facilities?.name ?? "Unknown Facility"
+    const facilityPackages = map.get(facilityName) ?? []
+    facilityPackages.push(plan)
+    map.set(facilityName, facilityPackages)
+    return map
+  }, new Map<string, PackageRow[]>())
+  const error =
+    memberSubscriptionsResult.error ??
+    packagesResult.error ??
+    activeSubscriptionsResult.error
 
   return (
     <PageShell
@@ -236,16 +284,27 @@ export async function MemberMembershipsPage() {
       ) : null}
 
       {packages.length ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {packages.map((plan) => (
-            <MemberPlanCard
-              key={plan.id}
-              plan={plan}
-              activeSubscription={
-                activeSubscriptionsByPackage.get(plan.id) ?? null
-              }
-            />
-          ))}
+        <div className="flex flex-col gap-10">
+          {Array.from(packagesByFacility.entries()).map(
+            ([facilityName, facilityPackages]) => (
+              <div key={facilityName} className="flex flex-col gap-4">
+                <h2 className="font-heading text-xl font-semibold tracking-tight">
+                  {facilityName}
+                </h2>
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {facilityPackages.map((plan) => (
+                    <MemberPlanCard
+                      key={plan.id}
+                      plan={plan}
+                      activeSubscription={
+                        activeSubscriptionsByPackage.get(plan.id) ?? null
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+            )
+          )}
         </div>
       ) : (
         <Empty className="min-h-80 border">
