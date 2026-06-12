@@ -23,11 +23,13 @@ import {
 interface OwnerRoomEquipmentPageProps {
   facilityName: string
   roomId: string
+  canAddEquipment?: boolean
 }
 
 export async function OwnerRoomEquipmentPage({
   facilityName,
   roomId,
+  canAddEquipment = false,
 }: OwnerRoomEquipmentPageProps) {
   const data = await getRoomEquipmentPageData(facilityName, roomId)
 
@@ -65,7 +67,7 @@ export async function OwnerRoomEquipmentPage({
           <CardDescription>
             Showing {data.equipments.length} equipment records for {roomName}.
           </CardDescription>
-          {data.facility && data.room ? (
+          {data.facility && data.room && canAddEquipment ? (
             <CardAction>
               <TableActionButton asChild tone="create">
                 <Link
@@ -86,6 +88,7 @@ export async function OwnerRoomEquipmentPage({
             equipments={data.equipments}
             facilityName={data.facility?.name}
             roomId={data.room?.id}
+            canAddEquipment={canAddEquipment}
           />
         </CardContent>
       </Card>

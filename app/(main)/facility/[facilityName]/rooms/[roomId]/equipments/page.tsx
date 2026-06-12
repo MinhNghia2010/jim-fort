@@ -18,7 +18,11 @@ export default async function FacilityRoomEquipmentPage({
 
   return renderRolePage(role, {
     owner: (
-      <OwnerRoomEquipmentPage facilityName={facilityName} roomId={roomId} />
+      <OwnerRoomEquipmentPage
+        facilityName={facilityName}
+        roomId={roomId}
+        canAddEquipment={true}
+      />
     ),
     manager: (
       <ManagerRoomEquipmentPage facilityName={facilityName} roomId={roomId} />

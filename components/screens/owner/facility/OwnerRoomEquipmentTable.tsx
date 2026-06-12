@@ -62,6 +62,7 @@ interface OwnerRoomEquipmentTableProps {
   equipments: readonly OwnerRoomEquipmentRow[]
   facilityName?: string
   roomId?: string
+  canAddEquipment?: boolean
 }
 
 const machineSortOptions = [
@@ -217,6 +218,7 @@ export function OwnerRoomEquipmentTable({
   equipments,
   facilityName,
   roomId,
+  canAddEquipment = false,
 }: OwnerRoomEquipmentTableProps) {
   const [search, setSearch] = useState("")
   const [sort, setSort] = useState<EquipmentSort>("machine_asc")
@@ -477,8 +479,8 @@ export function OwnerRoomEquipmentTable({
                     </EmptyMedia>
                     <EmptyTitle>No equipment found</EmptyTitle>
                     <EmptyDescription>
-                      Try a different search term or filter, or add equipment
-                      to this room.
+                      Try a different search term or filter
+                      {canAddEquipment ? ", or add equipment to this room" : ""}.
                     </EmptyDescription>
                   </EmptyHeader>
                 </Empty>
