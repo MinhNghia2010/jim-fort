@@ -1,9 +1,8 @@
-import { Check, X } from "lucide-react"
-
 import { decidePtAssignment } from "@/app/(main)/member-actions"
 import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
 import { subscriptionWeekdays } from "@/lib/features/shared/subscriptions/detail-utils"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -11,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 
 import type {
   MemberAssignmentRow,
@@ -45,36 +44,41 @@ export function MemberPtAssignmentDecisionCard({
           </p>
           <div className="mt-2 flex flex-wrap gap-2 text-sm">
             {assignment.membership_pt_assignment_schedule_slots?.map((slot) => (
-              <Badge key={`${slot.day_of_week}-${slot.start_time}`} variant="secondary">
+              <Badge
+                key={`${slot.day_of_week}-${slot.start_time}`}
+                variant="secondary"
+              >
                 {subscriptionWeekdays[slot.day_of_week]}{" "}
                 {slot.start_time.slice(0, 5)}-{slot.end_time.slice(0, 5)}
               </Badge>
             ))}
           </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <MemberActionForm
-            action={decidePtAssignment}
-            submitLabel="Accept assignment"
-          >
-            <input type="hidden" name="subscriptionId" value={subscription.id} />
-            <input type="hidden" name="assignmentId" value={assignment.id} />
-            <input type="hidden" name="decision" value="accepted" />
-            <input type="hidden" name="note" value="Accepted" />
-            <Check data-icon="inline-start" />
-          </MemberActionForm>
-          <MemberActionForm
-            action={decidePtAssignment}
-            submitLabel="Reject assignment"
-            buttonVariant="outline"
-          >
-            <input type="hidden" name="subscriptionId" value={subscription.id} />
-            <input type="hidden" name="assignmentId" value={assignment.id} />
-            <input type="hidden" name="decision" value="rejected" />
-            <Input name="note" placeholder="Reason or new preference" />
-            <X data-icon="inline-start" />
-          </MemberActionForm>
-        </div>
+        <MemberActionForm
+          action={decidePtAssignment}
+          submitLabel="Accept assignment"
+          submitName="decision"
+          submitValue="accepted"
+          actionsClassName="grid gap-3 sm:grid-cols-2"
+          secondaryAction={
+            <Button
+              type="submit"
+              name="decision"
+              value="rejected"
+              variant="outline"
+            >
+              Reject assignment
+            </Button>
+          }
+        >
+          <input type="hidden" name="subscriptionId" value={subscription.id} />
+          <input type="hidden" name="assignmentId" value={assignment.id} />
+          <Textarea
+            name="rejectNote"
+            placeholder="Reason or new preference"
+            rows={3}
+          />
+        </MemberActionForm>
       </CardContent>
     </Card>
   )

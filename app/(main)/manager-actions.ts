@@ -50,6 +50,43 @@ function intValue(value: string) {
   return Number.isInteger(parsed) ? parsed : null
 }
 
+function isValidTimeValue(value: string) {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(value)
+}
+
+function isValidDateValue(value: string) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+
+  if (!match) {
+    return false
+  }
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const date = new Date(Date.UTC(year, month - 1, day))
+
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  )
+}
+
+function getTodayInTimeZone(timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date())
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value])
+  )
+
+  return `${values.year}-${values.month}-${values.day}`
+}
+
 const weeklySlotIndexes = [0, 1, 2, 3, 4, 5, 6]
 
 async function getManagerContext() {
@@ -199,6 +236,14 @@ export async function assignSubscriptionPt(
     return { error: "Choose a subscription, PT, and schedule start date." }
   }
 
+  if (!isValidDateValue(startsOn)) {
+    return { error: "Enter a valid schedule start date in YYYY-MM-DD format." }
+  }
+
+  if (startsOn < getTodayInTimeZone("Asia/Ho_Chi_Minh")) {
+    return { error: "Choose today or a future schedule start date." }
+  }
+
   const incompleteSlot = weeklySlotIndexes.some((index) => {
     const start = text(formData, `slotStart${index}`)
     const end = text(formData, `slotEnd${index}`)
@@ -208,6 +253,19 @@ export async function assignSubscriptionPt(
 
   if (incompleteSlot) {
     return { error: "Choose both start and end time for each response day." }
+  }
+
+  const invalidSlot = weeklySlotIndexes.some((index) => {
+    const start = text(formData, `slotStart${index}`)
+    const end = text(formData, `slotEnd${index}`)
+
+    return Boolean(
+      (start && !isValidTimeValue(start)) || (end && !isValidTimeValue(end))
+    )
+  })
+
+  if (invalidSlot) {
+    return { error: "Enter schedule times in HH:MM format." }
   }
 
   const slots = weeklySlotIndexes

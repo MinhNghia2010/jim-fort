@@ -688,7 +688,10 @@ export async function decidePtAssignment(
     "accepted",
     "rejected",
   ])
-  const note = stringValue(formData, "note")
+  const note =
+    decision === "rejected"
+      ? stringValue(formData, "rejectNote") || stringValue(formData, "note")
+      : ""
 
   if (!assignmentId || !subscriptionId || !decision) {
     return { error: "Select a valid PT assignment decision." }
@@ -705,7 +708,7 @@ export async function decidePtAssignment(
     .update({
       status: decision,
       member_response_note:
-        note || (decision === "accepted" ? "Accepted." : "Rejected."),
+        decision === "accepted" ? "Accepted." : note || "Rejected.",
     })
     .eq("id", assignmentId)
 

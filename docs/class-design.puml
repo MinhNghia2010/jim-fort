@@ -1,0 +1,831 @@
+@startuml JimFortDetailedClassDesign
+title Jim Fort - Detailed Class Design
+
+left to right direction
+hide empty members
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #334155
+  ArrowColor #475569
+}
+
+legend left
+  <<table>> Supabase/Postgres table inferred from current app queries.
+  <<value>> TypeScript value/interface used by pages and helpers.
+  <<service>> Next.js data helper module.
+  <<serverAction>> Next.js server action module.
+  <<page>> App Router screen group.
+endlegend
+
+note as ModelNote
+  This class design is inferred from the current Next.js codebase.
+  The repository notes that supabase/migrations was reset, so table fields
+  are reconstructed from queries, actions, and exported TypeScript types.
+end note
+
+package "Common Enums" {
+  enum Role {
+    owner
+    manager
+    pt
+    member
+  }
+
+  enum AccountStatus {
+    active
+    inactive
+    disabled
+  }
+
+  enum StaffStatus {
+    active
+    inactive
+    on_leave
+    terminated
+  }
+
+  enum RoomStatus {
+    active
+    maintenance
+    closed
+  }
+
+  enum EquipmentStatus {
+    active
+    maintenance
+    broken
+    retired
+  }
+
+  enum MembershipPackageStatus {
+    active
+    inactive
+    archived
+  }
+
+  enum SubscriptionStatus {
+    pending_pt_setup
+    pending_payment
+    active
+    expired
+    cancelled
+  }
+
+  enum PaymentStatus {
+    pending
+    paid
+    cancelled
+  }
+
+  enum VoucherDiscountType {
+    percentage
+    amount
+  }
+
+  enum VoucherStatus {
+    active
+    disabled
+    expired
+    scheduled
+    redeemed
+  }
+
+  enum PtGenderPreference {
+    no_preference
+    male
+    female
+  }
+
+  enum ExperienceLevel {
+    no_preference
+    beginner
+    intermediate
+    advanced
+  }
+
+  enum PtAssignmentStatus {
+    pending_member_decision
+    accepted
+    rejected
+  }
+
+  enum SessionStatus {
+    scheduled
+    completed
+    missed
+    cancelled
+    rescheduled
+  }
+
+  enum FeedbackStatus {
+    open
+    responded
+    closed
+    sent
+    read
+  }
+}
+
+package "Auth and Routing" {
+  class "accounts" as Account <<table>> {
+    +id: uuid
+    +email: string
+    +passwordHash: string
+    +status: AccountStatus
+    +createdAt: DateTime
+    +updatedAt: DateTime?
+  }
+
+  class "users" as AppUser <<table>> {
+    +id: uuid
+    +accountId: uuid?
+    +fullName: string
+    +phone: string?
+    +avatarUrl: string?
+    +role: Role
+    +createdAt: DateTime?
+    +updatedAt: DateTime?
+  }
+
+  class SupabaseAuthUser <<external>> {
+    +id: uuid
+    +email: string
+    +appMetadata.app_role: Role
+    +userMetadata.full_name: string?
+    +userMetadata.phone: string?
+  }
+
+  class AuthenticatedUser <<value>> {
+    +id: string
+    +email: string
+    +fullName: string
+    +issuedAt: number?
+    +role: Role
+    +username: string
+  }
+
+  class RouteAccessRule <<value>> {
+    +label: string
+    +path: string
+    +roles: Role[]
+  }
+
+  class AuthContextService <<service>> {
+    +createAuthContext(claims): AuthenticatedUser?
+    +serializeAuthContext(user): string
+    +parseAuthContext(value): AuthenticatedUser?
+  }
+
+  class CurrentUserService <<service>> {
+    +getOptionalAuthenticatedUser(): AuthenticatedUser?
+    +getAuthenticatedUser(): AuthenticatedUser
+    +getAuthenticatedRole(): Role
+  }
+
+  class RouteAccessService <<service>> {
+    +isRole(role): boolean
+    +getRouteAccess(pathname): RouteAccessRule?
+    +canAccessRoute(pathname, role): boolean
+    +getDefaultRouteForRole(role): string
+  }
+
+  class SupabaseServerClient <<service>> {
+    +createClient(): ServerClient
+  }
+
+  class SupabaseBrowserClient <<service>> {
+    +createClient(): BrowserClient
+  }
+
+  class SupabaseAdminClient <<service>> {
+    +createAdminClient(): AdminClient
+  }
+
+  class SessionMiddleware <<service>> {
+    +updateSession(request): NextResponse
+    -redirectWithSessionCookies(url, response): NextResponse
+    -getSafeReturnPath(request, role): string
+  }
+
+  class LoginActionService <<serverAction>> {
+    +login(state, formData): LoginActionState
+    +signOut(): redirect
+  }
+}
+
+package "Facility and Staff Domain" {
+  class "gym_facilities" as GymFacility <<table>> {
+    +id: uuid
+    +ownerId: uuid
+    +name: string
+    +address: string?
+    +phone: string?
+    +description: string?
+    +createdAt: DateTime
+    +updatedAt: DateTime
+  }
+
+  class "rooms" as Room <<table>> {
+    +id: uuid
+    +facilityId: uuid
+    +name: string
+    +description: string?
+    +status: RoomStatus
+    +createdAt: DateTime
+    +updatedAt: DateTime
+  }
+
+  class "gym_equipments" as GymEquipment <<table>> {
+    +id: uuid
+    +facilityId: uuid
+    +roomId: uuid?
+    +name: string
+    +category: string?
+    +equipmentCode: string
+    +serialNumber: string?
+    +brand: string?
+    +model: string?
+    +description: string?
+    +purchaseDate: Date?
+    +purchasePrice: number?
+    +status: EquipmentStatus
+    +note: string?
+    +createdAt: DateTime
+    +updatedAt: DateTime
+  }
+
+  class "equipment_issue_reports" as EquipmentIssueReport <<table>> {
+    +id: uuid
+    +equipmentId: uuid
+    +reporterId: uuid
+    +previousStatus: EquipmentStatus
+    +newStatus: EquipmentStatus
+    +issue: string
+    +createdAt: DateTime
+  }
+
+  class "staffs" as Staff <<table>> {
+    +id: uuid
+    +facilityId: uuid
+    +fullName: string
+    +phone: string?
+    +avatarUrl: string?
+    +role: string?
+    +status: StaffStatus
+    +hiredAt: Date?
+    +note: string?
+    +createdAt: DateTime?
+    +updatedAt: DateTime?
+  }
+
+  class "facility_managers" as FacilityManager <<table>> {
+    +facilityId: uuid
+    +managerId: uuid
+    +createdAt: DateTime?
+  }
+
+  class "facility_pts" as FacilityPt <<table>> {
+    +facilityId: uuid
+    +ptId: uuid
+    +assignedByManagerId: uuid?
+    +createdAt: DateTime?
+  }
+}
+
+package "Membership and Payment Domain" {
+  class "membership_packages" as MembershipPackage <<table>> {
+    +id: uuid
+    +facilityId: uuid
+    +name: string
+    +description: string?
+    +price: number
+    +hasPt: boolean
+    +durationDays: number?
+    +sessionCount: number?
+    +status: MembershipPackageStatus
+    +releaseDate: Date?
+    +endDate: Date?
+    +createdAt: DateTime?
+    +updatedAt: DateTime?
+  }
+
+  class "membership_package_rooms" as MembershipPackageRoom <<table>> {
+    +packageId: uuid
+    +roomId: uuid
+  }
+
+  class "membership_subscriptions" as MembershipSubscription <<table>> {
+    +id: uuid
+    +memberId: uuid
+    +facilityId: uuid
+    +packageId: uuid
+    +status: SubscriptionStatus
+    +basePrice: number
+    +discountAmount: number
+    +finalPrice: number
+    +hasPtSnapshot: boolean
+    +durationDaysSnapshot: number?
+    +sessionCountSnapshot: number?
+    +activatedAt: DateTime?
+    +startsAt: DateTime?
+    +expiresAt: DateTime?
+    +cancelledAt: DateTime?
+    +cancelledReason: string?
+    +createdAt: DateTime
+    +updatedAt: DateTime?
+  }
+
+  class "membership_payments" as MembershipPayment <<table>> {
+    +id: uuid
+    +subscriptionId: uuid
+    +memberId: uuid
+    +amount: number
+    +method: string?
+    +status: PaymentStatus
+    +paidAt: DateTime?
+    +createdAt: DateTime
+    +updatedAt: DateTime?
+    +payerName: string?
+    +payerPhone: string?
+    +cardholderName: string?
+    +cardLastFour: string?
+    +cardExpiry: string?
+  }
+}
+
+package "Voucher and Feedback Domain" {
+  class "vouchers" as Voucher <<table>> {
+    +id: uuid
+    +facilityId: uuid
+    +code: string
+    +discountType: VoucherDiscountType
+    +percentage: number?
+    +amount: number?
+    +status: VoucherStatus
+    +startsAt: DateTime
+    +expiresAt: DateTime
+    +maxRedemptions: number
+    +createdAt: DateTime?
+    +updatedAt: DateTime?
+  }
+
+  class "voucher_redemptions" as VoucherRedemption <<table>> {
+    +id: uuid
+    +voucherId: uuid
+    +memberId: uuid
+    +subscriptionId: uuid
+    +discountAmount: number
+    +redeemedAt: DateTime
+  }
+
+  class "facility_feedbacks" as FacilityFeedback <<table>> {
+    +id: uuid
+    +facilityId: uuid
+    +memberId: uuid
+    +subject: string
+    +message: string
+    +rating: number?
+    +status: FeedbackStatus
+    +managerResponse: string?
+    +respondedByManagerId: uuid?
+    +respondedAt: DateTime?
+    +createdAt: DateTime
+  }
+}
+
+package "PT Workflow Domain" {
+  class "membership_pt_preferences" as MembershipPtPreference <<table>> {
+    +id: uuid
+    +subscriptionId: uuid
+    +preferredPtId: uuid?
+    +preferredPtGender: PtGenderPreference
+    +sessionsPerWeek: number
+    +trainingGoal: string?
+    +experienceLevel: ExperienceLevel
+    +notes: string?
+  }
+
+  class "membership_pt_preference_time_slots" as PtPreferenceTimeSlot <<table>> {
+    +id: uuid?
+    +ptPreferenceId: uuid
+    +dayOfWeek: number
+    +startTime: Time
+    +endTime: Time
+  }
+
+  class "membership_pt_assignments" as MembershipPtAssignment <<table>> {
+    +id: uuid
+    +subscriptionId: uuid
+    +ptId: uuid
+    +assignedByManagerId: uuid
+    +status: PtAssignmentStatus
+    +scheduleStartsOn: Date
+    +scheduleTimezone: string
+    +scheduleNote: string?
+    +memberResponseNote: string?
+    +assignedAt: DateTime?
+    +memberDecidedAt: DateTime?
+    +createdAt: DateTime?
+  }
+
+  class "membership_pt_assignment_schedule_slots" as PtAssignmentScheduleSlot <<table>> {
+    +id: uuid?
+    +assignmentId: uuid
+    +dayOfWeek: number
+    +startTime: Time
+    +endTime: Time
+  }
+
+  class "membership_pt_sessions" as MembershipPtSession <<table>> {
+    +id: uuid
+    +subscriptionId: uuid
+    +memberId: uuid
+    +ptId: uuid
+    +sessionNumber: number
+    +startsAt: DateTime
+    +endsAt: DateTime
+    +status: SessionStatus
+  }
+
+  class "pt_session_feedbacks" as PtSessionFeedback <<table>> {
+    +id: uuid?
+    +sessionId: uuid
+    +ptId: uuid
+    +feedback: string
+    +rating: number?
+    +nextSteps: string?
+    +status: FeedbackStatus
+  }
+}
+
+package "Data and Action Services" {
+  class FacilityQueryService <<service>> {
+    +getFacilityPageData(): FacilityPageData
+    +getFacilityDetailPageData(facilityName): FacilityDetailPageData
+    +getFacilityRoomPageData(facilityName, roomId): FacilityRoomPageData
+    +getRoomEquipmentPageData(facilityName, roomId): RoomEquipmentPageData
+    +getEquipmentDetailPageData(facilityName, roomId, equipmentId): EquipmentDetailPageData
+  }
+
+  class FacilityActionService <<serverAction>> {
+    +createFacilityRoom(state, formData): FacilityCreateFormState
+    +createRoomEquipment(state, formData): FacilityCreateFormState
+    -getOwnedFacility(client, userId, facilityId): OwnedFacility?
+    -getOwnedRoom(client, facilityId, roomId): OwnedRoom?
+  }
+
+  class StaffQueryService <<service>> {
+    +getStaffPageData(): StaffTableRow[]
+    +getAddStaffPageData(): StaffFacilityOption[]
+    +getOwnerStaffPageData(): StaffTableRow[]
+    +getManagerStaffPageData(): StaffTableRow[]
+    +getStaffDetailData(staffId): StaffDetailData?
+  }
+
+  class StaffActionService <<serverAction>> {
+    +createStaff(state, formData): ActionState
+    +updateStaff(state, formData): ActionState
+    +deleteStaff(state, formData): DeleteActionState
+    -verifyAccessibleFacility(client, facilityId): Result
+  }
+
+  class MembershipQueryService <<service>> {
+    +getMembershipsPageData(): OwnerMembershipsPageProps
+    +getMembershipPackageFormData(packageId?): MembershipPackageFormData
+    +getManagerSubscriptionDetailData(subscriptionId): SubscriptionDetail
+    +getMemberSubscriptionDetailData(subscriptionId): SubscriptionDetail
+  }
+
+  class MembershipPackageActionService <<serverAction>> {
+    +createMembershipPackage(state, formData): MembershipFormState
+    +updateMembershipPackage(state, formData): MembershipFormState
+    +deleteMembershipPackage(state, formData): DeleteActionState
+    +archiveMembershipPackage(formData): void
+    -replacePackageRooms(packageId, roomIds): string?
+  }
+
+  class MemberQueryService <<service>> {
+    +getManagerCreateMemberPageData(): PlanOption[]
+    +getMembersPageData(): MemberTableRow[]
+    +getMemberDetailData(memberId): MemberDetailData?
+    +getOwnerMemberEditData(memberId): OwnerMemberEditData?
+  }
+
+  class MemberAccountActionService <<serverAction>> {
+    +cancelMemberPlan(state, formData): DeleteActionState
+    +updateMember(state, formData): DeleteActionState
+  }
+
+  class MemberSubscriptionActionService <<serverAction>> {
+    +createMemberSubscription(state, formData): MemberActionState
+    +cancelPendingSubscription(state, formData): MemberActionState
+    +cancelPendingSubscriptionFromTable(state, formData): MemberActionState
+    +savePtPreference(state, formData): MemberActionState
+    +decidePtAssignment(state, formData): MemberActionState
+    +applyVoucher(state, formData): MemberActionState
+    +paySubscription(state, formData): MemberActionState
+    +checkoutSubscription(state, formData): MemberActionState
+    +createFacilityFeedback(state, formData): MemberActionState
+    +markSessionFeedbackRead(state, formData): MemberActionState
+  }
+
+  class ManagerWorkflowActionService <<serverAction>> {
+    +respondFacilityFeedback(state, formData): ActionState
+    +reportEquipmentIssue(state, formData): ActionState
+    +assignSubscriptionPt(state, formData): ActionState
+    +createManagedMember(state, formData): ActionState
+  }
+
+  class PtActionService <<serverAction>> {
+    +sendPtSessionFeedback(state, formData): ActionState
+  }
+
+  class VoucherQueryService <<service>> {
+    +getVouchersPageData(): OwnerVouchersPageProps
+    +getVoucherFormData(): VoucherFormData
+    +getVoucherEditFormData(voucherCode): VoucherFormData?
+    +getVoucherDetailData(voucherCode): OwnerVoucherDetailPageProps?
+  }
+
+  class VoucherActionService <<serverAction>> {
+    +createVoucher(state, formData): VoucherFormState
+    +updateVoucher(state, formData): VoucherFormState
+    +deleteVoucher(state, formData): DeleteActionState
+  }
+
+  class PaymentQueryService <<service>> {
+    +getPaymentDetailData(paymentId): PaymentDetailData?
+  }
+
+  class RevenueQueryService <<service>> {
+    +getOwnerRevenuePageData(): OwnerRevenuePageProps
+  }
+
+  class OverviewQueryService <<service>> {
+    +getOwnerOverviewPageProps(): OwnerOverviewPageProps
+    +getManagerOverviewData(): ManagerOverviewData
+  }
+
+  class ScheduleQueryService <<service>> {
+    +getMemberScheduleData(): ScheduleData
+    +getPtScheduleData(): ScheduleData
+    +buildScheduleCalendarWeeks(year, month): CalendarWeek[]
+    +groupScheduleSessionsByDay(sessions): Map<string, Session[]>
+  }
+
+  class ProfileService <<serverAction>> {
+    +getCurrentProfileData(): CurrentProfileData
+    +getCurrentMemberMembershipData(): CurrentMemberMembershipData?
+    +updateCurrentProfile(state, formData): ProfileActionState
+  }
+}
+
+package "Presentation Layer" {
+  class AppRouter <<page>> {
+    +loginRoute(): page
+    +overviewRoute(): page
+    +facilityRoutes(): page[]
+    +memberRoutes(): page[]
+    +staffRoutes(): page[]
+    +membershipRoutes(): page[]
+    +subscriptionRoutes(): page[]
+    +requestRoutes(): page[]
+    +scheduleRoutes(): page[]
+    +paymentRoutes(): page[]
+    +feedbackRoutes(): page[]
+    +profileRoutes(): page[]
+  }
+
+  class OwnerPages <<page>> {
+    +OwnerOverviewPage()
+    +OwnerRevenuePage()
+    +OwnerFacilityPage()
+    +OwnerMembershipsPage()
+    +OwnerVouchersPage()
+    +OwnerStaffPage()
+    +OwnerMembersPage()
+    +OwnerFeedbackPage()
+    +OwnerProfilePage()
+  }
+
+  class ManagerPages <<page>> {
+    +ManagerOverviewPage()
+    +ManagerFacilityPage()
+    +ManagerSubscriptionsPage()
+    +ManagerRequestsPage()
+    +ManagerStaffPage()
+    +ManagerMembersPage()
+    +ManagerFeedbackPage()
+    +ManagerProfilePage()
+  }
+
+  class MemberPages <<page>> {
+    +MemberOverviewPage()
+    +MemberMembershipsPage()
+    +MemberSubscriptionsPage()
+    +MemberSchedulePage()
+    +MemberTrainersPage()
+    +MemberPaymentsPage()
+    +MemberFeedbackPage()
+    +MemberProfilePage()
+  }
+
+  class PtPages <<page>> {
+    +PtOverviewPage()
+    +PtMembersPage()
+    +PtRequestsPage()
+    +PtSchedulePage()
+    +PtProfilePage()
+  }
+}
+
+' Auth relationships
+Account "1" -- "0..1" AppUser : account_id
+SupabaseAuthUser "1" .. "0..1" AppUser : mirrored profile
+AppUser --> Role
+AuthenticatedUser --> Role
+RouteAccessRule --> Role
+AuthContextService ..> AuthenticatedUser
+CurrentUserService ..> AuthContextService
+CurrentUserService ..> SupabaseServerClient
+SessionMiddleware ..> AuthContextService
+SessionMiddleware ..> RouteAccessService
+SessionMiddleware ..> SupabaseServerClient
+LoginActionService ..> SupabaseServerClient
+LoginActionService ..> SupabaseAuthUser
+
+' Facility and staff relationships
+AppUser "1" -- "0..*" GymFacility : owner_id
+GymFacility "1" *-- "0..*" Room : contains
+GymFacility "1" *-- "0..*" GymEquipment : owns
+Room "1" -- "0..*" GymEquipment : located_in
+GymEquipment "1" -- "0..*" EquipmentIssueReport : reports
+AppUser "1" -- "0..*" EquipmentIssueReport : reporter_id
+GymFacility "1" -- "0..*" Staff : facility_id
+GymFacility "1" -- "0..*" FacilityManager : facility_id
+AppUser "1" -- "0..*" FacilityManager : manager_id
+GymFacility "1" -- "0..*" FacilityPt : facility_id
+AppUser "1" -- "0..*" FacilityPt : pt_id
+AppUser "1" -- "0..*" FacilityPt : assigned_by_manager_id
+Room --> RoomStatus
+GymEquipment --> EquipmentStatus
+EquipmentIssueReport --> EquipmentStatus
+Staff --> StaffStatus
+
+' Membership, payment, voucher, and feedback relationships
+GymFacility "1" -- "0..*" MembershipPackage : facility_id
+MembershipPackage "1" -- "0..*" MembershipPackageRoom : package_id
+Room "1" -- "0..*" MembershipPackageRoom : room_id
+AppUser "1" -- "0..*" MembershipSubscription : member_id
+GymFacility "1" -- "0..*" MembershipSubscription : facility_id
+MembershipPackage "1" -- "0..*" MembershipSubscription : package_id
+MembershipSubscription "1" -- "0..*" MembershipPayment : subscription_id
+AppUser "1" -- "0..*" MembershipPayment : member_id
+GymFacility "1" -- "0..*" Voucher : facility_id
+Voucher "1" -- "0..*" VoucherRedemption : voucher_id
+AppUser "1" -- "0..*" VoucherRedemption : member_id
+MembershipSubscription "1" -- "0..*" VoucherRedemption : subscription_id
+GymFacility "1" -- "0..*" FacilityFeedback : facility_id
+AppUser "1" -- "0..*" FacilityFeedback : member_id
+AppUser "0..1" -- "0..*" FacilityFeedback : responded_by_manager_id
+MembershipPackage --> MembershipPackageStatus
+MembershipSubscription --> SubscriptionStatus
+MembershipPayment --> PaymentStatus
+Voucher --> VoucherStatus
+Voucher --> VoucherDiscountType
+FacilityFeedback --> FeedbackStatus
+
+' PT workflow relationships
+MembershipSubscription "1" -- "0..1" MembershipPtPreference : subscription_id
+MembershipPtPreference "1" *-- "1..*" PtPreferenceTimeSlot : availability
+AppUser "0..1" -- "0..*" MembershipPtPreference : preferred_pt_id
+MembershipSubscription "1" -- "0..*" MembershipPtAssignment : subscription_id
+AppUser "1" -- "0..*" MembershipPtAssignment : pt_id
+AppUser "1" -- "0..*" MembershipPtAssignment : assigned_by_manager_id
+MembershipPtAssignment "1" *-- "1..*" PtAssignmentScheduleSlot : weekly_slots
+MembershipSubscription "1" -- "0..*" MembershipPtSession : subscription_id
+AppUser "1" -- "0..*" MembershipPtSession : member_id
+AppUser "1" -- "0..*" MembershipPtSession : pt_id
+MembershipPtSession "1" -- "0..1" PtSessionFeedback : session_id
+AppUser "1" -- "0..*" PtSessionFeedback : pt_id
+MembershipPtPreference --> PtGenderPreference
+MembershipPtPreference --> ExperienceLevel
+MembershipPtAssignment --> PtAssignmentStatus
+MembershipPtSession --> SessionStatus
+PtSessionFeedback --> FeedbackStatus
+
+' Service dependencies
+FacilityQueryService ..> SupabaseServerClient
+FacilityQueryService ..> GymFacility
+FacilityQueryService ..> Room
+FacilityQueryService ..> GymEquipment
+FacilityQueryService ..> EquipmentIssueReport
+FacilityActionService ..> SupabaseServerClient
+FacilityActionService ..> GymFacility
+FacilityActionService ..> Room
+FacilityActionService ..> GymEquipment
+
+StaffQueryService ..> SupabaseServerClient
+StaffQueryService ..> Staff
+StaffQueryService ..> FacilityManager
+StaffQueryService ..> FacilityPt
+StaffActionService ..> SupabaseServerClient
+StaffActionService ..> SupabaseAdminClient
+StaffActionService ..> SupabaseAuthUser
+StaffActionService ..> Account
+StaffActionService ..> AppUser
+StaffActionService ..> Staff
+StaffActionService ..> FacilityManager
+StaffActionService ..> FacilityPt
+
+MembershipQueryService ..> SupabaseServerClient
+MembershipQueryService ..> MembershipPackage
+MembershipQueryService ..> MembershipSubscription
+MembershipQueryService ..> MembershipPtPreference
+MembershipQueryService ..> MembershipPtAssignment
+MembershipPackageActionService ..> SupabaseServerClient
+MembershipPackageActionService ..> SupabaseAdminClient
+MembershipPackageActionService ..> MembershipPackage
+MembershipPackageActionService ..> MembershipPackageRoom
+
+MemberQueryService ..> SupabaseServerClient
+MemberQueryService ..> AppUser
+MemberQueryService ..> MembershipSubscription
+MemberQueryService ..> MembershipPayment
+MemberAccountActionService ..> SupabaseAdminClient
+MemberAccountActionService ..> AppUser
+MemberAccountActionService ..> MembershipSubscription
+MemberSubscriptionActionService ..> SupabaseServerClient
+MemberSubscriptionActionService ..> SupabaseAdminClient
+MemberSubscriptionActionService ..> MembershipSubscription
+MemberSubscriptionActionService ..> MembershipPayment
+MemberSubscriptionActionService ..> MembershipPtPreference
+MemberSubscriptionActionService ..> MembershipPtAssignment
+MemberSubscriptionActionService ..> VoucherRedemption
+MemberSubscriptionActionService ..> FacilityFeedback
+
+ManagerWorkflowActionService ..> SupabaseServerClient
+ManagerWorkflowActionService ..> SupabaseAdminClient
+ManagerWorkflowActionService ..> MembershipPtAssignment
+ManagerWorkflowActionService ..> PtAssignmentScheduleSlot
+ManagerWorkflowActionService ..> FacilityFeedback
+ManagerWorkflowActionService ..> EquipmentIssueReport
+ManagerWorkflowActionService ..> Account
+ManagerWorkflowActionService ..> AppUser
+PtActionService ..> SupabaseServerClient
+PtActionService ..> PtSessionFeedback
+
+VoucherQueryService ..> SupabaseServerClient
+VoucherQueryService ..> Voucher
+VoucherQueryService ..> VoucherRedemption
+VoucherActionService ..> SupabaseServerClient
+VoucherActionService ..> SupabaseAdminClient
+VoucherActionService ..> Voucher
+PaymentQueryService ..> SupabaseServerClient
+PaymentQueryService ..> MembershipPayment
+RevenueQueryService ..> SupabaseServerClient
+RevenueQueryService ..> MembershipPayment
+OverviewQueryService ..> SupabaseServerClient
+OverviewQueryService ..> MembershipSubscription
+OverviewQueryService ..> MembershipPayment
+OverviewQueryService ..> GymEquipment
+ScheduleQueryService ..> SupabaseServerClient
+ScheduleQueryService ..> MembershipPtSession
+ScheduleQueryService ..> PtSessionFeedback
+ProfileService ..> SupabaseServerClient
+ProfileService ..> SupabaseAdminClient
+ProfileService ..> AppUser
+
+' Page dependencies
+AppRouter ..> RouteAccessService
+AppRouter ..> CurrentUserService
+OwnerPages ..> OverviewQueryService
+OwnerPages ..> RevenueQueryService
+OwnerPages ..> FacilityQueryService
+OwnerPages ..> MembershipQueryService
+OwnerPages ..> VoucherQueryService
+OwnerPages ..> StaffQueryService
+OwnerPages ..> MemberQueryService
+ManagerPages ..> OverviewQueryService
+ManagerPages ..> FacilityQueryService
+ManagerPages ..> MembershipQueryService
+ManagerPages ..> StaffQueryService
+ManagerPages ..> MemberQueryService
+ManagerPages ..> ManagerWorkflowActionService
+MemberPages ..> MembershipQueryService
+MemberPages ..> MemberSubscriptionActionService
+MemberPages ..> ScheduleQueryService
+MemberPages ..> PaymentQueryService
+MemberPages ..> ProfileService
+PtPages ..> ScheduleQueryService
+PtPages ..> PtActionService
+PtPages ..> MemberQueryService
+
+ModelNote .. AppRouter
+
+@enduml

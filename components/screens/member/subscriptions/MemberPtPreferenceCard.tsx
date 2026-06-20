@@ -1,6 +1,7 @@
 import { savePtPreference } from "@/app/(main)/member-actions"
 import { FormSelect } from "@/components/FormSelect"
 import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
+import { TimeSelectInput } from "@/components/TimeSelectInput"
 import {
   subscriptionWeekdays,
   subscriptionWeeklySlotIndexes,
@@ -14,7 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 
@@ -82,7 +82,9 @@ export function MemberPtPreferenceCard({
               <FormSelect
                 id="preferredPtGender"
                 name="preferredPtGender"
-                defaultValue={preference?.preferred_pt_gender ?? "no_preference"}
+                defaultValue={
+                  preference?.preferred_pt_gender ?? "no_preference"
+                }
                 options={preferredPtGenderOptions}
               />
             </div>
@@ -122,18 +124,24 @@ export function MemberPtPreferenceCard({
                   <div key={index} className="grid gap-2 rounded-lg border p-3">
                     <div className="flex items-center justify-between gap-2">
                       <Label>{subscriptionWeekdays[index]}</Label>
-                      {slot ? <Badge variant="secondary">Selected</Badge> : null}
+                      {slot ? (
+                        <Badge variant="secondary">Selected</Badge>
+                      ) : null}
                     </div>
-                    <input type="hidden" name={`slotDay${index}`} value={index} />
-                    <Input
-                      name={`slotStart${index}`}
-                      type="time"
-                      defaultValue={slot?.start_time.slice(0, 5) ?? ""}
+                    <input
+                      type="hidden"
+                      name={`slotDay${index}`}
+                      value={index}
                     />
-                    <Input
+                    <TimeSelectInput
+                      name={`slotStart${index}`}
+                      defaultValue={slot?.start_time.slice(0, 5)}
+                      placeholder="Start"
+                    />
+                    <TimeSelectInput
                       name={`slotEnd${index}`}
-                      type="time"
-                      defaultValue={slot?.end_time.slice(0, 5) ?? ""}
+                      defaultValue={slot?.end_time.slice(0, 5)}
+                      placeholder="End"
                     />
                   </div>
                 )

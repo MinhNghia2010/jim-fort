@@ -1,22 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Clock3 } from "lucide-react"
 
 import { DatePickerInput } from "@/components/DatePickerInput"
-import { Button } from "@/components/ui/button"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "@/components/ui/input-group"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { TimeSelectInput } from "@/components/TimeSelectInput"
 import {
   Select,
   SelectContent,
@@ -46,35 +33,18 @@ type ManagerScheduleDatePickerProps = {
   name: string
 }
 
-const hourOptions = Array.from({ length: 24 }, (_, index) => index)
-const minuteOptions = Array.from({ length: 60 }, (_, index) => index)
+function getTodayInputValue() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date())
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value])
+  )
 
-function formatTime(hour: number, minute: number) {
-  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
-}
-
-function parseTime(value: string) {
-  const match = value.trim().match(/^(\d{1,2}):(\d{1,2})$/)
-
-  if (!match) {
-    return null
-  }
-
-  const hour = Number(match[1])
-  const minute = Number(match[2])
-
-  if (
-    !Number.isInteger(hour) ||
-    !Number.isInteger(minute) ||
-    hour < 0 ||
-    hour > 23 ||
-    minute < 0 ||
-    minute > 59
-  ) {
-    return null
-  }
-
-  return { hour, minute }
+  return `${values.year}-${values.month}-${values.day}`
 }
 
 export function ManagerTrainerSelect({
@@ -112,6 +82,7 @@ export function ManagerScheduleDatePicker({
   name,
 }: ManagerScheduleDatePickerProps) {
   const [date, setDate] = useState("")
+  const today = getTodayInputValue()
 
   return (
     <DatePickerInput
@@ -120,6 +91,7 @@ export function ManagerScheduleDatePicker({
       value={date}
       onChange={setDate}
       ariaLabel="Schedule start date"
+      min={today}
       required
     />
   )
@@ -130,121 +102,11 @@ export function ManagerTimeSelect({
   defaultValue = "",
   placeholder,
 }: ManagerTimeSelectProps) {
-  const initialTime = parseTime(defaultValue.slice(0, 5))
-  const [inputValue, setInputValue] = useState(
-    initialTime ? formatTime(initialTime.hour, initialTime.minute) : ""
-  )
-  const [draftHour, setDraftHour] = useState(initialTime?.hour ?? 9)
-  const [draftMinute, setDraftMinute] = useState(initialTime?.minute ?? 0)
-  const selectedTime = parseTime(inputValue)
-  const submittedValue = selectedTime
-    ? formatTime(selectedTime.hour, selectedTime.minute)
-    : ""
-
-  function updateTime(hour: number, minute: number) {
-    setDraftHour(hour)
-    setDraftMinute(minute)
-    setInputValue(formatTime(hour, minute))
-  }
-
-  function handleInputChange(value: string) {
-    setInputValue(value)
-
-    const parsedTime = parseTime(value)
-
-    if (parsedTime) {
-      setDraftHour(parsedTime.hour)
-      setDraftMinute(parsedTime.minute)
-    }
-  }
-
   return (
-    <>
-      <input type="hidden" name={name} value={submittedValue} />
-      <InputGroup>
-        <InputGroupInput
-          aria-label={placeholder}
-          inputMode="numeric"
-          placeholder={`${placeholder} HH:MM`}
-          value={inputValue}
-          aria-invalid={Boolean(inputValue && !selectedTime)}
-          onChange={(event) => handleInputChange(event.target.value)}
-          onBlur={() => {
-            if (selectedTime) {
-              setInputValue(formatTime(selectedTime.hour, selectedTime.minute))
-            }
-          }}
-        />
-        <InputGroupAddon align="inline-end">
-          <Popover>
-            <PopoverTrigger asChild>
-              <InputGroupButton
-                aria-label={`Open ${placeholder.toLowerCase()} time picker`}
-                size="icon-xs"
-              >
-                <Clock3 aria-hidden="true" />
-              </InputGroupButton>
-            </PopoverTrigger>
-            <PopoverContent className="w-56" align="start">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Hour
-                  </p>
-                  <ScrollArea className="h-44 rounded-lg border">
-                    <div className="flex flex-col gap-1 p-1">
-                      {hourOptions.map((hour) => (
-                        <Button
-                          key={hour}
-                          type="button"
-                          variant={draftHour === hour ? "secondary" : "ghost"}
-                          size="sm"
-                          className="w-full font-mono"
-                          onClick={() => updateTime(hour, draftMinute)}
-                        >
-                          {String(hour).padStart(2, "0")}
-                        </Button>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Minute
-                  </p>
-                  <ScrollArea className="h-44 rounded-lg border">
-                    <div className="flex flex-col gap-1 p-1">
-                      {minuteOptions.map((minute) => (
-                        <Button
-                          key={minute}
-                          type="button"
-                          variant={
-                            draftMinute === minute ? "secondary" : "ghost"
-                          }
-                          size="sm"
-                          className="w-full font-mono"
-                          onClick={() => updateTime(draftHour, minute)}
-                        >
-                          {String(minute).padStart(2, "0")}
-                        </Button>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setInputValue("")}
-              >
-                Clear time
-              </Button>
-            </PopoverContent>
-          </Popover>
-        </InputGroupAddon>
-      </InputGroup>
-    </>
+    <TimeSelectInput
+      name={name}
+      defaultValue={defaultValue}
+      placeholder={placeholder}
+    />
   )
 }

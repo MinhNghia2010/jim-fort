@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useId, useMemo, useState } from "react"
 import { CalendarDays } from "lucide-react"
 
 import { Calendar } from "@/components/ui/calendar"
@@ -69,58 +69,77 @@ export function DatePickerInput({
   required,
 }: DatePickerInputProps) {
   const [open, setOpen] = useState(false)
+  const errorId = useId()
   const selectedDate = useMemo(() => inputValueToDate(value), [value])
   const minDate = useMemo(() => inputValueToDate(min), [min])
   const calendarLabel = ariaLabel ?? "date"
+  const hasFormatError = Boolean(value && !selectedDate)
+  const hasMinError = Boolean(
+    selectedDate && minDate && selectedDate.getTime() < minDate.getTime()
+  )
+  const isInvalid = hasFormatError || hasMinError
 
   return (
-    <InputGroup data-disabled={disabled}>
-      <InputGroupInput
-        id={id}
-        name={name}
-        aria-label={ariaLabel}
-        aria-required={required || undefined}
-        autoComplete="off"
-        disabled={disabled}
-        inputMode="numeric"
-        maxLength={10}
-        placeholder="YYYY-MM-DD"
-        type="text"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      />
-      <InputGroupAddon align="inline-end">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <InputGroupButton
-              aria-label={`Open ${calendarLabel} calendar`}
-              className="items-center justify-center"
-              disabled={disabled}
-              size="icon-xs"
-            >
-              <CalendarDays aria-hidden="true" />
-            </InputGroupButton>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              disabled={
-                minDate ? (date) => date.getTime() < minDate.getTime() : false
-              }
-              captionLayout="dropdown"
-              timeZone="Asia/Ho_Chi_Minh"
-              onSelect={(date) => {
-                if (date) {
-                  onChange(dateToInputValue(date))
+    <div className="flex flex-col gap-1">
+      <InputGroup data-disabled={disabled}>
+        <InputGroupInput
+          id={id}
+          name={name}
+          aria-describedby={isInvalid ? errorId : undefined}
+          aria-invalid={isInvalid}
+          aria-label={ariaLabel}
+          aria-required={required || undefined}
+          autoComplete="off"
+          disabled={disabled}
+          inputMode="numeric"
+          maxLength={10}
+          min={min}
+          pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}"
+          placeholder="YYYY-MM-DD"
+          required={required}
+          title="Use YYYY-MM-DD."
+          type="text"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+        <InputGroupAddon align="inline-end">
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <InputGroupButton
+                aria-label={`Open ${calendarLabel} calendar`}
+                className="items-center justify-center"
+                disabled={disabled}
+                size="icon-xs"
+              >
+                <CalendarDays aria-hidden="true" />
+              </InputGroupButton>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                disabled={
+                  minDate ? (date) => date.getTime() < minDate.getTime() : false
                 }
+                captionLayout="dropdown"
+                timeZone="Asia/Ho_Chi_Minh"
+                onSelect={(date) => {
+                  if (date) {
+                    onChange(dateToInputValue(date))
+                  }
 
-                setOpen(false)
-              }}
-            />
-          </PopoverContent>
-        </Popover>
-      </InputGroupAddon>
-    </InputGroup>
+                  setOpen(false)
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </InputGroupAddon>
+      </InputGroup>
+      {isInvalid ? (
+        <p id={errorId} className="text-xs text-destructive">
+          {hasMinError ? `Choose ${min} or a later date.` : "Use YYYY-MM-DD."}
+        </p>
+      ) : null}
+    </div>
   )
 }
