@@ -445,16 +445,7 @@ export async function createMemberSubscription(
   )
 }
 
-export async function cancelPendingSubscription(
-  _state: MemberActionState,
-  formData: FormData
-): Promise<MemberActionState> {
-  const subscriptionId = stringValue(formData, "subscriptionId")
-
-  if (!subscriptionId) {
-    return { error: "Select a pending subscription." }
-  }
-
+async function cancelPendingSubscriptionById(subscriptionId: string) {
   const context = await getMemberContext()
 
   if ("error" in context) {
@@ -524,9 +515,40 @@ export async function cancelPendingSubscription(
 
   revalidatePath(`/subscriptions/${subscriptionId}`)
   revalidatePath("/subscriptions")
-  redirect(
-    withRedirectToast("/subscriptions", "Subscription was cancelled.")
-  )
+
+  return { message: "Subscription cancelled" }
+}
+
+export async function cancelPendingSubscription(
+  _state: MemberActionState,
+  formData: FormData
+): Promise<MemberActionState> {
+  const subscriptionId = stringValue(formData, "subscriptionId")
+
+  if (!subscriptionId) {
+    return { error: "Select a pending subscription." }
+  }
+
+  const result = await cancelPendingSubscriptionById(subscriptionId)
+
+  if (result.error) {
+    return result
+  }
+
+  redirect(withRedirectToast("/subscriptions", "Subscription was cancelled."))
+}
+
+export async function cancelPendingSubscriptionFromTable(
+  _state: MemberActionState,
+  formData: FormData
+): Promise<MemberActionState> {
+  const subscriptionId = stringValue(formData, "subscriptionId")
+
+  if (!subscriptionId) {
+    return { error: "Select a pending subscription." }
+  }
+
+  return cancelPendingSubscriptionById(subscriptionId)
 }
 
 export async function savePtPreference(

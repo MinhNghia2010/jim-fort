@@ -13,11 +13,15 @@ type DeleteConfirmationButtonProps = Omit<
   DeleteConfirmationDialogProps,
   "open" | "onOpenChange"
 > & {
+  className?: React.ComponentProps<typeof Button>["className"]
+  disabled?: React.ComponentProps<typeof Button>["disabled"]
   label?: string
   size?: React.ComponentProps<typeof Button>["size"]
 }
 
 export function DeleteConfirmationButton({
+  className,
+  disabled,
   label = "Delete",
   size = "sm",
   ...dialogProps
@@ -31,6 +35,8 @@ export function DeleteConfirmationButton({
         type="button"
         variant="destructive"
         size={size}
+        className={className}
+        disabled={disabled}
         onClick={() => setOpen(true)}
       >
         <TriggerIcon data-icon="inline-start" />

@@ -27,6 +27,9 @@ export function MemberSubscriptionCheckoutSection({
   return (
     <MemberPaymentForm
       subscriptionId={subscription.id}
+      subscriptionLabel={
+        subscription.membership_packages?.name ?? "this subscription"
+      }
       amountLabel={formatSubscriptionMoney(subscription.final_price)}
     >
       {({ actions, form }) => (

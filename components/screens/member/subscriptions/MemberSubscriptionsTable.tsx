@@ -1,11 +1,9 @@
 "use client"
 
-import { useActionState, useEffect, useId, useRef, useState } from "react"
-import Link from "next/link"
-import { ClipboardList, Loader2, Search, X } from "lucide-react"
-import { toast } from "sonner"
+import { useState } from "react"
+import { ClipboardList, Search } from "lucide-react"
 
-import { cancelPendingSubscription } from "@/app/(main)/member-actions"
+import { cancelPendingSubscriptionFromTable } from "@/app/(main)/member-actions"
 import { StatusBadge } from "@/components/StatusBadge"
 import { OwnerTableHeaderSelect } from "@/components/screens/owner/OwnerTableHeaderSelect"
 import { TableRowActions } from "@/components/TableRowActions"
@@ -27,10 +25,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
 import {
   Empty,
   EmptyDescription,
@@ -72,11 +66,6 @@ export interface MemberSubscriptionTableRow {
 
 interface MemberSubscriptionsTableProps {
   subscriptions: MemberSubscriptionTableRow[]
-}
-
-type MemberActionState = {
-  error?: string
-  message?: string
 }
 
 const statusFilters = [
@@ -214,59 +203,6 @@ function sortSubscriptions(
 
 function canCancelSubscription(status: MemberSubscriptionStatus) {
   return status === "pending_payment" || status === "pending_pt_setup"
-}
-
-const initialActionState: MemberActionState = {}
-
-function CancelSubscriptionMenuAction({
-  subscriptionId,
-}: {
-  subscriptionId: string
-}) {
-  const formId = useId()
-  const [state, formAction, pending] = useActionState(
-    cancelPendingSubscription,
-    initialActionState
-  )
-  const wasPending = useRef(false)
-
-  useEffect(() => {
-    if (pending) {
-      wasPending.current = true
-      return
-    }
-
-    if (!wasPending.current) {
-      return
-    }
-
-    wasPending.current = false
-
-    if (state.error) {
-      toast.error(state.error)
-      return
-    }
-
-    toast.success(state.message ?? "Subscription cancelled")
-  }, [pending, state.error, state.message])
-
-  return (
-    <>
-      <form id={formId} action={formAction} className="hidden">
-        <input type="hidden" name="subscriptionId" value={subscriptionId} />
-      </form>
-      <DropdownMenuItem asChild variant="destructive" disabled={pending}>
-        <button type="submit" form={formId}>
-          {pending ? (
-            <Loader2 aria-hidden="true" className="animate-spin" />
-          ) : (
-            <X aria-hidden="true" />
-          )}
-          {pending ? "Cancelling" : "Cancel"}
-        </button>
-      </DropdownMenuItem>
-    </>
-  )
 }
 
 export function MemberSubscriptionsTable({
@@ -433,7 +369,7 @@ export function MemberSubscriptionsTable({
                 />
               </TableHead>
               <TableHead className="h-12 w-[10%] text-center">
-                Action
+                <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -470,21 +406,27 @@ export function MemberSubscriptionsTable({
                   <TableCell className="w-[10%] text-center">
                     <TableRowActions
                       label={`Open actions for ${subscription.plan}`}
-                    >
-                      <DropdownMenuItem asChild>
-                        <Link href={`/subscriptions/${subscription.id}`}>
-                          View detail
-                        </Link>
-                      </DropdownMenuItem>
-                      {canCancelSubscription(subscription.status) ? (
-                        <>
-                          <DropdownMenuSeparator />
-                          <CancelSubscriptionMenuAction
-                            subscriptionId={subscription.id}
-                          />
-                        </>
-                      ) : null}
-                    </TableRowActions>
+                      actions={[
+                        {
+                          href: `/subscriptions/${subscription.id}`,
+                          label: "View subscription",
+                        },
+                      ]}
+                      deleteAction={
+                        canCancelSubscription(subscription.status)
+                          ? {
+                              action: cancelPendingSubscriptionFromTable,
+                              confirmLabel: "Cancel subscription",
+                              description: `Cancel ${subscription.plan}? This keeps the subscription record in your history, but removes it from pending checkout.`,
+                              inputName: "subscriptionId",
+                              inputValue: subscription.id,
+                              label: "Cancel",
+                              successMessage: "Subscription cancelled",
+                              title: "Cancel subscription?",
+                            }
+                          : undefined
+                      }
+                    />
                   </TableCell>
                 </TableRow>
               ))

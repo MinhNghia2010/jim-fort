@@ -2,10 +2,14 @@
 
 import Image from "next/image"
 import { useActionState, useEffect, useId, useRef, useState } from "react"
-import { CircleAlert, CreditCard, Landmark, Loader2, X } from "lucide-react"
+import { CircleAlert, CreditCard, Landmark, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
-import { checkoutSubscription } from "@/app/(main)/member-actions"
+import {
+  cancelPendingSubscriptionFromTable,
+  checkoutSubscription,
+} from "@/app/(main)/member-actions"
+import { DeleteConfirmationButton } from "@/components/DeleteConfirmationButton"
 import { FormSelect } from "@/components/FormSelect"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -21,6 +25,7 @@ type MemberActionState = {
 
 type MemberPaymentFormProps = {
   subscriptionId: string
+  subscriptionLabel: string
   amountLabel: string
   children?: (props: {
     actions: React.ReactNode
@@ -37,10 +42,14 @@ function PaymentActionButtons({
   amountLabel,
   formId,
   pending,
+  subscriptionId,
+  subscriptionLabel,
 }: {
   amountLabel: string
   formId: string
   pending: boolean
+  subscriptionId: string
+  subscriptionLabel: string
 }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
@@ -61,19 +70,19 @@ function PaymentActionButtons({
           `Pay ${amountLabel}`
         )}
       </Button>
-      <Button
-        form={formId}
-        type="submit"
-        name="intent"
-        value="cancel"
-        variant="outline"
-        formNoValidate
-        disabled={pending}
+      <DeleteConfirmationButton
+        action={cancelPendingSubscriptionFromTable}
         className="px-3"
-      >
-        <X data-icon="inline-start" />
-        Cancel
-      </Button>
+        confirmLabel="Cancel subscription"
+        description={`Cancel ${subscriptionLabel}? This keeps the subscription record in your history, but removes it from pending checkout.`}
+        disabled={pending}
+        inputName="subscriptionId"
+        inputValue={subscriptionId}
+        label="Cancel"
+        size="default"
+        successMessage="Subscription cancelled"
+        title="Cancel subscription?"
+      />
     </div>
   )
 }
@@ -110,6 +119,7 @@ function BankTransferQrPanel({ amountLabel }: { amountLabel: string }) {
 
 export function MemberPaymentForm({
   subscriptionId,
+  subscriptionLabel,
   amountLabel,
   children,
 }: MemberPaymentFormProps) {
@@ -230,6 +240,8 @@ export function MemberPaymentForm({
       amountLabel={amountLabel}
       formId={formId}
       pending={pending}
+      subscriptionId={subscriptionId}
+      subscriptionLabel={subscriptionLabel}
     />
   )
 
