@@ -36,7 +36,6 @@ export function MemberCancelSubscriptionCard({
           successMessage="Subscription cancelled"
         >
           <input type="hidden" name="subscriptionId" value={subscription.id} />
-          <X data-icon="inline-start" />
         </MemberActionForm>
       </CardContent>
     </Card>

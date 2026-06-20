@@ -79,12 +79,12 @@ export function DatePickerInput({
         id={id}
         name={name}
         aria-label={ariaLabel}
+        aria-required={required || undefined}
         autoComplete="off"
         disabled={disabled}
         inputMode="numeric"
-        pattern="\d{4}-\d{2}-\d{2}"
+        maxLength={10}
         placeholder="YYYY-MM-DD"
-        required={required}
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}

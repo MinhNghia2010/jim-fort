@@ -318,8 +318,7 @@ export async function OwnerFeedbackDetailPage({
                     </p>
                   </div>
                 </CardContent>
-                <CardFooter className="flex-wrap justify-between gap-3 text-xs text-muted-foreground">
-                  <span className="font-mono break-all">ID {feedback.id}</span>
+                <CardFooter className="flex-wrap justify-end gap-3 text-xs text-muted-foreground">
                   <span>Updated {formatDateTime(feedback.updated_at)}</span>
                 </CardFooter>
               </Card>
