@@ -2,7 +2,13 @@
 
 import Image from "next/image"
 import { useActionState, useEffect, useId, useRef, useState } from "react"
-import { CircleAlert, CreditCard, Landmark, Loader2 } from "lucide-react"
+import {
+  CircleAlert,
+  CreditCard,
+  Landmark,
+  Loader2,
+  TriangleAlert,
+} from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -11,6 +17,17 @@ import {
 } from "@/app/(main)/member-actions"
 import { DeleteConfirmationButton } from "@/components/DeleteConfirmationButton"
 import { FormSelect } from "@/components/FormSelect"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,6 +43,7 @@ type MemberActionState = {
 type MemberPaymentFormProps = {
   subscriptionId: string
   subscriptionLabel: string
+  replacementPlanNames?: readonly string[]
   amountLabel: string
   children?: (props: {
     actions: React.ReactNode
@@ -42,34 +60,92 @@ function PaymentActionButtons({
   amountLabel,
   formId,
   pending,
+  replacementPlanNames = [],
   subscriptionId,
   subscriptionLabel,
 }: {
   amountLabel: string
   formId: string
   pending: boolean
+  replacementPlanNames?: readonly string[]
   subscriptionId: string
   subscriptionLabel: string
 }) {
+  const [replacementDialogOpen, setReplacementDialogOpen] = useState(false)
+  const hasReplacementWarning = replacementPlanNames.length > 0
+  const replacementLabel = replacementPlanNames.join(", ")
+  const payButtonContent = pending ? (
+    <>
+      <Loader2 data-icon="inline-start" className="animate-spin" />
+      Processing
+    </>
+  ) : (
+    `Pay ${amountLabel}`
+  )
+
+  function handleReplacementPayClick() {
+    const form = document.getElementById(formId) as HTMLFormElement | null
+
+    if (!form?.reportValidity()) {
+      return
+    }
+
+    setReplacementDialogOpen(true)
+  }
+
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-      <Button
-        form={formId}
-        type="submit"
-        disabled={pending}
-        name="intent"
-        value="pay"
-        className="w-full"
-      >
-        {pending ? (
-          <>
-            <Loader2 data-icon="inline-start" className="animate-spin" />
-            Processing
-          </>
-        ) : (
-          `Pay ${amountLabel}`
-        )}
-      </Button>
+      {hasReplacementWarning ? (
+        <AlertDialog
+          open={replacementDialogOpen}
+          onOpenChange={setReplacementDialogOpen}
+        >
+          <Button
+            type="button"
+            disabled={pending}
+            className="w-full"
+            onClick={handleReplacementPayClick}
+          >
+            {payButtonContent}
+          </Button>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogMedia>
+                <TriangleAlert />
+              </AlertDialogMedia>
+              <AlertDialogTitle>
+                Current membership will be cancelled
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Paying for this subscription will cancel {replacementLabel} and
+                replace it with the new plan.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep current plan</AlertDialogCancel>
+              <AlertDialogAction
+                form={formId}
+                type="submit"
+                name="intent"
+                value="pay"
+              >
+                Continue payment
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : (
+        <Button
+          form={formId}
+          type="submit"
+          disabled={pending}
+          name="intent"
+          value="pay"
+          className="w-full"
+        >
+          {payButtonContent}
+        </Button>
+      )}
       <DeleteConfirmationButton
         action={cancelPendingSubscriptionFromTable}
         className="px-3"
@@ -120,6 +196,7 @@ function BankTransferQrPanel({ amountLabel }: { amountLabel: string }) {
 export function MemberPaymentForm({
   subscriptionId,
   subscriptionLabel,
+  replacementPlanNames = [],
   amountLabel,
   children,
 }: MemberPaymentFormProps) {
@@ -153,7 +230,7 @@ export function MemberPaymentForm({
       return
     }
 
-    toast.success(state.message ?? "Payment completed")
+    toast.success(state.message ?? "Payment completed successfully.")
   }, [pending, state.error, state.message])
 
   const form = (
@@ -240,6 +317,7 @@ export function MemberPaymentForm({
       amountLabel={amountLabel}
       formId={formId}
       pending={pending}
+      replacementPlanNames={replacementPlanNames}
       subscriptionId={subscriptionId}
       subscriptionLabel={subscriptionLabel}
     />

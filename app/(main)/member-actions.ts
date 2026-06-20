@@ -910,7 +910,19 @@ export async function checkoutSubscription(
   }
 
   const result = await paySubscription(state, formData)
-  return result.error ? result : { message: "Payment completed" }
+
+  if (result.error) {
+    return result
+  }
+
+  const subscriptionId = stringValue(formData, "subscriptionId")
+
+  redirect(
+    withRedirectToast(
+      `/subscriptions/${subscriptionId}`,
+      "Payment completed successfully."
+    )
+  )
 }
 
 export async function createFacilityFeedback(

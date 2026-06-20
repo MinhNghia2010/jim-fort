@@ -4,6 +4,9 @@ import type { SubscriptionTimeSlot } from "@/lib/features/shared/subscriptions/d
 
 export type MemberSubscriptionRow = {
   id: string
+  member_id: string
+  facility_id: string
+  package_id: string
   status: string
   base_price: number | string
   discount_amount: number | string
@@ -12,6 +15,11 @@ export type MemberSubscriptionRow = {
   session_count_snapshot: number | null
   membership_packages: { name: string | null } | null
   gym_facilities: { name: string | null } | null
+}
+
+export type MemberReplacementSubscriptionRow = {
+  id: string
+  membership_packages: { name: string | null } | null
 }
 
 export type MemberPtRow = {
@@ -45,7 +53,7 @@ export async function getMemberSubscriptionDetailData(subscriptionId: string) {
       supabase
         .from("membership_subscriptions")
         .select(
-          "id,status,base_price,discount_amount,final_price,has_pt_snapshot,session_count_snapshot,membership_packages(name),gym_facilities(name)"
+          "id,member_id,facility_id,package_id,status,base_price,discount_amount,final_price,has_pt_snapshot,session_count_snapshot,membership_packages(name),gym_facilities(name)"
         )
         .eq("id", subscriptionId)
         .single(),
@@ -68,6 +76,25 @@ export async function getMemberSubscriptionDetailData(subscriptionId: string) {
         .eq("subscription_id", subscriptionId)
         .order("created_at", { ascending: false }),
     ])
+  const subscription =
+    subscriptionResult.data as unknown as MemberSubscriptionRow | null
+  const shouldCheckReplacement = Boolean(
+    subscription?.member_id &&
+    subscription.facility_id &&
+    subscription.package_id &&
+    subscription.status === "pending_payment"
+  )
+  const replacementResult = shouldCheckReplacement
+    ? await supabase
+        .from("membership_subscriptions")
+        .select("id,membership_packages(name)")
+        .eq("member_id", subscription?.member_id ?? "")
+        .eq("facility_id", subscription?.facility_id ?? "")
+        .eq("status", "active")
+        .neq("id", subscription?.id ?? "")
+        .neq("package_id", subscription?.package_id ?? "")
+        .order("activated_at", { ascending: false })
+    : { data: [], error: null }
 
   return {
     assignments: (assignmentResult.data ??
@@ -76,10 +103,12 @@ export async function getMemberSubscriptionDetailData(subscriptionId: string) {
       subscriptionResult.error ??
       ptResult.error ??
       preferenceResult.error ??
-      assignmentResult.error,
+      assignmentResult.error ??
+      replacementResult.error,
     preference: preferenceResult.data as unknown as MemberPreferenceRow | null,
     pts: (ptResult.data ?? []) as unknown as MemberPtRow[],
-    subscription:
-      subscriptionResult.data as unknown as MemberSubscriptionRow | null,
+    replacementSubscriptions: (replacementResult.data ??
+      []) as unknown as MemberReplacementSubscriptionRow[],
+    subscription,
   }
 }

@@ -16,8 +16,14 @@ type Props = {
 }
 
 export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
-  const { assignments, error, preference, pts, subscription } =
-    await getMemberSubscriptionDetailData(subscriptionId)
+  const {
+    assignments,
+    error,
+    preference,
+    pts,
+    replacementSubscriptions,
+    subscription,
+  } = await getMemberSubscriptionDetailData(subscriptionId)
   const pendingAssignment = assignments.find(
     (assignment) => assignment.status === "pending_member_decision"
   )
@@ -73,7 +79,10 @@ export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
           )}
         >
           {showCheckout ? (
-            <MemberSubscriptionCheckoutSection subscription={subscription} />
+            <MemberSubscriptionCheckoutSection
+              replacementSubscriptions={replacementSubscriptions}
+              subscription={subscription}
+            />
           ) : (
             <>
               {showMainColumn ? (

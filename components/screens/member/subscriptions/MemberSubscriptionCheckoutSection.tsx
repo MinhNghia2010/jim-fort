@@ -13,16 +13,27 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 
-import type { MemberSubscriptionRow } from "@/lib/features/member/subscriptions/detail-data"
+import type {
+  MemberReplacementSubscriptionRow,
+  MemberSubscriptionRow,
+} from "@/lib/features/member/subscriptions/detail-data"
 
 type MemberSubscriptionCheckoutSectionProps = {
+  replacementSubscriptions: readonly MemberReplacementSubscriptionRow[]
   subscription: MemberSubscriptionRow
 }
 
 export function MemberSubscriptionCheckoutSection({
+  replacementSubscriptions,
   subscription,
 }: MemberSubscriptionCheckoutSectionProps) {
   const discountAmount = Number(subscription.discount_amount) || 0
+  const replacementPlanNames = replacementSubscriptions
+    .map(
+      (replacement) =>
+        replacement.membership_packages?.name?.trim() || "your current plan"
+    )
+    .filter(Boolean)
 
   return (
     <MemberPaymentForm
@@ -30,6 +41,7 @@ export function MemberSubscriptionCheckoutSection({
       subscriptionLabel={
         subscription.membership_packages?.name ?? "this subscription"
       }
+      replacementPlanNames={replacementPlanNames}
       amountLabel={formatSubscriptionMoney(subscription.final_price)}
     >
       {({ actions, form }) => (
