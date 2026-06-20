@@ -754,6 +754,7 @@ export async function applyVoucher(
   }
 
   revalidatePath(`/subscriptions/${subscriptionId}`)
+  revalidatePath("/subscriptions")
   revalidatePath("/payments")
 
   return {}

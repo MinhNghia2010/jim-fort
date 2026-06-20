@@ -7,7 +7,7 @@ import { MemberCancelSubscriptionCard } from "./MemberCancelSubscriptionCard"
 import { MemberPaymentSummaryCard } from "./MemberPaymentSummaryCard"
 import { MemberPtAssignmentDecisionCard } from "./MemberPtAssignmentDecisionCard"
 import { MemberPtPreferenceCard } from "./MemberPtPreferenceCard"
-import { MemberSubscriptionCheckoutCard } from "./MemberSubscriptionCheckoutCard"
+import { MemberSubscriptionCheckoutSection } from "./MemberSubscriptionCheckoutSection"
 import { MemberSubscriptionStatusCard } from "./MemberSubscriptionStatusCard"
 import { getMemberSubscriptionDetailData } from "@/lib/features/member/subscriptions/detail-data"
 
@@ -29,8 +29,8 @@ export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
   const isPtSetupPending = subscription?.status === "pending_pt_setup"
   const showCheckout = Boolean(
     subscription &&
-      isPendingPayment &&
-      (!isPtSubscription || acceptedAssignment)
+    isPendingPayment &&
+    (!isPtSubscription || acceptedAssignment)
   )
   const showPtWorkflow = Boolean(
     subscription && isPtSubscription && isPtSetupPending
@@ -42,9 +42,9 @@ export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
   const showStatusCard = Boolean(subscription && !showCheckout)
   const showMainColumn = Boolean(
     showStatusCard ||
-      showPreferenceForm ||
-      pendingAssignment ||
-      showAcceptedSummary
+    showPreferenceForm ||
+    pendingAssignment ||
+    showAcceptedSummary
   )
 
   return (
@@ -72,42 +72,44 @@ export async function MemberSubscriptionDetailPage({ subscriptionId }: Props) {
                 : "lg:grid-cols-[minmax(0,1fr)_360px]"
           )}
         >
-          {showMainColumn ? (
-            <div className="grid gap-4">
-              {showStatusCard ? (
-                <MemberSubscriptionStatusCard subscription={subscription} />
-              ) : null}
-
-              {showPreferenceForm ? (
-                <MemberPtPreferenceCard
-                  preference={preference}
-                  pts={pts}
-                  subscription={subscription}
-                />
-              ) : null}
-
-              {showPtWorkflow && pendingAssignment ? (
-                <MemberPtAssignmentDecisionCard
-                  assignment={pendingAssignment}
-                  subscription={subscription}
-                />
-              ) : showAcceptedSummary && acceptedAssignment ? (
-                <MemberAcceptedPtCard assignment={acceptedAssignment} />
-              ) : null}
-            </div>
-          ) : null}
-
           {showCheckout ? (
-            <MemberSubscriptionCheckoutCard subscription={subscription} />
-          ) : null}
+            <MemberSubscriptionCheckoutSection subscription={subscription} />
+          ) : (
+            <>
+              {showMainColumn ? (
+                <div className="grid gap-4">
+                  {showStatusCard ? (
+                    <MemberSubscriptionStatusCard subscription={subscription} />
+                  ) : null}
 
-          <div className="grid content-start gap-4">
-            <MemberPaymentSummaryCard subscription={subscription} />
+                  {showPreferenceForm ? (
+                    <MemberPtPreferenceCard
+                      preference={preference}
+                      pts={pts}
+                      subscription={subscription}
+                    />
+                  ) : null}
 
-            {subscription.status === "pending_pt_setup" ? (
-              <MemberCancelSubscriptionCard subscription={subscription} />
-            ) : null}
-          </div>
+                  {showPtWorkflow && pendingAssignment ? (
+                    <MemberPtAssignmentDecisionCard
+                      assignment={pendingAssignment}
+                      subscription={subscription}
+                    />
+                  ) : showAcceptedSummary && acceptedAssignment ? (
+                    <MemberAcceptedPtCard assignment={acceptedAssignment} />
+                  ) : null}
+                </div>
+              ) : null}
+
+              <div className="grid content-start gap-4">
+                <MemberPaymentSummaryCard subscription={subscription} />
+
+                {subscription.status === "pending_pt_setup" ? (
+                  <MemberCancelSubscriptionCard subscription={subscription} />
+                ) : null}
+              </div>
+            </>
+          )}
         </div>
       ) : null}
     </PageShell>

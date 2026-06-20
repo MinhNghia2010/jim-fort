@@ -5,6 +5,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -13,9 +14,11 @@ import type { MemberSubscriptionRow } from "@/lib/features/member/subscriptions/
 
 type MemberPaymentSummaryCardProps = {
   subscription: MemberSubscriptionRow
+  actions?: React.ReactNode
 }
 
 export function MemberPaymentSummaryCard({
+  actions,
   subscription,
 }: MemberPaymentSummaryCardProps) {
   return (
@@ -49,6 +52,7 @@ export function MemberPaymentSummaryCard({
           </span>
         </div>
       </CardContent>
+      {actions ? <CardFooter className="block">{actions}</CardFooter> : null}
     </Card>
   )
 }

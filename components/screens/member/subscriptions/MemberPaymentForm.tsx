@@ -1,22 +1,31 @@
 "use client"
 
 import Image from "next/image"
-import { useId, useState } from "react"
-import { useFormStatus } from "react-dom"
-import { CreditCard, Landmark, X } from "lucide-react"
+import { useActionState, useEffect, useId, useRef, useState } from "react"
+import { CircleAlert, CreditCard, Landmark, Loader2, X } from "lucide-react"
+import { toast } from "sonner"
 
 import { checkoutSubscription } from "@/app/(main)/member-actions"
 import { FormSelect } from "@/components/FormSelect"
-import { MemberActionForm } from "@/components/screens/member/MemberActionForm"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
 type PaymentMethod = "card" | "bank_transfer"
 
+type MemberActionState = {
+  error?: string
+  message?: string
+}
+
 type MemberPaymentFormProps = {
   subscriptionId: string
   amountLabel: string
+  children?: (props: {
+    actions: React.ReactNode
+    form: React.ReactNode
+  }) => React.ReactNode
 }
 
 const paymentMethods: { value: PaymentMethod; label: string }[] = [
@@ -24,22 +33,48 @@ const paymentMethods: { value: PaymentMethod; label: string }[] = [
   { value: "bank_transfer", label: "Bank transfer" },
 ]
 
-function CancelCheckoutButton() {
-  const { pending } = useFormStatus()
-
+function PaymentActionButtons({
+  amountLabel,
+  formId,
+  pending,
+}: {
+  amountLabel: string
+  formId: string
+  pending: boolean
+}) {
   return (
-    <Button
-      type="submit"
-      name="intent"
-      value="cancel"
-      variant="outline"
-      formNoValidate
-      disabled={pending}
-      className="px-3"
-    >
-      <X data-icon="inline-start" />
-      Cancel
-    </Button>
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+      <Button
+        form={formId}
+        type="submit"
+        disabled={pending}
+        name="intent"
+        value="pay"
+        className="w-full"
+      >
+        {pending ? (
+          <>
+            <Loader2 data-icon="inline-start" className="animate-spin" />
+            Processing
+          </>
+        ) : (
+          `Pay ${amountLabel}`
+        )}
+      </Button>
+      <Button
+        form={formId}
+        type="submit"
+        name="intent"
+        value="cancel"
+        variant="outline"
+        formNoValidate
+        disabled={pending}
+        className="px-3"
+      >
+        <X data-icon="inline-start" />
+        Cancel
+      </Button>
+    </div>
   )
 }
 
@@ -76,26 +111,43 @@ function BankTransferQrPanel({ amountLabel }: { amountLabel: string }) {
 export function MemberPaymentForm({
   subscriptionId,
   amountLabel,
+  children,
 }: MemberPaymentFormProps) {
+  const [state, formAction, pending] = useActionState(
+    checkoutSubscription,
+    {} as MemberActionState
+  )
+  const wasPending = useRef(false)
   const [method, setMethod] = useState<PaymentMethod>("card")
+  const formId = useId()
   const methodId = useId()
   const cardholderNameId = useId()
   const cardNumberId = useId()
   const cardExpiryId = useId()
   const cardCvvId = useId()
 
-  return (
-    <MemberActionForm
-      action={checkoutSubscription}
-      submitLabel={`Pay ${amountLabel}`}
-      pendingLabel="Processing"
-      submitName="intent"
-      submitValue="pay"
-      actionsClassName="grid grid-cols-[minmax(0,1fr)_auto] gap-2"
-      buttonClassName="w-full"
-      secondaryAction={<CancelCheckoutButton />}
-      successMessage="Payment completed"
-    >
+  useEffect(() => {
+    if (pending) {
+      wasPending.current = true
+      return
+    }
+
+    if (!wasPending.current) {
+      return
+    }
+
+    wasPending.current = false
+
+    if (state.error) {
+      toast.error(state.error)
+      return
+    }
+
+    toast.success(state.message ?? "Payment completed")
+  }, [pending, state.error, state.message])
+
+  const form = (
+    <form id={formId} action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="subscriptionId" value={subscriptionId} />
       <div className="grid gap-2">
         <Label htmlFor={methodId}>Payment method</Label>
@@ -163,6 +215,32 @@ export function MemberPaymentForm({
       {method === "bank_transfer" ? (
         <BankTransferQrPanel amountLabel={amountLabel} />
       ) : null}
-    </MemberActionForm>
+
+      {state.error ? (
+        <Alert variant="destructive">
+          <CircleAlert />
+          <AlertDescription>{state.error}</AlertDescription>
+        </Alert>
+      ) : null}
+    </form>
+  )
+
+  const actions = (
+    <PaymentActionButtons
+      amountLabel={amountLabel}
+      formId={formId}
+      pending={pending}
+    />
+  )
+
+  if (children) {
+    return <>{children({ actions, form })}</>
+  }
+
+  return (
+    <>
+      {form}
+      {actions}
+    </>
   )
 }
